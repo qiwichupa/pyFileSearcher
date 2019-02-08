@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'main.ui',
-# licensing of 'main.ui' applies.
+# Form implementation generated from reading ui file './main.ui',
+# licensing of './main.ui' applies.
 #
-# Created: Fri Feb  8 14:19:31 2019
+# Created: Fri Feb  8 18:40:59 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -34,6 +34,17 @@ class Ui_MainWindow(object):
         self.tableFiles.setSizePolicy(sizePolicy)
         self.tableFiles.setMinimumSize(QtCore.QSize(0, 200))
         self.tableFiles.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        self.tableFiles.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
+        self.tableFiles.setAutoScroll(False)
+        self.tableFiles.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.tableFiles.setTabKeyNavigation(False)
+        self.tableFiles.setProperty("showDropIndicator", True)
+        self.tableFiles.setDragDropOverwriteMode(True)
+        self.tableFiles.setAlternatingRowColors(True)
+        self.tableFiles.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.tableFiles.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.tableFiles.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+        self.tableFiles.setWordWrap(False)
         self.tableFiles.setObjectName("tableFiles")
         self.tableFiles.setColumnCount(6)
         self.tableFiles.setRowCount(0)
@@ -49,6 +60,9 @@ class Ui_MainWindow(object):
         self.tableFiles.setHorizontalHeaderItem(4, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableFiles.setHorizontalHeaderItem(5, item)
+        self.tableFiles.horizontalHeader().setStretchLastSection(True)
+        self.tableFiles.verticalHeader().setDefaultSectionSize(20)
+        self.tableFiles.verticalHeader().setMinimumSectionSize(20)
         self.layoutBottom.addWidget(self.tableFiles, 1, 0, 1, 1)
         self.tabsSearch = QtWidgets.QTabWidget(self.centralwidget)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.MinimumExpanding)
@@ -329,6 +343,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "MainWindow", None, -1))
+        self.tableFiles.setSortingEnabled(True)
         self.tableFiles.horizontalHeaderItem(0).setText(QtWidgets.QApplication.translate("MainWindow", "Filename", None, -1))
         self.tableFiles.horizontalHeaderItem(1).setText(QtWidgets.QApplication.translate("MainWindow", "Path", None, -1))
         self.tableFiles.horizontalHeaderItem(2).setText(QtWidgets.QApplication.translate("MainWindow", "Type", None, -1))
