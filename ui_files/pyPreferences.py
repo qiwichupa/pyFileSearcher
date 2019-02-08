@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'preferences.ui',
-# licensing of 'preferences.ui' applies.
+# Form implementation generated from reading ui file './preferences.ui',
+# licensing of './preferences.ui' applies.
 #
-# Created: Thu Feb  7 08:29:30 2019
+# Created: Fri Feb  8 19:12:14 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,9 +13,9 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(390, 132)
+        Dialog.resize(390, 166)
         self.preferences = QtWidgets.QDialogButtonBox(Dialog)
-        self.preferences.setGeometry(QtCore.QRect(20, 90, 341, 32))
+        self.preferences.setGeometry(QtCore.QRect(20, 120, 341, 32))
         self.preferences.setOrientation(QtCore.Qt.Horizontal)
         self.preferences.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.preferences.setObjectName("preferences")
@@ -25,6 +25,14 @@ class Ui_Dialog(object):
         self.PREFDisableWindowsLongPathSupport = QtWidgets.QCheckBox(Dialog)
         self.PREFDisableWindowsLongPathSupport.setGeometry(QtCore.QRect(20, 50, 251, 20))
         self.PREFDisableWindowsLongPathSupport.setObjectName("PREFDisableWindowsLongPathSupport")
+        self.PREFMaxSearchResults = QtWidgets.QSpinBox(Dialog)
+        self.PREFMaxSearchResults.setGeometry(QtCore.QRect(250, 80, 121, 20))
+        self.PREFMaxSearchResults.setMinimum(10)
+        self.PREFMaxSearchResults.setMaximum(999999999)
+        self.PREFMaxSearchResults.setObjectName("PREFMaxSearchResults")
+        self.label = QtWidgets.QLabel(Dialog)
+        self.label.setGeometry(QtCore.QRect(20, 80, 231, 20))
+        self.label.setObjectName("label")
 
         self.retranslateUi(Dialog)
         QtCore.QObject.connect(self.preferences, QtCore.SIGNAL("accepted()"), Dialog.accept)
@@ -35,4 +43,5 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(QtWidgets.QApplication.translate("Dialog", "Dialog", None, -1))
         self.PREFUseExternalDB.setText(QtWidgets.QApplication.translate("Dialog", "Use external DB", None, -1))
         self.PREFDisableWindowsLongPathSupport.setText(QtWidgets.QApplication.translate("Dialog", "Disable Windows long path support", None, -1))
+        self.label.setText(QtWidgets.QApplication.translate("Dialog", "Maximum search results by default: ", None, -1))
 
