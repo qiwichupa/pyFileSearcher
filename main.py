@@ -9,7 +9,9 @@ import sqlite3
 import platform
 import datetime
 import time
+import pathlib
 from hashlib import md5
+# from pathlib import Path
 
 import utilities
 
@@ -57,8 +59,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         FilterFileTypesValidator = QtGui.QRegExpValidator("([a-z0-9]{1,8},)*")
         self.FilterFileTypes.setValidator(FilterFileTypesValidator)
 
-        self.tableFiles.setSortingEnabled(True)
-
         self.FilterFilename.returnPressed.connect(self.btnSearchEmitted)
         self.FilterPath.returnPressed.connect(self.btnSearchEmitted)
         self.FilterFileTypes.returnPressed.connect(self.btnSearchEmitted)
@@ -84,6 +84,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         # Load Settings
         self.load_initial_settings()
 
+
         # Checking pid file of indexing process
         self.load_pid_checker()
 
@@ -96,6 +97,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.settings.setValue("useExternalDatabase", "False")
         if not self.settings.value("disableWindowsLongPathSupport"):
             self.settings.setValue("disableWindowsLongPathSupport", "False")
+        if not self.settings.value("maxSearchResults"):
+            self.settings.setValue("maxSearchResults", "1000")
 
         if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
             self.windowsLongPathHack = True
@@ -122,12 +125,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     def actionPreferencesEmitted(self):
         """Opens preferences dialog"""
         initValues = {"useExternalDatabase": self.settings.value("useExternalDatabase"),
-                      "disableWindowsLongPathSupport": self.settings.value("disableWindowsLongPathSupport")}
+                      "disableWindowsLongPathSupport": self.settings.value("disableWindowsLongPathSupport"),
+                      "maxSearchResults": self.settings.value("maxSearchResults")
+                      }
         dialog = PreferencesDialog(initValues)
         if dialog.exec_():
             self.settings.setValue("useExternalDatabase", utilities.bool2str(dialog.PREFUseExternalDB.isChecked()))
             self.settings.setValue("disableWindowsLongPathSupport",
                                    utilities.bool2str(dialog.PREFDisableWindowsLongPathSupport.isChecked()))
+            self.settings.setValue("maxSearchResults", str(dialog.PREFMaxSearchResults.value()))
 
     def select_db(self, DBNumber, runViaGUI=True):
         """Load settings from sqlite database to GUI, return DB name for combobox"""
@@ -263,10 +269,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.updateDBThreads[DBNumber].wait()
         del self.updateDBThreads[DBNumber]
         if len(self.updateDBThreads) == 0:
+            os.remove(scanPIDFile)
             self.actionStartScan.setText("Start scan")
             self.actionStartScan.setEnabled(True)
             print("Scan is complete")
-        os.remove(scanPIDFile)
 
     def FilterFilenameTextChanged(self):
         """Does not allow search if filename filter is empty"""
@@ -278,6 +284,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     def btnSearchEmitted(self):
         """Runs searching process"""
         self.tableFiles.setRowCount(0)
+        self.tableFiles.setSortingEnabled(False)
         self.btnSearch.setDisabled(True)
         self.btnSearch.setText("Searching...")
 
@@ -292,16 +299,22 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         filters["FilterMaxSizeType"] = self.FilterMaxSizeType.currentText()
         filters["FilterMaxSize"] = self.FilterMaxSize.value()
 
-        self.searchInDBThread = SearchInDB(self.DBCount.value(), filters, self.FilterShowMoreResultsCheckbox.isChecked())
+        self.searchInDBThread = SearchInDB(self.DBCount.value(), filters)
         self.searchInDBThread.rowEmitted.connect(self.searchInDBThreadRowEmitted)
         self.searchInDBThread.searchComplete.connect(self.searchInDBThreadSearchCompleteEmitted)
-        self.searchInDBThread.showMoreResultsSig.connect(self.searchInDBThreadShowMoreEmitted)
         self.searchInDBThread.start()
         self.searchInDBThread.setPriority(QtCore.QThread.LowestPriority)
 
     def searchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime):
         """While executing sql - gets returned rows and inserts them into QTableWidget"""
         row = self.tableFiles.rowCount()
+
+        # limit
+        if row > int(self.settings.value("maxSearchResults"))-1 and not self.FilterShowMoreResultsCheckbox.isChecked():
+            self.FilterShowMoreResultsCheckbox.setVisible(True)
+            self.FilterShowMoreResultsCheckbox.setText("Show more results (uncheck while searching to stop)")
+            self.searchInDBThread._isRunning = False
+            return
 
         self.tableFiles.insertRow(row)
         self.tableFiles.setItem(row, 0, QtWidgets.QTableWidgetItem(filename))
@@ -310,19 +323,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             filename[filename.rfind(".") + 1:] if filename.rfind(".") != -1 else "")
                                 # if there is a dot in filename - extract extension
                                 )
-        self.tableFiles.setItem(row, 3, QtWidgets.QTableWidgetItem(size))
+        sizeItem = QtWidgets.QTableWidgetItem()
+        sizeItem.setData(QtCore.Qt.EditRole, int(size))
+        self.tableFiles.setItem(row, 3, sizeItem)
         self.tableFiles.setItem(row, 4, QtWidgets.QTableWidgetItem(ctime))
         self.tableFiles.setItem(row, 5, QtWidgets.QTableWidgetItem(mtime))
 
-    def searchInDBThreadShowMoreEmitted(self, over5000, count):
-
-        if over5000:
-            self.FilterShowMoreResultsCheckbox.setVisible(True)
-            self.FilterShowMoreResultsCheckbox.setText("Show more (" + count + ") results")
-        else:
-            self.FilterShowMoreResultsCheckbox.setText("You see all results")
 
     def searchInDBThreadSearchCompleteEmitted(self):
+        self.tableFiles.setSortingEnabled(True)
         self.btnSearch.setDisabled(False)
         self.btnSearch.setText("Search...")
 
@@ -372,20 +381,20 @@ class SaveDBSettingsThread(QtCore.QThread):
 class SearchInDB(QtCore.QThread):
     rowEmitted = QtCore.Signal(str, str, str, str, str)
     searchComplete = QtCore.Signal()
-    showMoreResultsSig = QtCore.Signal(bool, str)
     dbConn = {}
+    _isRunning = True
 
-    def __init__(self, DBCount, filters, showMoreResults, parent=None):
+    def __init__(self, DBCount, filters, parent=None):
         QtCore.QThread.__init__(self)
 
         self.DBCount = DBCount
         self.filters = filters
-        self.showMoreResults = showMoreResults
+
 
     def run(self):
 
         for i in range(1, self.DBCount + 1):
-            self.dbConn[i] = sqlite3.connect("file://" + get_db_path(i) + "?mode=ro", uri=True)
+            self.dbConn[i] = sqlite3.connect(pathlib.Path(get_db_path(i)).as_uri() + "?mode=ro", uri=True)
 
         for i in range(1, self.DBCount + 1):
             dbCursor = self.dbConn[i].cursor()
@@ -443,16 +452,17 @@ class SearchInDB(QtCore.QThread):
             query += ""  # for some cases )
             print(query + str(parameters))
             rows = dbCursor.execute(query, parameters).fetchall()
-            if len(rows) > 5000 and not self.showMoreResults:
-                self.showMoreResultsSig.emit(True, str(len(rows)))
-                for row in rows[0:5000]:
-                    filename, path, size, ctime, mtime = row[0], row[1], str(row[2]), row[3], row[4]
-                    self.rowEmitted.emit(filename, path, size, ctime, mtime)
-            else:
-                self.showMoreResultsSig.emit(False, str(len(rows)))
-                for row in rows:
-                    filename, path, size, ctime, mtime = row[0], row[1], str(row[2]), row[3], row[4]
-                    self.rowEmitted.emit(filename, path, size, ctime, mtime)
+            counter = 0
+            for row in rows:
+                if not self._isRunning:
+                    self.searchComplete.emit()
+                    return
+                if counter > 1000:
+                    counter = 0
+                    time.sleep(.3)
+                counter +=  1
+                filename, path, size, ctime, mtime = row[0], row[1], str(row[2]), row[3], row[4]
+                self.rowEmitted.emit(filename, path, size, ctime, mtime)
 
         self.searchComplete.emit()
 
@@ -560,6 +570,7 @@ class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
         self.PREFDisableWindowsLongPathSupport.setChecked(
             utilities.str2bool(initValues["disableWindowsLongPathSupport"]))
         self.PREFUseExternalDB.setChecked(utilities.str2bool(initValues["useExternalDatabase"]))
+        self.PREFMaxSearchResults.setValue(int(initValues["maxSearchResults"]))
 
 
 app = QtWidgets.QApplication(sys.argv)
