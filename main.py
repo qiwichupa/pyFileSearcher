@@ -9,9 +9,7 @@ import sqlite3
 import platform
 import datetime
 import time
-import gc
 from hashlib import md5
-# from pathlib import Path
 
 import utilities
 
