@@ -437,13 +437,13 @@ class SearchInDB(QtCore.QThread):
                 parameters += [minsize]
             # max size
             if self.filters["FilterMaxSizeEnabled"]:
-                if self.filters["FilterMinSizeType"] == "b":
+                if self.filters["FilterMaxSizeType"] == "b":
                     maxsize = self.filters["FilterMaxSize"]
-                if self.filters["FilterMinSizeType"] == "Kb":
+                if self.filters["FilterMaxSizeType"] == "Kb":
                     maxsize = self.filters["FilterMaxSize"] * 1024
-                if self.filters["FilterMinSizeType."] == "Mb":
+                if self.filters["FilterMaxSizeType"] == "Mb":
                     maxsize = self.filters["FilterMaxSize"] * 1048576
-                if self.filters["FilterMinSizeType"] == "Gb":
+                if self.filters["FilterMaxSizeType"] == "Gb":
                     maxsize = self.filters["FilterMaxSize"] + 1073741824
 
                 query += " AND (size <= ?)"
