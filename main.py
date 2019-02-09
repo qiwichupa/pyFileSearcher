@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3.7
 
 import PySide2.QtCore as QtCore
@@ -175,7 +176,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         dbCursor.execute("""INSERT INTO Settings VALUES(?, ?, ?)""", (None, "ExclusionsMode", "Blacklist"))
 
         dbCursor.execute("""CREATE TABLE IF NOT EXISTS Files(hash TEXT UNIQUE, removed TEXT,
-                            filename TEXT, path TEXT, size INT, created TEXT, modified TEXT)""")
+                            filename TEXT, path TEXT, size INT, created INT, modified INT, indexed INT)""")
 
         dbConn.commit()
 
@@ -285,7 +286,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Runs searching process"""
         self.tableFiles.setRowCount(0)
         self.tableFiles.setSortingEnabled(False)
+
+        # avoid double "press" via pressing enter in filter EditLines
+        if not self.btnSearch.isEnabled():
+            return
+
         self.btnSearch.setDisabled(True)
+
         self.btnSearch.setText("Searching...")
 
         filters = {}
@@ -305,9 +312,16 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.searchInDBThread.start()
         self.searchInDBThread.setPriority(QtCore.QThread.LowestPriority)
 
-    def searchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime):
-        """While executing sql - gets returned rows and inserts them into QTableWidget"""
+    def searchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime, indexed):
+        """While executing sql - gets returned rows and inserts them into QTableWidget
+        Columns order in QTable:
+        filename, type, size, modified, indexed, created, path"""
         row = self.tableFiles.rowCount()
+
+        (ctime, mtime, indexed) = (str(datetime.datetime.fromtimestamp(ctime)),
+                                   str(datetime.datetime.fromtimestamp(mtime)),
+                                   str(datetime.datetime.fromtimestamp(indexed))
+                                   )
 
         # limit
         if row > int(self.settings.value("maxSearchResults"))-1 and not self.FilterShowMoreResultsCheckbox.isChecked():
@@ -318,21 +332,23 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.tableFiles.insertRow(row)
         self.tableFiles.setItem(row, 0, QtWidgets.QTableWidgetItem(filename))
-        self.tableFiles.setItem(row, 1, QtWidgets.QTableWidgetItem(path))
-        self.tableFiles.setItem(row, 2, QtWidgets.QTableWidgetItem(
+        self.tableFiles.setItem(row, 1, QtWidgets.QTableWidgetItem(
             filename[filename.rfind(".") + 1:] if filename.rfind(".") != -1 else "")
                                 # if there is a dot in filename - extract extension
                                 )
         sizeItem = QtWidgets.QTableWidgetItem()
-        sizeItem.setData(QtCore.Qt.EditRole, int(size))
-        self.tableFiles.setItem(row, 3, sizeItem)
-        self.tableFiles.setItem(row, 4, QtWidgets.QTableWidgetItem(ctime))
-        self.tableFiles.setItem(row, 5, QtWidgets.QTableWidgetItem(mtime))
+        sizeItem.setData(QtCore.Qt.EditRole, size)
+        self.tableFiles.setItem(row, 2, sizeItem)
+        self.tableFiles.setItem(row, 3, QtWidgets.QTableWidgetItem(mtime))
+        self.tableFiles.setItem(row, 4, QtWidgets.QTableWidgetItem(indexed))
+        self.tableFiles.setItem(row, 5, QtWidgets.QTableWidgetItem(ctime))
+        self.tableFiles.setItem(row, 6, QtWidgets.QTableWidgetItem(path))
 
 
     def searchInDBThreadSearchCompleteEmitted(self):
         self.tableFiles.setSortingEnabled(True)
         self.btnSearch.setDisabled(False)
+
         self.btnSearch.setText("Search...")
 
     def checkScanPIDFileLoopEmitted(self, fileExists):
@@ -379,7 +395,7 @@ class SaveDBSettingsThread(QtCore.QThread):
 
 
 class SearchInDB(QtCore.QThread):
-    rowEmitted = QtCore.Signal(str, str, str, str, str)
+    rowEmitted = QtCore.Signal(str, str, int, int, int, int)
     searchComplete = QtCore.Signal()
     dbConn = {}
     _isRunning = True
@@ -399,7 +415,7 @@ class SearchInDB(QtCore.QThread):
         for i in range(1, self.DBCount + 1):
             dbCursor = self.dbConn[i].cursor()
             # SQL TABLE: hash, removed, filename, path, size, created, modified
-            query = "SELECT filename, path, size, created, modified FROM Files WHERE 1 "
+            query = "SELECT filename, path, size, created, modified, indexed FROM Files WHERE 1 "
             parameters = []
 
             # # query constructor
@@ -461,8 +477,8 @@ class SearchInDB(QtCore.QThread):
                     counter = 0
                     time.sleep(.3)
                 counter +=  1
-                filename, path, size, ctime, mtime = row[0], row[1], str(row[2]), row[3], row[4]
-                self.rowEmitted.emit(filename, path, size, ctime, mtime)
+                filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
+                self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
 
         self.searchComplete.emit()
 
@@ -497,11 +513,11 @@ class UpdateDBThread(QtCore.QThread):
         self.dbCursor = self.dbConn.cursor()
 
         exclusions = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?",
-                                           ("Exclusions",)).fetchall()[0][0]
+                                           ("Exclusions",)).fetchone()[0]
         exclusionsMode = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?",
-                                               ("ExclusionsMode",)).fetchall()[0][0]
+                                               ("ExclusionsMode",)).fetchone()[0]
 
-        rootPath = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?", ("RootPath",)).fetchall()[0][0]
+        rootPath = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?", ("RootPath",)).fetchone()[0]
         if rootPath:
             self.updateDB(str(rootPath))
 
@@ -541,14 +557,23 @@ class UpdateDBThread(QtCore.QThread):
                     if self.windowsLongPathHack:
                         path = path[4:]
                     size = int(entry.stat().st_size)
-                    mtime = str(datetime.datetime.fromtimestamp(entry.stat().st_mtime))
-                    ctime = str(datetime.datetime.fromtimestamp(entry.stat().st_ctime))
+                    #mtime = str(datetime.datetime.fromtimestamp(entry.stat().st_mtime))
+                    #ctime = str(datetime.datetime.fromtimestamp(entry.stat().st_ctime))
+                    mtime = int(entry.stat().st_mtime)
+                    ctime = int(entry.stat().st_ctime)
+                    now = int(time.time())
                     hash.update(fullname.encode())
                     key = hash.hexdigest()
 
                     # SQL TABLE: hash, removed, filename, path, size, created, modified
-                    self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?)",
-                                          (key, "1", name, path, size, ctime, mtime))
+                    data = self.dbCursor.execute("SELECT indexed FROM Files WHERE hash=?", (key,)).fetchone()
+                    if data is None:
+                        indexed = now
+                    else:
+                        indexed = data[0]
+
+                    self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+                                          (key, "1", name, path, size, ctime, mtime, indexed))
                 except Exception as e:
                     print("Error while scan and update DB: " + str(e))
 
