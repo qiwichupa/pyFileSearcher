@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file './main.ui',
 # licensing of './main.ui' applies.
 #
-# Created: Fri Feb  8 18:40:59 2019
+# Created: Sat Feb  9 12:17:33 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,7 +13,7 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(815, 590)
+        MainWindow.resize(924, 660)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -36,17 +36,21 @@ class Ui_MainWindow(object):
         self.tableFiles.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.tableFiles.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
         self.tableFiles.setAutoScroll(False)
-        self.tableFiles.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.tableFiles.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked)
         self.tableFiles.setTabKeyNavigation(False)
         self.tableFiles.setProperty("showDropIndicator", True)
         self.tableFiles.setDragDropOverwriteMode(True)
         self.tableFiles.setAlternatingRowColors(True)
         self.tableFiles.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.tableFiles.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.tableFiles.setTextElideMode(QtCore.Qt.ElideRight)
         self.tableFiles.setHorizontalScrollMode(QtWidgets.QAbstractItemView.ScrollPerPixel)
+        self.tableFiles.setShowGrid(True)
+        self.tableFiles.setGridStyle(QtCore.Qt.SolidLine)
         self.tableFiles.setWordWrap(False)
+        self.tableFiles.setCornerButtonEnabled(True)
         self.tableFiles.setObjectName("tableFiles")
-        self.tableFiles.setColumnCount(6)
+        self.tableFiles.setColumnCount(7)
         self.tableFiles.setRowCount(0)
         item = QtWidgets.QTableWidgetItem()
         self.tableFiles.setHorizontalHeaderItem(0, item)
@@ -60,6 +64,8 @@ class Ui_MainWindow(object):
         self.tableFiles.setHorizontalHeaderItem(4, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableFiles.setHorizontalHeaderItem(5, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tableFiles.setHorizontalHeaderItem(6, item)
         self.tableFiles.horizontalHeader().setStretchLastSection(True)
         self.tableFiles.verticalHeader().setDefaultSectionSize(20)
         self.tableFiles.verticalHeader().setMinimumSectionSize(20)
@@ -291,7 +297,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addLayout(self.layoutBottom)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 815, 19))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 924, 19))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtWidgets.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -345,11 +351,12 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QtWidgets.QApplication.translate("MainWindow", "MainWindow", None, -1))
         self.tableFiles.setSortingEnabled(True)
         self.tableFiles.horizontalHeaderItem(0).setText(QtWidgets.QApplication.translate("MainWindow", "Filename", None, -1))
-        self.tableFiles.horizontalHeaderItem(1).setText(QtWidgets.QApplication.translate("MainWindow", "Path", None, -1))
-        self.tableFiles.horizontalHeaderItem(2).setText(QtWidgets.QApplication.translate("MainWindow", "Type", None, -1))
-        self.tableFiles.horizontalHeaderItem(3).setText(QtWidgets.QApplication.translate("MainWindow", "Size", None, -1))
-        self.tableFiles.horizontalHeaderItem(4).setText(QtWidgets.QApplication.translate("MainWindow", "Created", None, -1))
-        self.tableFiles.horizontalHeaderItem(5).setText(QtWidgets.QApplication.translate("MainWindow", "Modified", None, -1))
+        self.tableFiles.horizontalHeaderItem(1).setText(QtWidgets.QApplication.translate("MainWindow", "Type", None, -1))
+        self.tableFiles.horizontalHeaderItem(2).setText(QtWidgets.QApplication.translate("MainWindow", "Size", None, -1))
+        self.tableFiles.horizontalHeaderItem(3).setText(QtWidgets.QApplication.translate("MainWindow", "Modified", None, -1))
+        self.tableFiles.horizontalHeaderItem(4).setText(QtWidgets.QApplication.translate("MainWindow", "Indexed", None, -1))
+        self.tableFiles.horizontalHeaderItem(5).setText(QtWidgets.QApplication.translate("MainWindow", "Created", None, -1))
+        self.tableFiles.horizontalHeaderItem(6).setText(QtWidgets.QApplication.translate("MainWindow", "Path", None, -1))
         self.labelFilters.setText(QtWidgets.QApplication.translate("MainWindow", "Filters:", None, -1))
         self.btnSearch.setText(QtWidgets.QApplication.translate("MainWindow", "Search...", None, -1))
         self.FilterShowMoreResultsCheckbox.setText(QtWidgets.QApplication.translate("MainWindow", "Show More Results", None, -1))
