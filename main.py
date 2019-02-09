@@ -478,7 +478,12 @@ class SearchInDB(QtCore.QThread):
                     counter = 0
                     time.sleep(.3)
                 counter +=  1
-                filename, path, size, ctime, mtime, indexed = row[0], row[1], str(row[2]), row[3], row[4], row[5]
+                filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
+
+                # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
+                # so doubleconverted - in this place and in searchInDBThreadRowEmitted()
+                size = str(size)
+
                 self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
 
         self.searchComplete.emit()
