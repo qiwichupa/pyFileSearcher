@@ -322,6 +322,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                                    str(datetime.datetime.fromtimestamp(mtime)),
                                    str(datetime.datetime.fromtimestamp(indexed))
                                    )
+        size = int(size)
 
         # limit
         if row > int(self.settings.value("maxSearchResults"))-1 and not self.FilterShowMoreResultsCheckbox.isChecked():
@@ -395,7 +396,7 @@ class SaveDBSettingsThread(QtCore.QThread):
 
 
 class SearchInDB(QtCore.QThread):
-    rowEmitted = QtCore.Signal(str, str, int, int, int, int)
+    rowEmitted = QtCore.Signal(str, str, str, int, int, int)
     searchComplete = QtCore.Signal()
     dbConn = {}
     _isRunning = True
@@ -477,7 +478,7 @@ class SearchInDB(QtCore.QThread):
                     counter = 0
                     time.sleep(.3)
                 counter +=  1
-                filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
+                filename, path, size, ctime, mtime, indexed = row[0], row[1], str(row[2]), row[3], row[4], row[5]
                 self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
 
         self.searchComplete.emit()
