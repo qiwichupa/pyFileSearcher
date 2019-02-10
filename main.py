@@ -22,6 +22,10 @@ from ui_files import pyPreferences
 __appname__ = "pyFileSearcher"
 appDataPath = os.getcwd() + "/"
 scanPIDFile = appDataPath + "scan.pid"
+if len(sys.argv) <= 1 or  sys.argv[1] != "--scan":
+    isScanMode = False
+else:
+    isScanMode = True
 
 if platform.system() == "Linux":
     isLinux = True
@@ -40,6 +44,17 @@ def get_db_path(DBNumber: int):
 class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     sigUpdateDB = QtCore.Signal(str)
     dbConn = {}
+
+
+    tableFilesColumnNumIndx = 0
+    tableFilesColumnFilnameIndx = 1
+    tableFilesColumnTypeIndx = 2
+    tableFilesColumnSizeIndx = 3
+    tableFilesColumnModifiedIndx = 4
+    tableFilesColumnIndexedIndx = 5
+    tableFilesColumnCreatedIndx = 6
+    tableFilesColumnPathIndx = 7
+
 
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self)
@@ -68,8 +83,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.FilterShowMoreResultsCheckbox.setVisible(False)
 
+        self.tableFiles.setColumnWidth(self.tableFilesColumnNumIndx, 40)
+        self.tableFiles.setColumnWidth(self.tableFilesColumnTypeIndx, 50)
+        self.tableFiles.setColumnWidth(self.tableFilesColumnModifiedIndx, 150)
+        self.tableFiles.setColumnWidth(self.tableFilesColumnCreatedIndx, 150)
+        self.tableFiles.setColumnWidth(self.tableFilesColumnIndexedIndx, 150)
+        self.tableFiles.setColumnWidth(self.tableFilesColumnFilnameIndx, 200)
+
         # Database Tab
-        DBFileTypeFilterValidator = QtGui.QRegExpValidator("([a-z0-9]{1,8},)*")
+        DBFileTypeFilterValidator = QtGui.QRegExpValidator("(^[,])?([a-z0-9]{1,8},)*")
         self.DBFileTypeFilter.setValidator(DBFileTypeFilterValidator)
 
         self.DBSelectDatabase.activated.connect(self.select_db)
@@ -86,8 +108,18 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.load_initial_settings()
 
 
-        # Checking pid file of indexing process
+        # Checking pid file of indexing process for locking some parts of interface
         self.load_pid_checker()
+
+        # run scan with --scan parameter
+        if isScanMode:
+            if not os.path.isfile(scanPIDFile):
+                print("Scan is running with command promt parameter!")
+                self.updateDBEmitted()
+            else:
+                print("Scan is running already, check PID file. App closed.")
+                self.exitActionTriggered()
+
 
     def load_initial_settings(self):
         """Loads initial settings from ini file and DBs"""
@@ -256,8 +288,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         print(scanPIDFile)
         os.close(os.open(scanPIDFile, os.O_CREAT))
 
-        self.actionStartScan.setText("Scan in progress...")
-        self.actionStartScan.setEnabled(False)
         self.updateDBThreads = {}
 
         for DBNumber in range(1, self.DBCount.value() + 1):
@@ -271,9 +301,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         del self.updateDBThreads[DBNumber]
         if len(self.updateDBThreads) == 0:
             os.remove(scanPIDFile)
-            self.actionStartScan.setText("Start scan")
-            self.actionStartScan.setEnabled(True)
             print("Scan is complete")
+            if isScanMode:
+                print("isScanMode - exit app")
+                self.exitActionTriggered()
 
     def FilterFilenameTextChanged(self):
         """Does not allow search if filename filter is empty"""
@@ -305,6 +336,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         filters["FilterMaxSizeEnabled"] = self.FilterMaxSizeEnabled.isChecked()
         filters["FilterMaxSizeType"] = self.FilterMaxSizeType.currentText()
         filters["FilterMaxSize"] = self.FilterMaxSize.value()
+        filters["FilterIndexedLastDaysEnabled"] = self.FilterIndexedLastDaysEnabled.isChecked()
+        filters["FilterIndexedLastDays"] = self.FilterIndexedLastDays.value()
 
         self.searchInDBThread = SearchInDB(self.DBCount.value(), filters)
         self.searchInDBThread.rowEmitted.connect(self.searchInDBThreadRowEmitted)
@@ -332,18 +365,21 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             return
 
         self.tableFiles.insertRow(row)
-        self.tableFiles.setItem(row, 0, QtWidgets.QTableWidgetItem(filename))
-        self.tableFiles.setItem(row, 1, QtWidgets.QTableWidgetItem(
+        numItem = QtWidgets.QTableWidgetItem()
+        numItem.setData(QtCore.Qt.EditRole, row+1)
+        self.tableFiles.setItem(row, self.tableFilesColumnNumIndx, numItem)
+        self.tableFiles.setItem(row, self.tableFilesColumnFilnameIndx, QtWidgets.QTableWidgetItem(filename))
+        self.tableFiles.setItem(row, self.tableFilesColumnTypeIndx, QtWidgets.QTableWidgetItem(
             filename[filename.rfind(".") + 1:] if filename.rfind(".") != -1 else "")
                                 # if there is a dot in filename - extract extension
                                 )
         sizeItem = QtWidgets.QTableWidgetItem()
         sizeItem.setData(QtCore.Qt.EditRole, size)
-        self.tableFiles.setItem(row, 2, sizeItem)
-        self.tableFiles.setItem(row, 3, QtWidgets.QTableWidgetItem(mtime))
-        self.tableFiles.setItem(row, 4, QtWidgets.QTableWidgetItem(indexed))
-        self.tableFiles.setItem(row, 5, QtWidgets.QTableWidgetItem(ctime))
-        self.tableFiles.setItem(row, 6, QtWidgets.QTableWidgetItem(path))
+        self.tableFiles.setItem(row, self.tableFilesColumnSizeIndx, sizeItem)
+        self.tableFiles.setItem(row, self.tableFilesColumnModifiedIndx, QtWidgets.QTableWidgetItem(mtime))
+        self.tableFiles.setItem(row, self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem(indexed))
+        self.tableFiles.setItem(row, self.tableFilesColumnCreatedIndx, QtWidgets.QTableWidgetItem(ctime))
+        self.tableFiles.setItem(row, self.tableFilesColumnPathIndx, QtWidgets.QTableWidgetItem(path))
 
 
     def searchInDBThreadSearchCompleteEmitted(self):
@@ -357,9 +393,18 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if fileExists:
             self.DBCount.setDisabled(True)
             self.DBCountLabel.setText("DB Count (locked, <font color=red>why?</font>): ")
+            self.actionStartScan.setText("Scan in progress")
+            self.actionStartScan.setDisabled(True)
         else:
             self.DBCount.setEnabled(True)
             self.DBCountLabel.setText("DB Count: ")
+            self.actionStartScan.setText("Start scan")
+            self.actionStartScan.setEnabled(True)
+
+
+    def exitActionTriggered(self):
+        """Exit the application"""
+        sys.exit()
 
 
 class SaveDBSettingsThread(QtCore.QThread):
@@ -465,6 +510,12 @@ class SearchInDB(QtCore.QThread):
 
                 query += " AND (size <= ?)"
                 parameters += [maxsize]
+            # indexed in last days
+            if self.filters["FilterIndexedLastDaysEnabled"]:
+                filterInSeconds = self.filters["FilterIndexedLastDays"] * 86400
+                queryTime = int(time.time()) - filterInSeconds
+                query += " AND (Indexed > ?)"
+                parameters += [queryTime]
 
             query += ""  # for some cases )
             print(query + str(parameters))
@@ -520,12 +571,13 @@ class UpdateDBThread(QtCore.QThread):
 
         exclusions = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?",
                                            ("Exclusions",)).fetchone()[0]
+
         exclusionsMode = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?",
                                                ("ExclusionsMode",)).fetchone()[0]
 
         rootPath = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?", ("RootPath",)).fetchone()[0]
         if rootPath:
-            self.updateDB(str(rootPath))
+            self.updateDB(str(rootPath), exclusions, exclusionsMode)
 
         self.sigIsOver.emit(self.DBNumber)
 
@@ -538,6 +590,9 @@ class UpdateDBThread(QtCore.QThread):
 
         if self.windowsLongPathHack:
             rootpath = "\\\\?\\" + rootpath
+
+
+        exclusions = exclusions.split(",")
 
         self.dbCursor.execute("UPDATE Files SET removed=?", ("0",))
 
@@ -558,28 +613,37 @@ class UpdateDBThread(QtCore.QThread):
 
                 try:
                     name = entry.name
-                    fullname = entry.path
-                    path = fullname[:-len(name)]
-                    if self.windowsLongPathHack:
-                        path = path[4:]
-                    size = int(entry.stat().st_size)
-                    #mtime = str(datetime.datetime.fromtimestamp(entry.stat().st_mtime))
-                    #ctime = str(datetime.datetime.fromtimestamp(entry.stat().st_ctime))
-                    mtime = int(entry.stat().st_mtime)
-                    ctime = int(entry.stat().st_ctime)
-                    now = int(time.time())
-                    hash.update(fullname.encode())
-                    key = hash.hexdigest()
-
-                    # SQL TABLE: hash, removed, filename, path, size, created, modified
-                    data = self.dbCursor.execute("SELECT indexed FROM Files WHERE hash=?", (key,)).fetchone()
-                    if data is None:
-                        indexed = now
+                    if name.rfind(".") != -1:
+                        extension = name[name.rfind(".") + 1:]
                     else:
-                        indexed = data[0]
+                        extension = ""
 
-                    self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-                                          (key, "1", name, path, size, ctime, mtime, indexed))
+                    if (extension in exclusions and exclusionsMode == "Whitelist"
+                    ) or (
+                            extension not in exclusions and exclusionsMode == "Blacklist"
+                    ) or (
+                            len(exclusions) == 1 and exclusions[0] == ""
+                    ):
+                        fullname = entry.path # full path + filename
+                        path = fullname[:-len(name)]
+                        if self.windowsLongPathHack:
+                            path = path[4:]
+                        size = int(entry.stat().st_size)
+                        mtime = int(entry.stat().st_mtime)
+                        ctime = int(entry.stat().st_ctime)
+                        now = int(time.time())
+                        hash.update(fullname.encode())
+                        key = hash.hexdigest()
+
+                        # SQL TABLE: hash, removed, filename, path, size, created, modified
+                        data = self.dbCursor.execute("SELECT indexed FROM Files WHERE hash=?", (key,)).fetchone()
+                        if data is None:
+                            indexed = now
+                        else:
+                            indexed = data[0]
+
+                        self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+                                              (key, "1", name, path, size, ctime, mtime, indexed))
                 except Exception as e:
                     print("Error while scan and update DB: " + str(e))
 
@@ -606,5 +670,7 @@ class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
 
 app = QtWidgets.QApplication(sys.argv)
 form = Main()
-form.show()
+if not isScanMode:
+    form.show()
+
 app.exec_()
