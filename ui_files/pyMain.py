@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './main.ui',
-# licensing of './main.ui' applies.
+# Form implementation generated from reading ui file 'main.ui',
+# licensing of 'main.ui' applies.
 #
-# Created: Sun Feb 10 14:05:04 2019
+# Created: Mon Feb 11 08:58:37 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -188,6 +188,23 @@ class Ui_MainWindow(object):
         self.label = QtWidgets.QLabel(self.frame_2)
         self.label.setGeometry(QtCore.QRect(190, 77, 41, 20))
         self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(self.frame_2)
+        self.label_2.setGeometry(QtCore.QRect(10, 106, 91, 14))
+        self.label_2.setObjectName("label_2")
+        self.FilterListRemoveButton = QtWidgets.QPushButton(self.frame_2)
+        self.FilterListRemoveButton.setGeometry(QtCore.QRect(110, 126, 10, 20))
+        self.FilterListRemoveButton.setObjectName("FilterListRemoveButton")
+        self.FilterListSaveButton = QtWidgets.QPushButton(self.frame_2)
+        self.FilterListSaveButton.setGeometry(QtCore.QRect(230, 126, 10, 20))
+        self.FilterListSaveButton.setObjectName("FilterListSaveButton")
+        self.FilterListComboBox = QtWidgets.QComboBox(self.frame_2)
+        self.FilterListComboBox.setGeometry(QtCore.QRect(10, 126, 100, 20))
+        self.FilterListComboBox.setObjectName("FilterListComboBox")
+        self.FilterListComboBox.addItem("")
+        self.FilterListComboBox.setItemText(0, "")
+        self.FilterListLineEdit = QtWidgets.QLineEdit(self.frame_2)
+        self.FilterListLineEdit.setGeometry(QtCore.QRect(130, 126, 100, 20))
+        self.FilterListLineEdit.setObjectName("FilterListLineEdit")
         self.horizontalLayout.addWidget(self.frame_2)
         self.tabsSearch.addTab(self.tabMain, "")
         self.tabDatabaseSettings = QtWidgets.QWidget()
@@ -396,6 +413,10 @@ class Ui_MainWindow(object):
         self.FilterIndexedLastDaysEnabled.setToolTip(QtWidgets.QApplication.translate("MainWindow", "Indexed for the first time in the last N days. If you are looking for fresh files.", None, -1))
         self.FilterIndexedLastDaysEnabled.setText(QtWidgets.QApplication.translate("MainWindow", "Indexed in last", None, -1))
         self.label.setText(QtWidgets.QApplication.translate("MainWindow", "day(s)", None, -1))
+        self.label_2.setText(QtWidgets.QApplication.translate("MainWindow", "Saved filters", None, -1))
+        self.FilterListRemoveButton.setText(QtWidgets.QApplication.translate("MainWindow", "-", None, -1))
+        self.FilterListSaveButton.setText(QtWidgets.QApplication.translate("MainWindow", "+", None, -1))
+        self.FilterListLineEdit.setPlaceholderText(QtWidgets.QApplication.translate("MainWindow", "New name", None, -1))
         self.tabsSearch.setTabText(self.tabsSearch.indexOf(self.tabMain), QtWidgets.QApplication.translate("MainWindow", "Main", None, -1))
         self.DBRootScanPathLabel.setText(QtWidgets.QApplication.translate("MainWindow", "Scan path: ", None, -1))
         self.DBSettingsLabel.setText(QtWidgets.QApplication.translate("MainWindow", "Database Settings", None, -1))
