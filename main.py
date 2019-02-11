@@ -4,6 +4,9 @@
 import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
 import PySide2.QtWidgets as QtWidgets
+
+import send2trash
+
 import sys
 import os
 import sqlite3
@@ -13,7 +16,6 @@ import time
 import pathlib
 import subprocess
 from hashlib import md5
-# from pathlib import Path
 
 import utilities
 
@@ -92,6 +94,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setColumnWidth(self.tableFilesColumnFilnameIndx, 200)
         self.tableFiles.contextMenuEvent = self.tableMenu
 
+        self.tableFiles.itemEntered.connect(self.tableFilesScrolled)
+
         # Search Tab - Filter List
         FilterListLineEditalidator = QtGui.QRegExpValidator("([a-z0-9_-])*")
         self.FilterListLineEdit.setValidator(FilterListLineEditalidator)
@@ -135,6 +139,20 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             else:
                 print("Scan is running already, check PID file. App closed.")
                 self.exitActionTriggered()
+
+    def tableFilesScrolled(self):
+        """Checks the top and bottom visible lines in the file table, checks for files"""
+        upRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, 0)).row()
+        if self.tableFiles.itemAt(0, self.tableFiles.height()):
+            downRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, self.tableFiles.height())).row()
+        else:
+            downRow = self.tableFiles.rowCount()
+
+        for i in range(upRow, downRow):
+            fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
+            if not os.path.isfile(fullFilePath):
+                for column in range(0, self.tableFiles.columnCount()):
+                    self.tableFiles.item(i, column).setBackgroundColor("#ffa189")
 
 
     def load_initial_settings(self):
@@ -487,10 +505,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
 
     def searchInDBThreadSearchCompleteEmitted(self):
+        """Unlocks GUI elements and runs filecheck (file exists or was removed) after searching"""
         self.tableFiles.setSortingEnabled(True)
         self.btnSearch.setDisabled(False)
-
         self.btnSearch.setText("Search...")
+        self.tableFilesScrolled()
 
     def checkScanPIDFileLoopEmitted(self, fileExists):
         """Disable db count changer while indexing process"""
@@ -514,9 +533,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             menuOpenFolder.triggered.connect(self.menuOpenFolder)
             self.menu.addAction(menuOpenFolder)
         if len(self.tableFiles.selectedItems()) > 0:
-            menuDeleteFiles = QtWidgets.QAction('Delete Files', self)
+            menuDeleteFiles = QtWidgets.QAction('Move to Trash', self)
             menuDeleteFiles.triggered.connect(self.menuDeleteFiles)
-            menuDeleteFiles.setDisabled(True)
+            # menuDeleteFiles.setDisabled(True)
             self.menu.addAction(menuDeleteFiles)
 
 
@@ -528,13 +547,20 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         rows =  [allItems[x:x+8] for x in range(0, len(allItems), 8)]
         for row in rows:
             if isWindows:
-                os.startfile(row[7].text())
+                os.startfile(row[self.tableFilesColumnPathIndx].text())
             else:
-                subprocess.Popen(["xdg-open", row[7].text()])
+                subprocess.Popen(["xdg-open", row[self.tableFilesColumnPathIndx].text()])
 
     def menuDeleteFiles(self, event):
         """Delete selected files"""
-        pass
+
+        allItems = self.tableFiles.selectedItems()
+        rows = [allItems[x:x + 8] for x in range(0, len(allItems), 8)]
+        for row in rows:
+            send2trash.send2trash(row[self.tableFilesColumnPathIndx].text() + row[self.tableFilesColumnFilnameIndx].text())
+        self.tableFilesScrolled()
+
+
 # TABLE CONTEXT MENU - END SECTION
 
     def load_pid_checker(self):
