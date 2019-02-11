@@ -15,6 +15,7 @@ import datetime
 import time
 import pathlib
 import subprocess
+import csv
 from hashlib import md5
 
 import utilities
@@ -95,6 +96,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.contextMenuEvent = self.tableMenu
 
         self.tableFiles.itemEntered.connect(self.tableFilesScrolled)
+        self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
 
         # Search Tab - Filter List
         FilterListLineEditalidator = QtGui.QRegExpValidator("([a-z0-9_-])*")
@@ -532,19 +534,29 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             menuOpenFolder = QtWidgets.QAction('Open Folder', self)
             menuOpenFolder.triggered.connect(self.menuOpenFolder)
             self.menu.addAction(menuOpenFolder)
+
         if len(self.tableFiles.selectedItems()) > 0:
             menuDeleteFiles = QtWidgets.QAction('Move to Trash', self)
             menuDeleteFiles.triggered.connect(self.menuDeleteFiles)
             # menuDeleteFiles.setDisabled(True)
             self.menu.addAction(menuDeleteFiles)
 
+            menuExportSelectedToCsv = QtWidgets.QAction('Export selected to CSV...', self)
+            menuExportSelectedToCsv.triggered.connect(self.menuExportSelectedToCsv)
+            self.menu.addAction(menuExportSelectedToCsv)
+
+        menuExportAllToCsv = QtWidgets.QAction('Export all to CSV...', self)
+        menuExportAllToCsv.triggered.connect(self.menuExportAllToCsv)
+        self.menu.addAction(menuExportAllToCsv)
+
 
         self.menu.popup(QtGui.QCursor.pos())
 
     def menuOpenFolder(self, event):
-        """Opens folders for seelcted files"""
+        """Opens folder for selected file"""
         allItems = self.tableFiles.selectedItems()
-        rows =  [allItems[x:x+8] for x in range(0, len(allItems), 8)]
+        columnCount = self.tableFiles.columnCount()
+        rows =  [allItems[x:x+columnCount] for x in range(0, len(allItems), columnCount)]
         for row in rows:
             if isWindows:
                 os.startfile(row[self.tableFilesColumnPathIndx].text())
@@ -555,10 +567,33 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Delete selected files"""
 
         allItems = self.tableFiles.selectedItems()
-        rows = [allItems[x:x + 8] for x in range(0, len(allItems), 8)]
+        columnCount = self.tableFiles.columnCount()
+        rows = [allItems[x:x + columnCount] for x in range(0, len(allItems), columnCount)]
         for row in rows:
             send2trash.send2trash(row[self.tableFilesColumnPathIndx].text() + row[self.tableFilesColumnFilnameIndx].text())
         self.tableFilesScrolled()
+
+    def menuExportSelectedToCsv(self):
+        """Exports selected rows to csv"""
+        allItems = self.tableFiles.selectedItems()
+        columnCount = self.tableFiles.columnCount()
+        rows = [allItems[x:x + columnCount] for x in range(0, len(allItems), columnCount)]
+        csvObj = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=__appname__ + " - Save as csv", directory=".", filter="Simple spreadsheet (*.csv)")
+        if csvObj:
+            with open(csvObj[0], 'w', newline='') as csvfile:
+                csvWriter = csv.writer(csvfile, delimiter=',', quotechar='\"', quoting=csv.QUOTE_MINIMAL)
+                for row in rows:
+                    textRow = []
+                    for i in range(0, self.tableFiles.columnCount() ):
+                        textRow += [row[i].text()]
+                    csvWriter.writerow(textRow)
+
+    def menuExportAllToCsv(self):
+        """Exports all search results to csv"""
+        self.tableFiles.selectAll()
+        self.menuExportSelectedToCsv()
+
+
 
 
 # TABLE CONTEXT MENU - END SECTION
