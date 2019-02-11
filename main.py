@@ -11,6 +11,7 @@ import platform
 import datetime
 import time
 import pathlib
+import subprocess
 from hashlib import md5
 # from pathlib import Path
 
@@ -89,6 +90,21 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setColumnWidth(self.tableFilesColumnCreatedIndx, 150)
         self.tableFiles.setColumnWidth(self.tableFilesColumnIndexedIndx, 150)
         self.tableFiles.setColumnWidth(self.tableFilesColumnFilnameIndx, 200)
+        self.tableFiles.contextMenuEvent = self.tableMenu
+
+        # Search Tab - Filter List
+        FilterListLineEditalidator = QtGui.QRegExpValidator("([a-z0-9_-])*")
+        self.FilterListLineEdit.setValidator(FilterListLineEditalidator)
+
+        self.FilterListSaveButton.setDisabled(True)
+
+        self.FilterListLineEdit.textEdited.connect(self.FilterListLineEditEditedEmitted)
+
+        self.FilterListSaveButton.clicked.connect(self.FilterListSaveButtonEmitted)
+        self.FilterListRemoveButton.clicked.connect(self.FilterListRemoveButtonEmitted)
+        self.FilterListComboBox.activated.connect(self.FilterListComboBoxEmitted)
+
+
 
         # Database Tab
         DBFileTypeFilterValidator = QtGui.QRegExpValidator("(^[,])?([a-z0-9]{1,8},)*")
@@ -132,6 +148,16 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.settings.setValue("disableWindowsLongPathSupport", "False")
         if not self.settings.value("maxSearchResults"):
             self.settings.setValue("maxSearchResults", "1000")
+        if not self.settings.value("filters"):
+            self.settings.setValue("filters", "")
+
+        if self.settings.value("filters") == "":
+            self.filters = []
+        else:
+            self.filters = self.settings.value("filters").split(",")
+            for filter in self.filters:
+                self.FilterListComboBox.addItems([filter])
+
 
         if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
             self.windowsLongPathHack = True
@@ -149,12 +175,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.DBSelectDatabase.setCurrentText("DB" + str(DBNumber))
         self.DBCount.setValue(DBCount)
 
-    def load_pid_checker(self):
-        """Starts thread with infinite checking pid file of indexing process"""
-        self.mycheckScanPIDFileLoopThread = CheckScanPIDFileLoopThread()
-        self.mycheckScanPIDFileLoopThread.pidFileExists.connect(self.checkScanPIDFileLoopEmitted)
-        self.mycheckScanPIDFileLoopThread.start()
-
+# MAIN MENU ACTIONS
     def actionPreferencesEmitted(self):
         """Opens preferences dialog"""
         initValues = {"useExternalDatabase": self.settings.value("useExternalDatabase"),
@@ -167,6 +188,98 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.settings.setValue("disableWindowsLongPathSupport",
                                    utilities.bool2str(dialog.PREFDisableWindowsLongPathSupport.isChecked()))
             self.settings.setValue("maxSearchResults", str(dialog.PREFMaxSearchResults.value()))
+
+    def updateDBEmitted(self):
+        """Starts scan filesystem and update database thread"""
+        print(scanPIDFile)
+        os.close(os.open(scanPIDFile, os.O_CREAT))
+
+        self.updateDBThreads = {}
+
+        for DBNumber in range(1, self.DBCount.value() + 1):
+            self.updateDBThreads[DBNumber] = UpdateDBThread(DBNumber, self.settings)
+            self.updateDBThreads[DBNumber].sigIsOver.connect(self.updateDBCompleted)
+            self.updateDBThreads[DBNumber].start()
+# MAIN MENU ACTIONS - END SECTION
+
+
+
+# SAVE/LOAD FILTERS
+    def FilterListSaveButtonEmitted(self):
+        """Add or resave filter to settings"""
+        filterName = self.FilterListLineEdit.text()
+        if  filterName not in self.filters:
+            self.filters += [filterName]
+            self.FilterListComboBox.addItems([filterName])
+            self.FilterListRemoveButton.setEnabled(True)
+
+        self.settings.setValue("FILTER_" + filterName + "/FilterFilename", self.FilterFilename.text())
+        self.settings.setValue("FILTER_" + filterName + "/FilterPath", self.FilterPath.text())
+        self.settings.setValue("FILTER_" + filterName + "/FilterFileTypes", self.FilterFileTypes.text())
+        self.settings.setValue("FILTER_" + filterName + "/FilterMinSize", self.FilterMinSize.value())
+        self.settings.setValue("FILTER_" + filterName + "/FilterMinSizeType", self.FilterMinSizeType.currentIndex())
+        self.settings.setValue("FILTER_" + filterName + "/FilterMinSizeEnabled", self.FilterMinSizeEnabled.isChecked())
+        self.settings.setValue("FILTER_" + filterName + "/FilterMaxSize", self.FilterMaxSize.value())
+        self.settings.setValue("FILTER_" + filterName + "/FilterMaxSizeType", self.FilterMaxSizeType.currentIndex())
+        self.settings.setValue("FILTER_" + filterName + "/FilterMaxSizeEnabled", self.FilterMaxSizeEnabled.isChecked())
+        self.settings.setValue("FILTER_" + filterName + "/FilterIndexedLastDays", self.FilterIndexedLastDays.value())
+        self.settings.setValue("FILTER_" + filterName + "/FilterIndexedLastDaysEnabled", self.FilterIndexedLastDaysEnabled.isChecked())
+
+        self.settings.setValue("filters", ",".join(self.filters))
+
+        self.FilterListLineEdit.setText("")
+        self.FilterListComboBox.setCurrentText(filterName)
+
+
+    def FilterListComboBoxEmitted(self):
+        """Loads filter from settings"""
+
+        if self.FilterListComboBox.currentIndex() == 0:
+            self.FilterListLineEdit.setText("")
+            self.FilterListSaveButton.setDisabled(True)
+            self.FilterListRemoveButton.setDisabled(True)
+            return
+
+        filterName = self.FilterListComboBox.currentText()
+
+        self.FilterFilename.setText(self.settings.value("FILTER_" + filterName + "/FilterFilename"))
+        self.FilterPath.setText(self.settings.value("FILTER_" + filterName + "/FilterPath"))
+        self.FilterFileTypes.setText(self.settings.value("FILTER_" + filterName + "/FilterFileTypes"))
+        self.FilterMinSize.setValue(int(self.settings.value("FILTER_" + filterName + "/FilterMinSize")))
+        self.FilterMinSizeType.setCurrentIndex(int(self.settings.value("FILTER_" + filterName + "/FilterMinSizeType")))
+        self.FilterMinSizeEnabled.setChecked(utilities.str2bool(self.settings.value("FILTER_" + filterName + "/FilterMinSizeEnabled")))
+        self.FilterMaxSize.setValue(int(self.settings.value("FILTER_" + filterName + "/FilterMaxSize")))
+        self.FilterMaxSizeType.setCurrentIndex(int(self.settings.value("FILTER_" + filterName + "/FilterMaxSizeType")))
+        self.FilterMaxSizeEnabled.setChecked(utilities.str2bool(self.settings.value("FILTER_" + filterName + "/FilterMaxSizeEnabled")))
+        self.FilterIndexedLastDays.setValue(int(self.settings.value("FILTER_" + filterName + "/FilterIndexedLastDays")))
+        self.FilterIndexedLastDaysEnabled.setChecked(utilities.str2bool(self.settings.value("FILTER_" + filterName + "/FilterIndexedLastDaysEnabled")))
+
+        self.FilterFilenameTextChanged()
+
+        self.FilterListLineEdit.setText(filterName)
+        self.FilterListSaveButton.setEnabled(True)
+        self.FilterListRemoveButton.setEnabled(True)
+
+
+    def FilterListLineEditEditedEmitted(self):
+        """Disable save filter button if filtername is empty"""
+        if self.FilterListLineEdit.text() == "":
+            self.FilterListSaveButton.setDisabled(True)
+        else:
+            self.FilterListSaveButton.setEnabled(True)
+
+    def FilterListRemoveButtonEmitted(self):
+        """Remove saved filter"""
+        filterName = self.FilterListComboBox.currentText()
+
+
+        self.filters.remove(filterName)
+        self.FilterListComboBox.removeItem(self.FilterListComboBox.currentIndex())
+        self.settings.remove("FILTER_" + filterName)
+        self.settings.setValue("filters", ",".join(self.filters))
+        if len(self.filters) == 0:
+            self.FilterListRemoveButton.setDisabled(True)
+# SAVE/LOAD FILTERS - END SECTION
 
     def select_db(self, DBNumber, runViaGUI=True):
         """Load settings from sqlite database to GUI, return DB name for combobox"""
@@ -283,17 +396,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.DBApplySettingsButton.setDisabled(True)
         self.DBSelectDatabase.setFocus()
 
-    def updateDBEmitted(self):
-        """Starts scan filesystem and update database thread"""
-        print(scanPIDFile)
-        os.close(os.open(scanPIDFile, os.O_CREAT))
-
-        self.updateDBThreads = {}
-
-        for DBNumber in range(1, self.DBCount.value() + 1):
-            self.updateDBThreads[DBNumber] = UpdateDBThread(DBNumber, self.settings)
-            self.updateDBThreads[DBNumber].sigIsOver.connect(self.updateDBCompleted)
-            self.updateDBThreads[DBNumber].start()
 
     def updateDBCompleted(self, DBNumber):
         """Actions after update database is complete"""
@@ -325,6 +427,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.btnSearch.setDisabled(True)
 
         self.btnSearch.setText("Searching...")
+
+        time.sleep(.2)
 
         filters = {}
         filters["FilterFilename"] = self.FilterFilename.text()
@@ -401,6 +505,43 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.actionStartScan.setText("Start scan")
             self.actionStartScan.setEnabled(True)
 
+# TABLE CONTEXT MENU
+    def tableMenu(self, event):
+        """Create context menu for tableFiles widget"""
+        self.menu = QtWidgets.QMenu(self)
+        if len(self.tableFiles.selectedItems()) <= 8 and len(self.tableFiles.selectedItems()) > 0:
+            menuOpenFolder = QtWidgets.QAction('Open Folder', self)
+            menuOpenFolder.triggered.connect(self.menuOpenFolder)
+            self.menu.addAction(menuOpenFolder)
+        if len(self.tableFiles.selectedItems()) > 0:
+            menuDeleteFiles = QtWidgets.QAction('Delete Files', self)
+            menuDeleteFiles.triggered.connect(self.menuDeleteFiles)
+            menuDeleteFiles.setDisabled(True)
+            self.menu.addAction(menuDeleteFiles)
+
+
+        self.menu.popup(QtGui.QCursor.pos())
+
+    def menuOpenFolder(self, event):
+        """Opens folders for seelcted files"""
+        allItems = self.tableFiles.selectedItems()
+        rows =  [allItems[x:x+8] for x in range(0, len(allItems), 8)]
+        for row in rows:
+            if isWindows:
+                os.startfile(row[7].text())
+            else:
+                subprocess.Popen(["xdg-open", row[7].text()])
+
+    def menuDeleteFiles(self, event):
+        """Delete selected files"""
+        pass
+# TABLE CONTEXT MENU - END SECTION
+
+    def load_pid_checker(self):
+        """Starts thread with infinite checking pid file of indexing process"""
+        self.mycheckScanPIDFileLoopThread = CheckScanPIDFileLoopThread()
+        self.mycheckScanPIDFileLoopThread.pidFileExists.connect(self.checkScanPIDFileLoopEmitted)
+        self.mycheckScanPIDFileLoopThread.start()
 
     def exitActionTriggered(self):
         """Exit the application"""
@@ -454,6 +595,7 @@ class SearchInDB(QtCore.QThread):
 
 
     def run(self):
+        """Execute SQL query, emits values"""
 
         for i in range(1, self.DBCount + 1):
             self.dbConn[i] = sqlite3.connect(pathlib.Path(get_db_path(i)).as_uri() + "?mode=ro", uri=True)
@@ -522,12 +664,12 @@ class SearchInDB(QtCore.QThread):
             rows = dbCursor.execute(query, parameters).fetchall()
             counter = 0
             for row in rows:
-                if not self._isRunning:
+                if not self._isRunning: # this variable can be changed from main class for search interruption
                     self.searchComplete.emit()
                     return
-                if counter > 1000:
+                if counter > 500:
                     counter = 0
-                    time.sleep(.3)
+                    time.sleep(.2)
                 counter +=  1
                 filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
 
