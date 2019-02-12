@@ -22,8 +22,11 @@ import utilities
 
 from ui_files import pyMain
 from ui_files import pyPreferences
+from ui_files import pyAbout
+from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
+__version__ = "0.95"
 appDataPath = os.getcwd() + "/"
 scanPIDFile = appDataPath + "scan.pid"
 if len(sys.argv) <= 1 or  sys.argv[1] != "--scan":
@@ -71,6 +74,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         # Menu items
         self.actionPreferences.triggered.connect(self.actionPreferencesEmitted)
         self.actionStartScan.triggered.connect(self.updateDBEmitted)
+        self.actionAbout.triggered.connect(self.actionAboutEmitted)
+        self.actionShowHelpInfo.triggered.connect(self.actionShowHelpInfoEmitted)
 
         # Search Tab
         FilterFilenameValidator = QtGui.QRegExpValidator("([\w \.\*\?])*")
@@ -220,7 +225,18 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.updateDBThreads[DBNumber] = UpdateDBThread(DBNumber, self.settings)
             self.updateDBThreads[DBNumber].sigIsOver.connect(self.updateDBCompleted)
             self.updateDBThreads[DBNumber].start()
-# MAIN MENU ACTIONS - END SECTION
+
+    def actionAboutEmitted(self):
+        dialog = AboutDialog()
+        dialog.pushButton.clicked.connect(dialog.close)
+        dialog.exec_()
+
+    def actionShowHelpInfoEmitted(self):
+        dialog = HelpDialog()
+        dialog.pushButton.clicked.connect(dialog.close)
+        dialog.exec_()
+
+    # MAIN MENU ACTIONS - END SECTION
 
 
 
@@ -405,11 +421,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         dbSettings["DBFileTypeFilterMode"] = self.DBFileTypeFilterMode.currentText()
         dbSettings["DBRootScanPath"] = self.DBRootScanPath.itemText(0)
 
-        self.saveDBSettingsThread = SaveDBSettingsThread(currentDB, dbSettings)
-        self.saveDBSettingsThread.settingsSavedSig.connect(self.saveDBSettingsThreadSavedSigEmitted)
-        self.saveDBSettingsThread.start()
+        self.SaveSqliteDBSettingsThread = SaveSqliteDBSettingsThread(currentDB, dbSettings)
+        self.SaveSqliteDBSettingsThread.settingsSavedSig.connect(self.SaveSqliteDBSettingsThreadSavedSigEmitted)
+        self.SaveSqliteDBSettingsThread.start()
 
-    def saveDBSettingsThreadSavedSigEmitted(self, DBNumber):
+    def SaveSqliteDBSettingsThreadSavedSigEmitted(self, DBNumber):
         """Reread db settings and unlocks interface when db settings was saved"""
         self.select_db(DBNumber, False)
         self.DBSelectDatabase.setEnabled(True)
@@ -463,13 +479,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         filters["FilterIndexedLastDaysEnabled"] = self.FilterIndexedLastDaysEnabled.isChecked()
         filters["FilterIndexedLastDays"] = self.FilterIndexedLastDays.value()
 
-        self.searchInDBThread = SearchInDB(self.DBCount.value(), filters)
-        self.searchInDBThread.rowEmitted.connect(self.searchInDBThreadRowEmitted)
-        self.searchInDBThread.searchComplete.connect(self.searchInDBThreadSearchCompleteEmitted)
-        self.searchInDBThread.start()
-        self.searchInDBThread.setPriority(QtCore.QThread.LowestPriority)
+        self.SearchInSqliteDBThread = SearchInSqliteDB(self.DBCount.value(), filters)
+        self.SearchInSqliteDBThread.rowEmitted.connect(self.SearchInSqliteDBThreadRowEmitted)
+        self.SearchInSqliteDBThread.searchComplete.connect(self.SearchInSqliteDBThreadSearchCompleteEmitted)
+        self.SearchInSqliteDBThread.start()
+        self.SearchInSqliteDBThread.setPriority(QtCore.QThread.LowestPriority)
 
-    def searchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime, indexed):
+    def SearchInSqliteDBThreadRowEmitted(self, filename, path, size, ctime, mtime, indexed):
         """While executing sql - gets returned rows and inserts them into QTableWidget
         Columns order in QTable:
         filename, type, size, modified, indexed, created, path"""
@@ -485,7 +501,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if row > int(self.settings.value("maxSearchResults"))-1 and not self.FilterShowMoreResultsCheckbox.isChecked():
             self.FilterShowMoreResultsCheckbox.setVisible(True)
             self.FilterShowMoreResultsCheckbox.setText("Show more results (uncheck while searching to stop)")
-            self.searchInDBThread._isRunning = False
+            self.SearchInSqliteDBThread._isRunning = False
             return
 
         self.tableFiles.insertRow(row)
@@ -506,7 +522,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setItem(row, self.tableFilesColumnPathIndx, QtWidgets.QTableWidgetItem(path))
 
 
-    def searchInDBThreadSearchCompleteEmitted(self):
+    def SearchInSqliteDBThreadSearchCompleteEmitted(self):
         """Unlocks GUI elements and runs filecheck (file exists or was removed) after searching"""
         self.tableFiles.setSortingEnabled(True)
         self.btnSearch.setDisabled(False)
@@ -530,24 +546,32 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     def tableMenu(self, event):
         """Create context menu for tableFiles widget"""
         self.menu = QtWidgets.QMenu(self)
-        if len(self.tableFiles.selectedItems()) <= 8 and len(self.tableFiles.selectedItems()) > 0:
-            menuOpenFolder = QtWidgets.QAction('Open Folder', self)
-            menuOpenFolder.triggered.connect(self.menuOpenFolder)
-            self.menu.addAction(menuOpenFolder)
 
-        if len(self.tableFiles.selectedItems()) > 0:
-            menuDeleteFiles = QtWidgets.QAction('Move to Trash', self)
-            menuDeleteFiles.triggered.connect(self.menuDeleteFiles)
-            # menuDeleteFiles.setDisabled(True)
-            self.menu.addAction(menuDeleteFiles)
+        menuOpenFolder = QtWidgets.QAction('Open Folder', self)
+        menuOpenFolder.triggered.connect(self.menuOpenFolder)
+        self.menu.addAction(menuOpenFolder)
+        if len(self.tableFiles.selectedItems()) > 8 or len(self.tableFiles.selectedItems()) == 0:
+            menuOpenFolder.setDisabled(True)
 
-            menuExportSelectedToCsv = QtWidgets.QAction('Export selected to CSV...', self)
-            menuExportSelectedToCsv.triggered.connect(self.menuExportSelectedToCsv)
-            self.menu.addAction(menuExportSelectedToCsv)
+
+        menuDeleteFiles = QtWidgets.QAction('Move to Trash', self)
+        menuDeleteFiles.triggered.connect(self.menuDeleteFiles)
+        # menuDeleteFiles.setDisabled(True)
+        self.menu.addAction(menuDeleteFiles)
+        if len(self.tableFiles.selectedItems()) == 0:
+            menuDeleteFiles.setDisabled(True)
+
+        menuExportSelectedToCsv = QtWidgets.QAction('Export selected to CSV...', self)
+        menuExportSelectedToCsv.triggered.connect(self.menuExportSelectedToCsv)
+        self.menu.addAction(menuExportSelectedToCsv)
+        if len(self.tableFiles.selectedItems()) == 0:
+            menuExportSelectedToCsv.setDisabled(True)
 
         menuExportAllToCsv = QtWidgets.QAction('Export all to CSV...', self)
         menuExportAllToCsv.triggered.connect(self.menuExportAllToCsv)
         self.menu.addAction(menuExportAllToCsv)
+        if self.tableFiles.rowCount() == 0:
+            menuExportAllToCsv.setDisabled(True)
 
 
         self.menu.popup(QtGui.QCursor.pos())
@@ -609,7 +633,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         sys.exit()
 
 
-class SaveDBSettingsThread(QtCore.QThread):
+class SaveSqliteDBSettingsThread(QtCore.QThread):
     settingsSavedSig = QtCore.Signal(int)
 
     def __init__(self, DBNumber, dbSettings, parent=None):
@@ -642,7 +666,7 @@ class SaveDBSettingsThread(QtCore.QThread):
                                            "Error:\r\n" + str(e))
 
 
-class SearchInDB(QtCore.QThread):
+class SearchInSqliteDB(QtCore.QThread):
     rowEmitted = QtCore.Signal(str, str, str, int, int, int)
     searchComplete = QtCore.Signal()
     dbConn = {}
@@ -735,7 +759,7 @@ class SearchInDB(QtCore.QThread):
                 filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
 
                 # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
-                # so doubleconverted - in this place and in searchInDBThreadRowEmitted()
+                # so doubleconverted - in this place and in SearchInSqliteDBThreadRowEmitted()
                 size = str(size)
 
                 self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
@@ -855,6 +879,25 @@ class UpdateDBThread(QtCore.QThread):
         print("final commit")
         self.dbConn.commit()
         self.dbConn.execute("VACUUM")
+
+
+class AboutDialog(QtWidgets.QDialog, pyAbout.Ui_Dialog):
+
+    def __init__(self, parent=None):
+        QtWidgets.QDialog.__init__(self)
+        self.setupUi(self)
+
+        self.setWindowTitle(__appname__ + " - About")
+        self.versionLabel.setText("(v. " +  __version__ + ")")
+
+class HelpDialog(QtWidgets.QDialog, pyManual.Ui_Dialog):
+
+    def __init__(self, parent=None):
+        QtWidgets.QDialog.__init__(self)
+        self.setupUi(self)
+
+        self.setWindowTitle(__appname__ + " - Manual")
+        self.versionLabel.setText("(v. " +  __version__ + ")")
 
 
 class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
