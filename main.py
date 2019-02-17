@@ -191,8 +191,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
             if not os.path.isfile(fullFilePath):
                 for column in range(0, self.tableFiles.columnCount()):
+                    # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
                     self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
-                    #self.tableFiles.item(i, column).setBackgroundColor("#ffa189")
 
     def load_initial_settings(self):
         """Loads initial settings from ini file and DBs"""
