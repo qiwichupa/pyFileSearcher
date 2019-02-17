@@ -1235,18 +1235,18 @@ class SearchInMySQLDB(QtCore.QThread):
             # # query constructor
             # filename
             if self.filters["FilterFilename"].strip() != "":
-                query += " AND (UPPER(filename) LIKE UPPER(%s)) "
+                query += " AND (filename LIKE %s) "
                 parameters += ["" + utilities.mysql_query_wildficator(self.filters["FilterFilename"]) + ""]
             # path
             if self.filters["FilterPath"].strip() != "":
-                query += " AND (UPPER(path) LIKE UPPER(%s)) "
+                query += " AND (path LIKE %s) "
                 parameters += ["%" + utilities.mysql_query_wildficator(self.filters["FilterPath"]) + "%"]
             # extensions
             if self.filters["FilterFileTypes"].strip() != "":
                 query += " AND ("
                 exts = list(set(self.filters["FilterFileTypes"].split(",")))  # uniqify exts filter
                 for ext in exts:
-                    query += " UPPER(type) = UPPER(%s) "
+                    query += " type = %s "
                     parameters += [ext]
                     if exts.index(ext) < len(exts) - 1:
                         #print(str(exts.index(ext)) + " " + str(len(exts) - 1))
