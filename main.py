@@ -4,7 +4,7 @@ import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
 import PySide2.QtWidgets as QtWidgets
 import send2trash
-import cymysql
+
 #import MySQLdb as my_sql
 import mysql.connector as my_sql
 
@@ -15,15 +15,18 @@ import logging
 import os
 import pathlib
 import platform
+import re
 import sqlite3
 import subprocess
 import sys
 import time
 
 
+
 from hashlib import md5
 
 import utilities
+
 
 from ui_files import pyMain
 from ui_files import pyPreferences
@@ -31,7 +34,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.97"
+__version__ = "0.97b"
 
 
 appDataPath = os.getcwd() + "/"
@@ -284,7 +287,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def updateDBEmitted(self):
         """Starts scan filesystem and update database thread"""
-        logger.debug("Updating DB was started, creating PID-file: " + scanPIDFile)
+        logger.debug("UPDATING DB WAS STARTED. Creating PID-file: " + scanPIDFile)
         os.close(os.open(scanPIDFile, os.O_CREAT))
 
         self.updateDBThreads = {}
@@ -297,7 +300,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.updateDBThreads[DBNumber].start()
         else:
             self.DBScanEngine = "MySQL"
-            self.mysql_mark_all_files_for_remove()
+            self.mysql_prepare_db_for_update()
             for row in range(0, self.MySQLPathsTable.rowCount()):
                 path = self.MySQLPathsTable.item(row, 0).text()
                 self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.settings)
@@ -433,12 +436,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.MySQLTestButton.setDisabled(True)
         try:
-            dbConn = cymysql.connect(
+            dbConn = my_sql.connect(
                 host=self.MySQLServerAddress.text(),
                 port=int(self.MySQLServerPort.text()),
                 user=self.MySQLLogin.text(),
                 passwd=self.MySQLPassword.text(),
-                db=self.MySQLDBName.text())
+                db=self.MySQLDBName.text(),
+                charset="utf8")
         except Exception as e:
             logger.critical("Connection error: " + str(e))
             if isScanMode == False:
@@ -459,12 +463,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     def MySQLInitDBButtonEmitted(self):
         """Initialize DB"""
         try:
-            dbConn = cymysql.connect(
+            dbConn = my_sql.connect(
                 host=self.MySQLServerAddress.text(),
                 port=int(self.MySQLServerPort.text()),
                 user=self.MySQLLogin.text(),
                 passwd=self.MySQLPassword.text(),
-                db=self.MySQLDBName.text())
+                db=self.MySQLDBName.text(),
+                charset="utf8")
         except Exception as e:
             logger.critical("Connection error: " + str(e))
             if isScanMode == False:
@@ -473,15 +478,19 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             dbCursor = dbConn.cursor()
             dbCursor.execute("DROP TABLE IF EXISTS Files")
             dbCursor.execute("""CREATE TABLE IF NOT EXISTS Files(
-                                hash CHAR(32), 
-                                removed CHAR(1),
+                                hash BINARY(16), 
+                                removed TINYINT(1),
                                 filename VARCHAR(300),
                                 type VARCHAR(8),  
                                 path VARCHAR(2000), 
-                                size INT, 
+                                size BIGINT, 
                                 created INT, modified INT, 
                                 indexed INT,
-                                UNIQUE KEY type_hash (type, hash)
+                                UNIQUE KEY hash_type (hash, type),
+                                INDEX size_indexed_type (size, indexed, type),
+                                INDEX indexed_size_type (indexed, size, type),
+                                INDEX type_size_indexed (type, size, indexed),
+                                INDEX path (path)
                                 )
                                 PARTITION BY RANGE COLUMNS (type)  (
                                 PARTITION p0 VALUES LESS THAN ('a'),
@@ -551,7 +560,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def mysql_establish_connection(self):
         try:
-            self.dbConnMysql = cymysql.connect(
+            self.dbConnMysql = my_sql.connect(
                 host=self.MySQLServerAddress.text(),
                 port=int(self.MySQLServerPort.text()),
                 user=self.MySQLLogin.text(),
@@ -562,22 +571,61 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
 
 
-    def mysql_mark_all_files_for_remove(self):
-        """Marks all rows in DB as 'removed' before scan"""
+    def mysql_prepare_db_for_update(self):
+        """Marks all rows in DB as 'removed' before scan, remove all indexes except unique (for fastest update)"""
         self.mysql_establish_connection()
-        with self.dbConnMysql as cursor:
-            logger.debug("Hunting in MySQL...")
-            cursor.execute("UPDATE Files SET removed = 0")
-            self.dbConnMysql.commit()
-        self.dbConnMysql.close()
 
-    def mysql_remove_deleted_files(self):
-        """delete all rows marked as 'removed' after scan"""
+        cursor = self.dbConnMysql.cursor()
+
+        logger.debug("MySQL preparation...")
+        logger.debug("...dropping indexes...")
+
+        if utilities.mysql_index_is_exists(self.dbConnMysql, "Files", "size_indexed_type"):
+            logger.debug("......dropping size_indexed_type...")
+            cursor.execute("DROP INDEX size_indexed_type ON Files")
+        if utilities.mysql_index_is_exists(self.dbConnMysql, "Files", "indexed_size_type"):
+            logger.debug("......dropping indexed_size_type...")
+            cursor.execute("DROP INDEX indexed_size_type ON Files ")
+        if utilities.mysql_index_is_exists(self.dbConnMysql, "Files", "type_size_indexed"):
+            logger.debug("......dropping type_size_indexed...")
+            cursor.execute("DROP INDEX type_size_indexed ON Files ")
+        if utilities.mysql_index_is_exists(self.dbConnMysql, "Files", "path"):
+            logger.debug("......dropping path...")
+            cursor.execute("DROP INDEX path ON Files ")
+        self.dbConnMysql.commit()
+
+        logger.debug("...indexes dropped. Marking all files as removed...")
+
+        cursor.execute("UPDATE Files SET removed = 0")
+        logger.debug("...all files marked as removed...")
+        self.dbConnMysql.commit()
+        self.dbConnMysql.close()
+        logger.debug("MySQL preparation complete! All files checked for removal and will be unchecked during updating.")
+
+
+    def mysql_post_update_procedure(self):
+        """delete all rows marked as 'removed' after scan and recreate indexes"""
+        '''INDEX size_indexed_type (size, indexed, type),
+                                INDEX indexed_size_type (indexed, size, type),
+                                INDEX type_size_indexed (type, size, indexed),
+                                INDEX path (path)'''
         self.mysql_establish_connection()
-        with self.dbConnMysql as cursor:
-            logger.debug("Shooting in MySQL...")
-            cursor.execute("DELETE FROM Files WHERE removed = 0")
-            self.dbConnMysql.commit()
+
+        cursor = self.dbConnMysql.cursor()
+        logger.debug("MySQL post-update procedure...")
+        logger.debug("...removing deleted files from DB...")
+        cursor.execute("DELETE FROM Files WHERE removed = 0")
+        self.dbConnMysql.commit()
+
+        logger.debug("...recreating indexes...")
+        cursor.execute("""ALTER TABLE Files 
+                            ADD INDEX size_indexed_type (size, indexed, type),
+                            ADD INDEX indexed_size_type (indexed, size, type),
+                            ADD INDEX type_size_indexed (type, size, indexed),
+                            ADD INDEX path (path)""")
+        self.dbConnMysql.commit()
+        logger.debug("MySQL post-update procedure complete.")
+
         self.dbConnMysql.close()
 
     #
@@ -720,7 +768,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if len(self.updateDBThreads) == 0:
             os.remove(scanPIDFile)
             if self.DBScanEngine == "MySQL":
-                self.mysql_remove_deleted_files()
+                self.mysql_post_update_procedure()
             logger.debug("Scan is complete!")
             if isScanMode:
                 logger.debug("isScanMode - exit app")
@@ -736,6 +784,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def btnSearchEmitted(self):
         """Runs searching process"""
+        self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
         self.tableFiles.setSortingEnabled(False)
 
@@ -805,7 +854,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setItem(row, self.tableFilesColumnNumIndx, numItem)
         self.tableFiles.setItem(row, self.tableFilesColumnFilnameIndx, QtWidgets.QTableWidgetItem(filename))
         self.tableFiles.setItem(row, self.tableFilesColumnTypeIndx, QtWidgets.QTableWidgetItem(
-            filename[filename.rfind(".") + 1:] if filename.rfind(".") != -1 else "")
+                                                                    utilities.get_extension_from_filename(filename))
                                 # if there is a dot in filename - extract extension
                                 )
         sizeItem = QtWidgets.QTableWidgetItem()
@@ -869,23 +918,18 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.menu.popup(QtGui.QCursor.pos())
 
-    def menuOpenFolder(self, event):
+    def menuOpenFolder(self):
         """Opens folder for selected file"""
-        allItems = self.tableFiles.selectedItems()
-        columnCount = self.tableFiles.columnCount()
-        rows = [allItems[x:x + columnCount] for x in range(0, len(allItems), columnCount)]
+        rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
         for row in rows:
             if isWindows:
                 os.startfile(row[self.tableFilesColumnPathIndx].text())
             else:
                 subprocess.Popen(["xdg-open", row[self.tableFilesColumnPathIndx].text()])
 
-    def menuDeleteFiles(self, event):
+    def menuDeleteFiles(self):
         """Delete selected files"""
-
-        allItems = self.tableFiles.selectedItems()
-        columnCount = self.tableFiles.columnCount()
-        rows = [allItems[x:x + columnCount] for x in range(0, len(allItems), columnCount)]
+        rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
         for row in rows:
             send2trash.send2trash(
                 row[self.tableFilesColumnPathIndx].text() + row[self.tableFilesColumnFilnameIndx].text())
@@ -893,18 +937,17 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def menuExportSelectedToCsv(self):
         """Exports selected rows to csv"""
-        allItems = self.tableFiles.selectedItems()
-        columnCount = self.tableFiles.columnCount()
-        rows = [allItems[x:x + columnCount] for x in range(0, len(allItems), columnCount)]
         csvObj = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=__appname__ + " - Save as csv",
                                                        directory=".", filter="Simple spreadsheet (*.csv)")
         if csvObj:
+            rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
             with open(csvObj[0], 'w', newline='') as csvfile:
                 csvWriter = csv.writer(csvfile, delimiter=',', quotechar='\"', quoting=csv.QUOTE_MINIMAL)
+
                 for row in rows:
                     textRow = []
-                    for i in range(0, self.tableFiles.columnCount()):
-                        textRow += [row[i].text()]
+                    for item in row:
+                        textRow += [item.text()]
                     csvWriter.writerow(textRow)
 
     def menuExportAllToCsv(self):
@@ -932,40 +975,130 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
 
 
-class SaveSqliteDBSettingsThread(QtCore.QThread):
-    settingsSavedSig = QtCore.Signal(int)
 
-    def __init__(self, DBNumber, dbSettings, parent=None):
+# PPID-FILE CHECKER
+class CheckScanPIDFileLoopThread(QtCore.QThread):
+    pidFileExists = QtCore.Signal(bool)
+    _isRunning = True
+
+    def __init__(self, parent=None):
         QtCore.QThread.__init__(self)
 
-        self.DBNumber = DBNumber
-        self.dbSettings = dbSettings
 
     def run(self):
-        logger.debug("Saving settings for DB #" + str(self.DBNumber))
+        self.pid_check()
+
+
+    def pid_check(self):
+        while self._isRunning is True:
+            if os.path.isfile(scanPIDFile):
+                self.pidFileExists.emit(True)
+            else:
+                self.pidFileExists.emit(False)
+            time.sleep(1)
+
+    def stop(self):
+        self._isRunning = False
+
+
+# SQLITE CLASSES
+class UpdateDBThread(QtCore.QThread):
+    sigIsOver = QtCore.Signal(int)
+
+    def __init__(self, DBNumber, settings, parent=None):
+        QtCore.QThread.__init__(self)
+
+        self.settings = settings
+        self.DBNumber = DBNumber
+
+    def run(self):
+
+        logger.debug("Scan thread is started for Sqlite DB #" + str(self.DBNumber))
+
         self.dbConn = sqlite3.connect(get_db_path(self.DBNumber))
         self.dbCursor = self.dbConn.cursor()
 
-        self.save_setting_to_db("Exclusions", self.dbSettings["DBFileTypeFilter"])
+        exclusions = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?",
+                                           ("Exclusions",)).fetchone()[0]
 
-        self.save_setting_to_db("ExclusionsMode", self.dbSettings["DBFileTypeFilterMode"])
-        if self.dbSettings["DBRootScanPath"] != "[Path is not set]":
-            self.save_setting_to_db("RootPath", self.dbSettings["DBRootScanPath"])
+        exclusionsMode = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?",
+                                               ("ExclusionsMode",)).fetchone()[0]
+
+        rootPath = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?", ("RootPath",)).fetchone()[0]
+        if rootPath:
+            self.updateDB(str(rootPath), exclusions, exclusionsMode)
+
+        self.sigIsOver.emit(self.DBNumber)
+
+    def updateDB(self, rootpath, exclusions=None, exclusionsMode=None):
+        """Scan filesystem from given path"""
+        if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
+            self.windowsLongPathHack = True
+        else:
+            self.windowsLongPathHack = False
+
+        if self.windowsLongPathHack:
+            rootpath = "\\\\?\\" + rootpath
+
+        exclusions = exclusions.split(",")
+
+        self.dbCursor.execute("UPDATE Files SET removed=?", ("0",))
+
+        timer = time.time()
+
+        for entry in utilities.scantree(rootpath):
+            if entry.is_file():
+                hash = md5()
+
+                # commit every 3 sec
+                if time.time() - timer > 4:
+                    self.dbConn.commit()
+                    self.dbConn.close()
+                    time.sleep(0.1)
+                    self.dbConn = sqlite3.connect(get_db_path(self.DBNumber))
+                    self.dbCursor = self.dbConn.cursor()
+                    timer = time.time()
+
+                try:
+                    name = entry.name
+
+                    extension = utilities.get_extension_from_filename(name)
+
+                    if (extension in exclusions and exclusionsMode == "Whitelist"
+                    ) or (
+                            extension not in exclusions and exclusionsMode == "Blacklist"
+                    ) or (
+                            len(exclusions) == 1 and exclusions[0] == ""
+                    ):
+                        fullname = entry.path  # full path + filename
+                        path = fullname[:-len(name)]
+                        if self.windowsLongPathHack:
+                            path = path[4:]
+                        size = int(entry.stat().st_size)
+                        mtime = int(entry.stat().st_mtime)
+                        ctime = int(entry.stat().st_ctime)
+                        now = int(time.time())
+                        hash.update(fullname.encode())
+                        key = hash.hexdigest()
+
+                        # SQL TABLE: hash, removed, filename, path, size, created, modified, indexed
+                        data = self.dbCursor.execute("SELECT indexed FROM Files WHERE hash=?", (key,)).fetchone()
+                        if data is None:
+                            indexed = now
+                        else:
+                            indexed = data[0]
+
+                        self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+                                              (key, "1", name, path, size, ctime, mtime, indexed))
+                except Exception as e:
+                    logger.critical("Error while scan and update DB: " + str(e))
+
+
         self.dbConn.commit()
-        self.dbConn.close()
-
-        self.settingsSavedSig.emit(self.DBNumber)
-
-    def save_setting_to_db(self, option, value):
-        try:
-            self.dbCursor.execute("UPDATE Settings SET value = ? WHERE option=?", (value, option))
-        except Exception as e:
-            logger.critical("Unable to write option to DB" + str(self.DBNumber) + "\r\n" +
-                                           "Error:\r\n" + str(e))
-            if isScanMode == False:
-                QtWidgets.QMessageBox.critical(self, __appname__,
-                                           "Unable to write option to DB" + str(self.DBNumber) + "\r\n" +
-                                           "Error:\r\n" + str(e))
+        self.dbCursor.execute("DELETE FROM Files WHERE removed = '0' ")
+        logger.debug("Final commit in sqlite scan thread #" + str(self.DBNumber))
+        self.dbConn.commit()
+        self.dbConn.execute("VACUUM")
 
 
 class SearchInSqliteDB(QtCore.QThread):
@@ -1071,131 +1204,42 @@ class SearchInSqliteDB(QtCore.QThread):
         self.searchComplete.emit()
 
 
-class CheckScanPIDFileLoopThread(QtCore.QThread):
-    pidFileExists = QtCore.Signal(bool)
-    _isRunning = True
+class SaveSqliteDBSettingsThread(QtCore.QThread):
+    settingsSavedSig = QtCore.Signal(int)
 
-    def __init__(self, parent=None):
+    def __init__(self, DBNumber, dbSettings, parent=None):
         QtCore.QThread.__init__(self)
 
-
-    def run(self):
-        self.pid_check()
-
-
-    def pid_check(self):
-        while self._isRunning is True:
-            if os.path.isfile(scanPIDFile):
-                self.pidFileExists.emit(True)
-            else:
-                self.pidFileExists.emit(False)
-            time.sleep(1)
-
-    def stop(self):
-        self._isRunning = False
-
-
-class UpdateDBThread(QtCore.QThread):
-    sigIsOver = QtCore.Signal(int)
-
-    def __init__(self, DBNumber, settings, parent=None):
-        QtCore.QThread.__init__(self)
-
-        self.settings = settings
         self.DBNumber = DBNumber
+        self.dbSettings = dbSettings
 
     def run(self):
-
-        logger.debug("Scan thread is started for Sqlite DB #" + str(self.DBNumber))
-
+        logger.debug("Saving settings for DB #" + str(self.DBNumber))
         self.dbConn = sqlite3.connect(get_db_path(self.DBNumber))
         self.dbCursor = self.dbConn.cursor()
 
-        exclusions = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?",
-                                           ("Exclusions",)).fetchone()[0]
+        self.save_setting_to_db("Exclusions", self.dbSettings["DBFileTypeFilter"])
 
-        exclusionsMode = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?",
-                                               ("ExclusionsMode",)).fetchone()[0]
-
-        rootPath = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?", ("RootPath",)).fetchone()[0]
-        if rootPath:
-            self.updateDB(str(rootPath), exclusions, exclusionsMode)
-
-        self.sigIsOver.emit(self.DBNumber)
-
-    def updateDB(self, rootpath, exclusions=None, exclusionsMode=None):
-        """Scan filesystem from given path"""
-        if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
-            self.windowsLongPathHack = True
-        else:
-            self.windowsLongPathHack = False
-
-        if self.windowsLongPathHack:
-            rootpath = "\\\\?\\" + rootpath
-
-        exclusions = exclusions.split(",")
-
-        self.dbCursor.execute("UPDATE Files SET removed=?", ("0",))
-
-        timer = time.time()
-
-        for entry in utilities.scantree(rootpath):
-            if entry.is_file():
-                hash = md5()
-
-                # commit every 3 sec
-                if time.time() - timer > 4:
-                    self.dbConn.commit()
-                    self.dbConn.close()
-                    time.sleep(0.1)
-                    self.dbConn = sqlite3.connect(get_db_path(self.DBNumber))
-                    self.dbCursor = self.dbConn.cursor()
-                    timer = time.time()
-
-                try:
-                    name = entry.name
-                    if name.rfind(".") != -1:
-                        extension = name[name.rfind(".") + 1:]
-                    else:
-                        extension = ""
-
-                    if (extension in exclusions and exclusionsMode == "Whitelist"
-                    ) or (
-                            extension not in exclusions and exclusionsMode == "Blacklist"
-                    ) or (
-                            len(exclusions) == 1 and exclusions[0] == ""
-                    ):
-                        fullname = entry.path  # full path + filename
-                        path = fullname[:-len(name)]
-                        if self.windowsLongPathHack:
-                            path = path[4:]
-                        size = int(entry.stat().st_size)
-                        mtime = int(entry.stat().st_mtime)
-                        ctime = int(entry.stat().st_ctime)
-                        now = int(time.time())
-                        hash.update(fullname.encode())
-                        key = hash.hexdigest()
-
-                        # SQL TABLE: hash, removed, filename, path, size, created, modified, indexed
-                        data = self.dbCursor.execute("SELECT indexed FROM Files WHERE hash=?", (key,)).fetchone()
-                        if data is None:
-                            indexed = now
-                        else:
-                            indexed = data[0]
-
-                        self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
-                                              (key, "1", name, path, size, ctime, mtime, indexed))
-                except Exception as e:
-                    logger.critical("Error while scan and update DB: " + str(e))
-
-
+        self.save_setting_to_db("ExclusionsMode", self.dbSettings["DBFileTypeFilterMode"])
+        if self.dbSettings["DBRootScanPath"] != "[Path is not set]":
+            self.save_setting_to_db("RootPath", self.dbSettings["DBRootScanPath"])
         self.dbConn.commit()
-        self.dbCursor.execute("DELETE FROM Files WHERE removed = '0' ")
-        logger.debug("Final commit in sqlite scan thread #" + str(self.DBNumber))
-        self.dbConn.commit()
-        self.dbConn.execute("VACUUM")
+        self.dbConn.close()
 
+        self.settingsSavedSig.emit(self.DBNumber)
 
+    def save_setting_to_db(self, option, value):
+        try:
+            self.dbCursor.execute("UPDATE Settings SET value = ? WHERE option=?", (value, option))
+        except Exception as e:
+            logger.critical("Unable to write option to DB" + str(self.DBNumber) + "\r\n" +
+                                           "Error:\r\n" + str(e))
+            if isScanMode == False:
+                QtWidgets.QMessageBox.critical(self, __appname__,
+                                           "Unable to write option to DB" + str(self.DBNumber) + "\r\n" +
+                                           "Error:\r\n" + str(e))
+
+# MySQL CLASSES
 class SearchInMySQLDB(QtCore.QThread):
     rowEmitted = QtCore.Signal(str, str, str, int, int, int)
     searchComplete = QtCore.Signal()
@@ -1215,102 +1259,112 @@ class SearchInMySQLDB(QtCore.QThread):
         """Execute SQL query, emits values"""
 
         try:
-            self.dbConn = cymysql.connect(
+            self.dbConn = my_sql.connect(
                 host=self.settings.value("MySQL/MySQLServerAddress"),
                 port=int(self.settings.value("MySQL/MySQLServerPort")),
                 user=self.settings.value("MySQL/MySQLLogin"),
                 passwd=self.settings.value("MySQL/MySQLPassword"),
-                db=self.settings.value("MySQL/MySQLDBName")
+                db=self.settings.value("MySQL/MySQLDBName"),
+                charset="utf8"
             )
         except Exception as e:
             logger.critical("Connection error: " + str(e))
             return
 
-        with  self.dbConn as dbCursor:
 
-            # SQL TABLE: hash, removed, filename, path, size, created, modified, indexed
-            query = "SELECT filename, path, size, created, modified, indexed FROM Files WHERE 1 "
-            parameters = []
+        dbCursor = self.dbConn.cursor()
 
-            # # query constructor
-            # filename
-            if self.filters["FilterFilename"].strip() != "":
-                query += " AND (filename LIKE %s) "
-                parameters += ["" + utilities.mysql_query_wildficator(self.filters["FilterFilename"]) + ""]
-            # path
-            if self.filters["FilterPath"].strip() != "":
-                query += " AND (path LIKE %s) "
-                parameters += ["%" + utilities.mysql_query_wildficator(self.filters["FilterPath"]) + "%"]
-            # extensions
-            if self.filters["FilterFileTypes"].strip() != "":
-                query += " AND ("
-                exts = list(set(self.filters["FilterFileTypes"].split(",")))  # uniqify exts filter
-                for ext in exts:
-                    query += " type = %s "
-                    parameters += [ext]
-                    if exts.index(ext) < len(exts) - 1:
-                        #print(str(exts.index(ext)) + " " + str(len(exts) - 1))
-                        query += " OR"
-                query += ")"
-            # min size
-            if self.filters["FilterMixSizeEnabled"]:
-                if self.filters["FilterMinSizeType"] == "b":
-                    minsize = self.filters["FilterMinSize"]
-                if self.filters["FilterMinSizeType"] == "Kb":
-                    minsize = self.filters["FilterMinSize"] * 1024
-                if self.filters["FilterMinSizeType"] == "Mb":
-                    minsize = self.filters["FilterMinSize"] * 1048576
-                if self.filters["FilterMinSizeType"] == "Gb":
-                    minsize = self.filters["FilterMinSize"] + 1073741824
+        # SQL TABLE: hash, removed, filename, path, size, created, modified, indexed
+        query = "SELECT filename, path, size, created, modified, indexed FROM Files WHERE 1 "
+        parameters = []
 
-                query += " AND (size >= %s)"
-                parameters += [minsize]
-            # max size
-            if self.filters["FilterMaxSizeEnabled"]:
-                if self.filters["FilterMaxSizeType"] == "b":
-                    maxsize = self.filters["FilterMaxSize"]
-                if self.filters["FilterMaxSizeType"] == "Kb":
-                    maxsize = self.filters["FilterMaxSize"] * 1024
-                if self.filters["FilterMaxSizeType"] == "Mb":
-                    maxsize = self.filters["FilterMaxSize"] * 1048576
-                if self.filters["FilterMaxSizeType"] == "Gb":
-                    maxsize = self.filters["FilterMaxSize"] + 1073741824
+        # # query constructor
+        # filename
+        if self.filters["FilterFilename"].strip() != "":
+            query += " AND (filename LIKE %s) "
+            parameters += ["" + utilities.mysql_query_wildficator(self.filters["FilterFilename"]) + ""]
+        # path
+        if self.filters["FilterPath"].strip() != "":
+            query += " AND (path LIKE %s) "
+            parameters += ["%" + utilities.mysql_query_wildficator(self.filters["FilterPath"]) + "%"]
+        # extensions
+        extFromFileName = utilities.get_extension_from_filename(self.filters["FilterFilename"].strip())
+        # if I search filename with simple extension (only letters, digits and _)
+        # extension will be extracted from filename and exts list will be ignored
+        if  re.match("[\w_]+$", extFromFileName):
+            query += " AND (type = %s)"
+            parameters += [extFromFileName]
+        elif self.filters["FilterFileTypes"].strip() != "":
+            query += " AND ("
+            exts = list(set(self.filters["FilterFileTypes"].split(",")))  # uniqify exts filter
+            for ext in exts:
+                query += " type = %s "
+                parameters += [ext]
+                if exts.index(ext) < len(exts) - 1:
+                    #print(str(exts.index(ext)) + " " + str(len(exts) - 1))
+                    query += " OR"
+            query += ")"
+        else:
+            pass
+        # min size
+        if self.filters["FilterMixSizeEnabled"]:
+            if self.filters["FilterMinSizeType"] == "b":
+                minsize = self.filters["FilterMinSize"]
+            if self.filters["FilterMinSizeType"] == "Kb":
+                minsize = self.filters["FilterMinSize"] * 1024
+            if self.filters["FilterMinSizeType"] == "Mb":
+                minsize = self.filters["FilterMinSize"] * 1048576
+            if self.filters["FilterMinSizeType"] == "Gb":
+                minsize = self.filters["FilterMinSize"] + 1073741824
 
-                query += " AND (size <= %s)"
-                parameters += [maxsize]
-            # indexed in last days
-            if self.filters["FilterIndexedLastDaysEnabled"]:
-                filterInSeconds = self.filters["FilterIndexedLastDays"] * 86400
-                queryTime = int(time.time()) - filterInSeconds
-                query += " AND (Indexed > %s)"
-                parameters += [queryTime]
-            #limit
-            if not self.filters["FilterShowMoreResultsEnabled"]:
-                limit = int(self.filters["FilterSearchLimit"]) +1
-                query += "LIMIT %s"
-                parameters += [limit]
+            query += " AND (size >= %s)"
+            parameters += [minsize]
+        # max size
+        if self.filters["FilterMaxSizeEnabled"]:
+            if self.filters["FilterMaxSizeType"] == "b":
+                maxsize = self.filters["FilterMaxSize"]
+            if self.filters["FilterMaxSizeType"] == "Kb":
+                maxsize = self.filters["FilterMaxSize"] * 1024
+            if self.filters["FilterMaxSizeType"] == "Mb":
+                maxsize = self.filters["FilterMaxSize"] * 1048576
+            if self.filters["FilterMaxSizeType"] == "Gb":
+                maxsize = self.filters["FilterMaxSize"] + 1073741824
 
-            query += ""  # for some cases )
-            logger.debug("Execute search query with parameters: " + query + str(parameters))
-            dbCursor.execute(query, parameters)
-            rows = dbCursor.fetchall()
-            counter = 0
-            for row in rows:
-                if not self._isRunning:  # this variable can be changed from main class for search interruption
-                    self.searchComplete.emit()
-                    return
-                if counter > 500:
-                    counter = 0
-                    time.sleep(.2)
-                counter += 1
-                filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
+            query += " AND (size <= %s)"
+            parameters += [maxsize]
+        # indexed in last days
+        if self.filters["FilterIndexedLastDaysEnabled"]:
+            filterInSeconds = self.filters["FilterIndexedLastDays"] * 86400
+            queryTime = int(time.time()) - filterInSeconds
+            query += " AND (Indexed > %s)"
+            parameters += [queryTime]
+        #limit
+        if not self.filters["FilterShowMoreResultsEnabled"]:
+            limit = int(self.filters["FilterSearchLimit"]) +1
+            query += "LIMIT %s"
+            parameters += [limit]
 
-                # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
-                # so doubleconverted - in this place and in SearchInDBThreadRowEmitted()
-                size = str(size)
+        query += ""  # for some cases )
+        logger.debug("Execute search query with parameters: " + query + str(parameters))
+        dbCursor.execute(query, parameters)
+        rows = dbCursor.fetchall()
+        counter = 0
+        for row in rows:
+            if not self._isRunning:  # this variable can be changed from main class for search interruption
+                self.searchComplete.emit()
+                return
+            if counter > 500:
+                counter = 0
+                time.sleep(.2)
+            counter += 1
+            filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
 
-                self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
+            # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
+            # so doubleconverted - in this place and in SearchInDBThreadRowEmitted()
+            size = str(size)
 
+            self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
+        self.dbConn.close()
         self.searchComplete.emit()
 
 
@@ -1318,18 +1372,25 @@ class UpdateMysqlDBThread(QtCore.QThread):
     sigIsOver = QtCore.Signal(int)
     dbConn = None
 
-    def __init__(self, path, threadNumber, settings, parent=None):
+    def __init__(self, path, threadID, settings, parent=None):
         QtCore.QThread.__init__(self)
 
         self.settings = settings
         self.path = path
-        self.threadNumber = threadNumber
+        self.threadID = threadID
 
     def run(self):
-        logger.debug("Scan thread is started for MySQL. Thread #" + str(self.threadNumber) + ", path: " + self.path)
+        logger.debug("Scan thread is started for MySQL. Thread #" + str(self.threadID) + ", path: " + self.path)
+
         self.open_connection()
-        self.updateDB(self.path)
-        self.sigIsOver.emit(self.threadNumber)
+
+        if self.threadID == "MySQLPreparation":
+            self.prepare_db_for_update()
+        elif self.threadID == "MySQLPostprocessing":
+            self.clear_db_from_removed()
+        else:
+            self.updateDB(self.path)
+            self.sigIsOver.emit(self.threadID)
 
     def open_connection(self):
 
@@ -1348,13 +1409,24 @@ class UpdateMysqlDBThread(QtCore.QThread):
                 logger.critical("MySQL connection error: " + str(e))
 
 
-    def execute_and_commit_to_db(self, sql, values):
+    def prepare_db_for_update(self):
+        sql = "UPDATE Files SET removed = 0"
+        dbCursor = self.dbConn.cursor()
+        dbCursor.execute(sql)
+        self.dbConn.commit()
 
+    def clear_db_from_removed(self):
+        sql = "DELETE FROM Files WHERE removed = 0"
+        dbCursor = self.dbConn.cursor()
+        dbCursor.execute(sql)
+        self.dbConn.commit()
+
+    def execute_and_commit_to_db(self, sql, values):
+        '''commit files to DB'''
         dbCursor = self.dbConn.cursor()
         dbCursor.executemany(sql, values)
         self.dbConn.commit()
         dbCursor.close()
-
 
     def updateDB(self, rootpath):
         """Scan filesystem from given path"""
@@ -1374,22 +1446,22 @@ class UpdateMysqlDBThread(QtCore.QThread):
         sqlTransactionCounter = 0
         varsArr = []
         sql = "insert into `Files` (hash, removed, filename, type, path, size, created, modified, indexed)" \
-              " values(%s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE size=values(size), modified=values(modified), removed='1'"
+              " values(UNHEX(%s), %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE size=values(size), modified=values(modified), removed='1'"
 
         for entry in utilities.scantree(rootpath):
             # commit to DB every N (sqlTransactionLimit) files
             if sqlTransactionCounter >= sqlTransactionLimit:
-                logger.debug("Start commiting to MySQL, thread #" + str(self.threadNumber) + ", files indexed: " + str(
+                logger.debug("Start commiting to MySQL, thread #" + str(self.threadID) + ", files indexed: " + str(
                     filesIndexed))
                 self.execute_and_commit_to_db(sql, varsArr)
 
-                logger.debug("Comitted to MySQL, thread #" + str(self.threadNumber) + ", files indexed: " + str(filesIndexed))
+                logger.debug("Comitted to MySQL, thread #" + str(self.threadID) + ", files indexed: " + str(filesIndexed))
                 sqlTransactionCounter = 0
                 varsArr = []
 
             hash = md5()
             name = entry.name
-            ext = name[name.rfind(".") + 1:] if name.rfind(".") != -1 else ""
+            ext = utilities.get_extension_from_filename(name)
             fullname = entry.path  # full path + filename
             path = fullname[:-len(name)]
             if self.windowsLongPathHack:
@@ -1406,12 +1478,14 @@ class UpdateMysqlDBThread(QtCore.QThread):
             filesIndexed += 1
             sqlTransactionCounter += 1
 
-        logger.debug("Starting final commit to MySQL, thread #" + str(self.threadNumber) + ", files indexed: " + str(
+        logger.debug("Starting final commit to MySQL, thread #" + str(self.threadID) + ", files indexed: " + str(
             filesIndexed))
         self.execute_and_commit_to_db(sql, varsArr)
-        logger.debug("Final commit in thread #" + str(self.threadNumber) + " complete. Files indexed (total in thread):" + str(filesIndexed))
+        logger.debug("Final commit in thread #" + str(self.threadID) + " complete. Files indexed (total in thread):" + str(filesIndexed))
 
 
+
+# DIALOG CLASSES
 class AboutDialog(QtWidgets.QDialog, pyAbout.Ui_Dialog):
 
     def __init__(self, parent=None):
