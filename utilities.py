@@ -16,6 +16,17 @@ def mysql_query_wildficator(query):
     wild_query = query.replace("%", "\%").replace("_", "\_").replace("*", "%").replace("?", "_")
     return(wild_query)
 
+def mysql_index_is_exists(connection, tablename, index):
+    sql = "SHOW KEYS FROM  " + tablename + "  WHERE Key_name = %s"
+    cursor = connection.cursor()
+    cursor.execute(sql, (index,))
+    check = cursor.fetchall()
+    if check:
+        return(True)
+    else:
+        return(False)
+
+
 def scantree(path):
     """Recursively yield DirEntry objects for given directory.
     Usage:
@@ -37,6 +48,21 @@ def scantree(path):
                 print(str(e))
         else:
             pass
+
+def get_extension_from_filename(name):
+    return(name[name.rfind(".") + 1:] if name.rfind(".") != -1 else "")
+
+def get_selected_rows_from_qtablewidget(qTableWidget, sortByColumn=0):
+    indexes = qTableWidget.selectionModel().selectedRows(sortByColumn)
+    rows = []
+    for index in sorted(indexes):
+        item = qTableWidget.itemFromIndex(index)
+        row = qTableWidget.row(item)
+        rowItems = []
+        for column in range(0, qTableWidget.columnCount()):
+            rowItems += [qTableWidget.item(row, column)]
+        rows += [rowItems]
+    return(rows)
 
 class LoggerWriter:
     def __init__(self, level):
