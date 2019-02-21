@@ -2,7 +2,7 @@
 # - replace "QtWidgets." with "QtGui."
 # - replace "PySide2" with "PySide"
 # - remove "import PySide2.QtWidgets as QtWidgets"
-# - in utilities.py replace "from os import scandir" with "from scandir import scandir" (scandir )
+# - in utilities.py replace "from os import scandir" with "from scandir import scandir" (install scandir)
 
 import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
