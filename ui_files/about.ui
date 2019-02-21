@@ -32,7 +32,7 @@
      <x>10</x>
      <y>180</y>
      <width>471</width>
-     <height>191</height>
+     <height>201</height>
     </rect>
    </property>
    <property name="html">
@@ -444,7 +444,7 @@ p, li { white-space: pre-wrap; }
      <x>10</x>
      <y>70</y>
      <width>471</width>
-     <height>61</height>
+     <height>81</height>
     </rect>
    </property>
    <property name="html">
@@ -452,7 +452,7 @@ p, li { white-space: pre-wrap; }
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
 &lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;pyFileSearcher was designed as a lightweight, easy to use, portable tool powerful enough to get rid against enterprise level fileserver and give an answer for question: where is the space?&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;pyFileSearcher was designed to be lightweight, easy to use, but capable of handling a large volume of files tool. A tool that I personally could use on large corporate servers to find out - which files have taken all my space in the last few days? It's free, it's opensource, it's for linux and windows.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_6">
