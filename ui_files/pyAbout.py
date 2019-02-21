@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './about.ui',
-# licensing of './about.ui' applies.
+# Form implementation generated from reading ui file 'about.ui',
+# licensing of 'about.ui' applies.
 #
-# Created: Mon Feb 11 20:51:19 2019
+# Created: Thu Feb 21 14:19:38 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -18,7 +18,7 @@ class Ui_Dialog(object):
         self.pushButton.setGeometry(QtCore.QRect(400, 430, 81, 22))
         self.pushButton.setObjectName("pushButton")
         self.textBrowser = QtWidgets.QTextBrowser(Dialog)
-        self.textBrowser.setGeometry(QtCore.QRect(10, 180, 471, 191))
+        self.textBrowser.setGeometry(QtCore.QRect(10, 180, 471, 201))
         self.textBrowser.setObjectName("textBrowser")
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(340, 10, 141, 21))
@@ -36,7 +36,7 @@ class Ui_Dialog(object):
         self.label_5.setGeometry(QtCore.QRect(10, 380, 351, 51))
         self.label_5.setObjectName("label_5")
         self.textBrowser_2 = QtWidgets.QTextBrowser(Dialog)
-        self.textBrowser_2.setGeometry(QtCore.QRect(10, 70, 471, 61))
+        self.textBrowser_2.setGeometry(QtCore.QRect(10, 70, 471, 81))
         self.textBrowser_2.setObjectName("textBrowser_2")
         self.label_6 = QtWidgets.QLabel(Dialog)
         self.label_6.setGeometry(QtCore.QRect(10, 50, 301, 16))
@@ -399,6 +399,6 @@ class Ui_Dialog(object):
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'Sans Serif\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">pyFileSearcher was designed as a lightweight, easy to use, portable tool powerful enough to get rid against enterprise level fileserver and give an answer for question: where is the space?</p></body></html>", None, -1))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">pyFileSearcher was designed to be lightweight, easy to use, but capable of handling a large volume of files tool. A tool that I personally could use on large corporate servers to find out - which files have taken all my space in the last few days? It\'s free, it\'s opensource, it\'s for linux and windows.</p></body></html>", None, -1))
         self.label_6.setText(QtWidgets.QApplication.translate("Dialog", "About application", None, -1))
 
