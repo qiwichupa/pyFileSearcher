@@ -33,7 +33,7 @@ def scantree(path):
     for entry in scantree(path):
         print(entry.path)
     """
-    from  os import scandir
+    from os import scandir
     for entry in scandir(path):
         if entry.is_dir(follow_symlinks=False):
             try:
