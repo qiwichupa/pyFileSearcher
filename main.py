@@ -2,7 +2,8 @@
 # - replace "QtWidgets." with "QtGui."
 # - replace "PySide2" with "PySide"
 # - remove "import PySide2.QtWidgets as QtWidgets"
-# - in utilities.py replace "from os import scandir" with "from scandir import scandir" (install scandir)
+# - in utilities.py replace "from os import scandir" with "from scandir import scandir" (and install scandir module)
+# - resave UI files and resources with Qt Designer and pyside utils
 
 import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
@@ -44,7 +45,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.98"
+__version__ = "0.98b"
 
 
 appDataPath = os.getcwd() + "/"
@@ -104,9 +105,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.actionStartScan.triggered.connect(self.updateDBEmitted)
         self.actionAbout.triggered.connect(self.actionAboutEmitted)
         self.actionShowHelpInfo.triggered.connect(self.actionShowHelpInfoEmitted)
+        self.actionExit.triggered.connect(self.exitActionTriggered)
 
         # Search Tab
-        FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([\w \.\*\?])*"), self)
+        FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([\w \.\*\?-])*"), self)
         self.FilterFilename.setValidator(FilterFilenameValidator)
         self.FilterFilename.textEdited.connect(self.FilterFilenameTextChanged)
         FilterFileTypesValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9]{1,8},)*"), self)
@@ -181,13 +183,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         # run scan with --scan parameter
         if isScanMode:
-            if not os.path.isfile(scanPIDFile):
-                logger.debug("Scan is running with command promt parameter!")
-                self.updateDBEmitted()
-            else:
-                logger.debug("Scan is running already, check PID file. App closed.")
-                time.sleep(2)
-                self.exitActionTriggered()
+            logger.debug("Scan is running with command promt parameter!")
+            self.updateDBEmitted()
+
 
     def tableFilesScrolled(self):
         """Checks the top and bottom line in the file table, checks for the presence of files at the moment. Marks missing files with color."""
@@ -317,7 +315,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 path = self.MySQLPathsTable.item(row, 0).text()
                 self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings)
                 self.updateDBThreads[row].sigIsOver.connect(self.removeScanThreadWhenThreadIsOver)
-                self.c[row].start()
+                self.updateDBThreads[row].start()
 
     def actionAboutEmitted(self):
         dialog = AboutDialog()
@@ -1552,6 +1550,11 @@ def unhandled_exception(exc_type, exc_value, exc_traceback):
 
 def main():
     sys.excepthook = unhandled_exception
+
+    if isScanMode and os.path.isfile(scanPIDFile):
+        logger.debug("Scan is running already, check PID file. App closed.")
+        sys.exit(0)
+
     QtCore.QCoreApplication.setApplicationName(__appname__)
     QtCore.QCoreApplication.setApplicationVersion(str(__version__))
 
