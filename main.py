@@ -45,7 +45,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.98b"
+__version__ = "0.98c"
 
 
 appDataPath = os.getcwd() + "/"
@@ -199,11 +199,17 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             downRow = self.tableFiles.rowCount()
 
         for i in range(upRow, downRow):
-            fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
-            if not os.path.isfile(fullFilePath):
-                for column in range(0, self.tableFiles.columnCount()):
-                    # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
-                    self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
+            # In order not to check the full range of all rows, add the ID of checked
+            # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
+            rowId = self.tableFiles.item(i, self.tableFilesColumnNumIndx).text()
+            if rowId not in self.tableFilesFileIsChecked:
+                fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
+                self.tableFilesFileIsChecked[rowId] = True
+                if not os.path.isfile(fullFilePath):
+                    for column in range(0, self.tableFiles.columnCount()):
+                        # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
+                        self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
+
 
     def load_initial_settings(self):
         """Load initial settings from configuration file and database"""
@@ -821,7 +827,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             collects filters, runs the search threads depending on the database used."""
         self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
-        self.tableFiles.setSortingEnabled(False)
+        self.tableFilesFileIsChecked = {}  # see tableFilesScrolled()
+        self.tableFiles.setSortingEnabled(False) # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
 
         # avoid double "press" via pressing enter in filter EditLines
         if not self.btnSearch.isEnabled():
@@ -831,7 +838,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.btnSearch.setText("Searching...")
 
-        time.sleep(.2)
+        time.sleep(.2) # I think this helps the search button not to look "half-blocked"
 
         filters = {}
         filters["FilterFilename"] = self.FilterFilename.text()
@@ -894,7 +901,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                                                                     utilities.get_extension_from_filename(filename))
                                 # if there is a dot in filename - extract extension
                                 )
+
         sizeItem = QtWidgets.QTableWidgetItem()
+        # A python can work with large numbers even if it is 32-bit, but qt cannot insert
+        # a large number into the table =((. So:
+        if platform.architecture()[0] == "32bit" and size > 2147483646:
+            size = float(size)
         sizeItem.setData(QtCore.Qt.EditRole, size)
         self.tableFiles.setItem(row, self.tableFilesColumnSizeIndx, sizeItem)
         self.tableFiles.setItem(row, self.tableFilesColumnModifiedIndx, QtWidgets.QTableWidgetItem(mtime))
@@ -1377,6 +1389,9 @@ class SearchInMySQLDB(QtCore.QThread):
             parameters += [queryTime]
         #limit
         if not self.filters["FilterShowMoreResultsEnabled"]:
+            # I request one result more than a certain limit in the settings. If there are really more results,
+            # their number can be compared with the limit in the function responsible for filling in a QTableWidget
+            # (SearchInDBThreadRowEmitted), and showing the checkbox to disable the limit.
             limit = int(self.filters["FilterSearchLimit"]) +1
             query += "LIMIT %s"
             parameters += [limit]
@@ -1474,11 +1489,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
         for entry in utilities.scantree(rootpath):
             # commit to DB every N (sqlTransactionLimit) files
             if sqlTransactionCounter >= sqlTransactionLimit:
-                logger.debug("Thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(
-                    filesIndexed))
+                #logger.debug("Thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
                 self.execute_and_commit_to_db(sql, varsArr)
 
-                logger.debug("Thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
+                #logger.debug("Thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
                 sqlTransactionCounter = 0
                 varsArr = []
 
