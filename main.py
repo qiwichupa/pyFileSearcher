@@ -45,7 +45,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.98c"
+__version__ = "0.98d"
 
 
 appDataPath = os.getcwd() + "/"
@@ -204,6 +204,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             rowId = self.tableFiles.item(i, self.tableFilesColumnNumIndx).text()
             if rowId not in self.tableFilesFileIsChecked:
                 fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
+                if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
+                    fullFilePath = "\\\\?\\" + fullFilePath
                 self.tableFilesFileIsChecked[rowId] = True
                 if not os.path.isfile(fullFilePath):
                     for column in range(0, self.tableFiles.columnCount()):
