@@ -45,7 +45,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.98d"
+__version__ = "0.99"
 
 
 appDataPath = os.getcwd() + "/"
@@ -186,33 +186,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             logger.debug("Scan is running with command promt parameter!")
             self.updateDBEmitted()
 
-
-    def tableFilesScrolled(self):
-        """Checks the top and bottom line in the file table, checks for the presence of files at the moment. Marks missing files with color."""
-        if self.tableFiles.rowCount() == 0:
-            return
-
-        upRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, 0)).row()
-        if self.tableFiles.itemAt(0, self.tableFiles.height()):
-            downRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, self.tableFiles.height())).row()
-        else:
-            downRow = self.tableFiles.rowCount()
-
-        for i in range(upRow, downRow):
-            # In order not to check the full range of all rows, add the ID of checked
-            # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
-            rowId = self.tableFiles.item(i, self.tableFilesColumnNumIndx).text()
-            if rowId not in self.tableFilesFileIsChecked:
-                fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
-                if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
-                    fullFilePath = "\\\\?\\" + fullFilePath
-                self.tableFilesFileIsChecked[rowId] = True
-                if not os.path.isfile(fullFilePath):
-                    for column in range(0, self.tableFiles.columnCount()):
-                        # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
-                        self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
-
-
     def load_initial_settings(self):
         """Load initial settings from configuration file and database"""
 
@@ -275,17 +248,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.MySQLPathsTableItemSelectionChanged()
 
-    def refreshSQLTabs(self):
-        """Switches the availability of external and internal database tabs depending on settings"""
-        if self.settings.value("useExternalDatabase") == "False":
-            self.tabsSearch.setTabEnabled(1, True)
-            self.tabsSearch.setTabEnabled(2, False)
-        else:
-            self.tabsSearch.setTabEnabled(1, False)
-            self.tabsSearch.setTabEnabled(2, True)
 
-    # MAIN MENU ACTIONS
-    #
+# MAIN MENU ACTIONS
+#
     def actionPreferencesEmitted(self):
         """Opens the preferences dialog"""
         initValues = {"useExternalDatabase": self.settings.value("useExternalDatabase"),
@@ -335,11 +300,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         dialog.pushButton.clicked.connect(dialog.close)
         dialog.exec_()
 
-    #
-    # MAIN MENU ACTIONS - END SECTION
+#
+# MAIN MENU ACTIONS - END SECTION
 
-    # SAVE/LOAD FILTERS
-    #
+# SAVE/LOAD FILTERS
+#
     def FilterListSaveButtonEmitted(self):
         """Saves the current search settings as a new preset, or updates an existing preset."""
         filterName = self.FilterListLineEdit.text()
@@ -419,11 +384,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if len(self.filters) == 0:
             self.FilterListRemoveButton.setDisabled(True)
 
-    #
-    # SAVE/LOAD FILTERS - END SECTION
+#
+# SAVE/LOAD FILTERS - END SECTION
 
-    # MySQL THINGS
-    #
+# MySQL THINGS
+#
     def MySQLServerAddressEmitted(self):
         """Saves MySQL server address to settings"""
         self.settings.setValue("MySQL/MySQLServerAddress", self.MySQLServerAddress.text())
@@ -623,24 +588,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         logger.debug("...new removed key is: " + str(self.newRemovedKey) + "...")
 
 
-        '''
-        logger.debug("...dropping indexes...")
-        if utilities.mysql_index_is_exists(self.dbConnMysql, "Files", "size_indexed_type"):
-            logger.debug("......dropping size_indexed_type...")
-            cursor.execute("DROP INDEX size_indexed_type ON Files")
-        if utilities.mysql_index_is_exists(self.dbConnMysql, "Files", "indexed_size_type"):
-            logger.debug("......dropping indexed_size_type...")
-            cursor.execute("DROP INDEX indexed_size_type ON Files ")
-        if utilities.mysql_index_is_exists(self.dbConnMysql, "Files", "type_size_indexed"):
-            logger.debug("......dropping type_size_indexed...")
-            cursor.execute("DROP INDEX type_size_indexed ON Files ")
-        if utilities.mysql_index_is_exists(self.dbConnMysql, "Files", "path"):
-            logger.debug("......dropping path...")
-            cursor.execute("DROP INDEX path ON Files ")
-        self.dbConnMysql.commit()
-        logger.debug("...indexes dropped...")
-        '''
-
         self.dbConnMysql.close()
         logger.debug("MySQL preparation complete!")
 
@@ -670,11 +617,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.dbConnMysql.close()
         logger.debug("MySQL post-update procedure complete.")
 
-    #
-    # MySQL THINGS - END SECTION
+#
+# MySQL THINGS - END SECTION
 
-    # Sqlite THINGS
-    #
+# Sqlite THINGS
+#
     def select_db(self, DBNumber, runViaGUI=True):
         """At the time of selecting the internal (sqlite) database loads settings from it."""
         if runViaGUI is True:
@@ -798,8 +745,105 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.DBApplySettingsButton.setDisabled(True)
         self.DBSelectDatabase.setFocus()
 
-    #
-    # Sqlite THINGS - END SECTION
+#
+# Sqlite THINGS - END SECTION
+
+# TABLE CONTEXT MENU
+#
+    def tableMenu(self, event):
+        """Create context menu for tableFiles widget"""
+        self.menu = QtWidgets.QMenu(self)
+
+        menuOpenFolder = QtWidgets.QAction('Open Folder', self)
+        menuOpenFolder.triggered.connect(self.menuOpenFolder)
+        self.menu.addAction(menuOpenFolder)
+        if len(self.tableFiles.selectedItems()) > 8 or len(self.tableFiles.selectedItems()) == 0:
+            menuOpenFolder.setDisabled(True)
+
+        menuDeleteFiles = QtWidgets.QAction('Move file(s) to Trash', self)
+        menuDeleteFiles.triggered.connect(self.menuDeleteFiles)
+        # menuDeleteFiles.setDisabled(True)
+        self.menu.addAction(menuDeleteFiles)
+        if len(self.tableFiles.selectedItems()) == 0:
+            menuDeleteFiles.setDisabled(True)
+
+        menuExportSelectedToCsv = QtWidgets.QAction('Export selected to CSV...', self)
+        menuExportSelectedToCsv.triggered.connect(self.menuExportSelectedToCsv)
+        self.menu.addAction(menuExportSelectedToCsv)
+        if len(self.tableFiles.selectedItems()) == 0:
+            menuExportSelectedToCsv.setDisabled(True)
+
+        menuExportAllToCsv = QtWidgets.QAction('Export all to CSV...', self)
+        menuExportAllToCsv.triggered.connect(self.menuExportAllToCsv)
+        self.menu.addAction(menuExportAllToCsv)
+        if self.tableFiles.rowCount() == 0:
+            menuExportAllToCsv.setDisabled(True)
+
+        self.menu.popup(QtGui.QCursor.pos())
+
+    def menuOpenFolder(self):
+        """Opens folder for selected file"""
+        rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
+
+        for row in rows:
+            if isWindows:
+                try:
+                    os.startfile(row[self.tableFilesColumnPathIndx].text())
+                except Exception as e:
+                    logger.warning("Opening directory error: \n" + str(e))
+                    QtWidgets.QMessageBox.warning(self, __appname__, "Opening directory error: " + str(e))
+            else:
+                try:
+                    subprocess.check_call(["xdg-open", row[self.tableFilesColumnPathIndx].text()], stderr=subprocess.STDOUT)
+
+                except subprocess.CalledProcessError as e:
+                    logger.warning("Opening directory error: " + str(e))
+                    QtWidgets.QMessageBox.warning(self, __appname__,  "Opening directory error: " + str(e))
+
+
+
+    def menuDeleteFiles(self):
+        """Delete selected files"""
+        rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
+        errs = []
+        for row in rows:
+            try:
+                send2trash.send2trash(
+                row[self.tableFilesColumnPathIndx].text() + row[self.tableFilesColumnFilnameIndx].text()
+                )
+            except Exception as e:
+                logger.warning("Error while removing file: " + str(e))
+                errs += [str(e)]
+        if len(errs) > 0:
+            QtWidgets.QMessageBox.warning(self, __appname__, "Error while removing file(s):\n\n" + "\n".join(errs))
+        self.tableFilesScrolled()
+
+    def menuExportSelectedToCsv(self):
+        """Exports selected rows to csv"""
+        csvObj = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=__appname__ + " - Save as csv",
+                                                       directory=".", filter="Simple spreadsheet (*.csv)")
+        if csvObj:
+            rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
+            try:
+                with open(csvObj[0], 'w', newline='') as csvfile:
+                    csvWriter = csv.writer(csvfile, delimiter=',', quotechar='\"', quoting=csv.QUOTE_MINIMAL)
+
+                    for row in rows:
+                        textRow = []
+                        for item in row:
+                            textRow += [item.text()]
+                        csvWriter.writerow(textRow)
+            except Exception as e:
+                logger.warning("Error while exporting csv: " + str(e))
+                QtWidgets.QMessageBox.warning(self, __appname__, "Error while exporting csv: " + str(e))
+
+    def menuExportAllToCsv(self):
+        """Exports all search results to csv"""
+        self.tableFiles.selectAll()
+        self.menuExportSelectedToCsv()
+
+#
+# TABLE CONTEXT MENU - END SECTION
 
     def removeScanThreadWhenThreadIsOver(self, ThreadNumber):
         """Catching signals of scanning threads. Removes a thread from the list of threads;
@@ -938,76 +982,39 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.actionStartScan.setText("Start scan")
             self.actionStartScan.setEnabled(True)
 
-    # TABLE CONTEXT MENU
-    def tableMenu(self, event):
-        """Create context menu for tableFiles widget"""
-        self.menu = QtWidgets.QMenu(self)
-
-        menuOpenFolder = QtWidgets.QAction('Open Folder', self)
-        menuOpenFolder.triggered.connect(self.menuOpenFolder)
-        self.menu.addAction(menuOpenFolder)
-        if len(self.tableFiles.selectedItems()) > 8 or len(self.tableFiles.selectedItems()) == 0:
-            menuOpenFolder.setDisabled(True)
-
-        menuDeleteFiles = QtWidgets.QAction('Move file(s) to Trash', self)
-        menuDeleteFiles.triggered.connect(self.menuDeleteFiles)
-        # menuDeleteFiles.setDisabled(True)
-        self.menu.addAction(menuDeleteFiles)
-        if len(self.tableFiles.selectedItems()) == 0:
-            menuDeleteFiles.setDisabled(True)
-
-        menuExportSelectedToCsv = QtWidgets.QAction('Export selected to CSV...', self)
-        menuExportSelectedToCsv.triggered.connect(self.menuExportSelectedToCsv)
-        self.menu.addAction(menuExportSelectedToCsv)
-        if len(self.tableFiles.selectedItems()) == 0:
-            menuExportSelectedToCsv.setDisabled(True)
-
-        menuExportAllToCsv = QtWidgets.QAction('Export all to CSV...', self)
-        menuExportAllToCsv.triggered.connect(self.menuExportAllToCsv)
-        self.menu.addAction(menuExportAllToCsv)
+    def tableFilesScrolled(self):
+        """Checks the top and bottom line in the file table, checks for the presence of files at the moment. Marks missing files with color."""
         if self.tableFiles.rowCount() == 0:
-            menuExportAllToCsv.setDisabled(True)
+            return
 
-        self.menu.popup(QtGui.QCursor.pos())
+        upRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, 0)).row()
+        if self.tableFiles.itemAt(0, self.tableFiles.height()):
+            downRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, self.tableFiles.height())).row()
+        else:
+            downRow = self.tableFiles.rowCount()
 
-    def menuOpenFolder(self):
-        """Opens folder for selected file"""
-        rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
-        for row in rows:
-            if isWindows:
-                os.startfile(row[self.tableFilesColumnPathIndx].text())
-            else:
-                subprocess.Popen(["xdg-open", row[self.tableFilesColumnPathIndx].text()])
+        for i in range(upRow, downRow):
+            # In order not to check the full range of all rows, add the ID of checked
+            # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
+            rowId = self.tableFiles.item(i, self.tableFilesColumnNumIndx).text()
+            if rowId not in self.tableFilesFileIsChecked:
+                fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
+                if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
+                    fullFilePath = "\\\\?\\" + fullFilePath
+                self.tableFilesFileIsChecked[rowId] = True
+                if not os.path.isfile(fullFilePath):
+                    for column in range(0, self.tableFiles.columnCount()):
+                        # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
+                        self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
 
-    def menuDeleteFiles(self):
-        """Delete selected files"""
-        rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
-        for row in rows:
-            send2trash.send2trash(
-                row[self.tableFilesColumnPathIndx].text() + row[self.tableFilesColumnFilnameIndx].text())
-        self.tableFilesScrolled()
-
-    def menuExportSelectedToCsv(self):
-        """Exports selected rows to csv"""
-        csvObj = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=__appname__ + " - Save as csv",
-                                                       directory=".", filter="Simple spreadsheet (*.csv)")
-        if csvObj:
-            rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
-            with open(csvObj[0], 'w', newline='') as csvfile:
-                csvWriter = csv.writer(csvfile, delimiter=',', quotechar='\"', quoting=csv.QUOTE_MINIMAL)
-
-                for row in rows:
-                    textRow = []
-                    for item in row:
-                        textRow += [item.text()]
-                    csvWriter.writerow(textRow)
-
-    def menuExportAllToCsv(self):
-        """Exports all search results to csv"""
-        self.tableFiles.selectAll()
-        self.menuExportSelectedToCsv()
-
-    # TABLE CONTEXT MENU - END SECTION
+    def refreshSQLTabs(self):
+        """Switches the availability of external and internal database tabs depending on settings"""
+        if self.settings.value("useExternalDatabase") == "False":
+            self.tabsSearch.setTabEnabled(1, True)
+            self.tabsSearch.setTabEnabled(2, False)
+        else:
+            self.tabsSearch.setTabEnabled(1, False)
+            self.tabsSearch.setTabEnabled(2, True)
 
     def load_pid_checker(self):
         """Starts thread with infinite checking pid file of indexing process"""
@@ -1169,16 +1176,29 @@ class SearchInSqliteDB(QtCore.QThread):
         self._isRunning = False
 
     def run(self):
+        self.sqliteSearch()
+
+    def sqliteSearch(self):
         """Execute SQL query, emits values"""
 
-        for i in range(1, self.DBCount + 1):
-            self.dbConn[i] = sqlite3.connect(pathlib.Path(get_db_path(i)).as_uri() + "?mode=ro", uri=True)
+        # I connect to the first database and, if there are more, attach them as DB2, DB3, etc.
+        self.dbConn = sqlite3.connect(pathlib.Path(get_db_path(1)).as_uri() + "?mode=ro", uri=True)
+        for i in range(2, self.DBCount + 1):
+            self.dbConn.execute("ATTACH DATABASE '" + get_db_path(i) + "' AS DB" + str(i))
 
+        # I am forming a sql query. It looks a little scary, but in fact
+        # the loop and the piece after it forms such a string:
+        # (SELECT ... FROM Files WHERE...) (UNION ALL SELECT ... FROM DB#.Files WHERE ...) (LIMIT ...)
+        # loops:         ^first one                    ^second and others^        after loops^
+        parameters = []
         for i in range(1, self.DBCount + 1):
-            dbCursor = self.dbConn[i].cursor()
+            dbCursor = self.dbConn.cursor()
             # SQL TABLE: hash, removed, filename, path, size, created, modified, indexed
-            query = "SELECT filename, path, size, created, modified, indexed FROM Files WHERE 1 "
-            parameters = []
+            if i == 1:
+                query = "SELECT filename, path, size, created, modified, indexed FROM Files WHERE 1 "
+            else:
+                query += " UNION ALL SELECT filename, path, size, created, modified, indexed FROM DB" + str(i) + ".Files WHERE 1 "
+
 
             # # query constructor
             # filename
@@ -1232,26 +1252,34 @@ class SearchInSqliteDB(QtCore.QThread):
                 queryTime = int(time.time()) - filterInSeconds
                 query += " AND (Indexed > ?)"
                 parameters += [queryTime]
+        # limit
+        if not self.filters["FilterShowMoreResultsEnabled"]:
+            # I request one result more than a certain limit in the settings. If there are really more results,
+            # their number can be compared with the limit in the function responsible for filling in a QTableWidget
+            # (SearchInDBThreadRowEmitted), and showing the checkbox to disable the limit.
+            limit = int(self.filters["FilterSearchLimit"]) + 1
+            query += "LIMIT ?"
+            parameters += [limit]
 
-            query += ""  # for some cases )
-            logger.debug("Execute search query with parameters: " + query + str(parameters))
-            rows = dbCursor.execute(query, parameters).fetchall()
-            counter = 0
-            for row in rows:
-                if not self._isRunning:  # this variable can be changed from main class for search interruption
-                    self.searchComplete.emit()
-                    return
-                if counter > 500:
-                    counter = 0
-                    time.sleep(.2)
-                counter += 1
-                filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
+        query += ""  # for some cases )
+        logger.debug("Execute search query with parameters: " + query + str(parameters))
+        rows = dbCursor.execute(query, parameters).fetchall()
+        counter = 0
+        for row in rows:
+            if not self._isRunning:  # this variable can be changed from main class for search interruption
+                self.searchComplete.emit()
+                return
+            if counter > 500:
+                counter = 0
+                time.sleep(.2)
+            counter += 1
+            filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
 
-                # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
-                # so doubleconverted - in this place and in SearchInDBThreadRowEmitted()
-                size = str(size)
+            # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
+            # so doubleconverted - in this place and in SearchInDBThreadRowEmitted()
+            size = str(size)
 
-                self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
+            self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
 
         self.searchComplete.emit()
 
@@ -1308,6 +1336,9 @@ class SearchInMySQLDB(QtCore.QThread):
         self._isRunning = False
 
     def run(self):
+        self.mySQLSearch()
+
+    def mySQLSearch(self):
         """Execute SQL query, emits values"""
 
         try:
