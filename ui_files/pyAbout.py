@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'about.ui',
 # licensing of 'about.ui' applies.
 #
-# Created: Thu Feb 21 14:19:38 2019
+# Created: Tue Feb 26 11:12:35 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,33 +13,42 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(492, 464)
+        Dialog.resize(492, 527)
+        Dialog.setMinimumSize(QtCore.QSize(492, 527))
+        Dialog.setMaximumSize(QtCore.QSize(492, 527))
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/main.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        Dialog.setWindowIcon(icon)
         self.pushButton = QtWidgets.QPushButton(Dialog)
-        self.pushButton.setGeometry(QtCore.QRect(400, 430, 81, 22))
+        self.pushButton.setGeometry(QtCore.QRect(400, 490, 81, 22))
         self.pushButton.setObjectName("pushButton")
         self.textBrowser = QtWidgets.QTextBrowser(Dialog)
-        self.textBrowser.setGeometry(QtCore.QRect(10, 180, 471, 201))
+        self.textBrowser.setGeometry(QtCore.QRect(10, 260, 471, 221))
         self.textBrowser.setObjectName("textBrowser")
         self.label = QtWidgets.QLabel(Dialog)
-        self.label.setGeometry(QtCore.QRect(340, 10, 141, 21))
+        self.label.setGeometry(QtCore.QRect(56, 0, 141, 21))
         font = QtGui.QFont()
         font.setPointSize(14)
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.versionLabel = QtWidgets.QLabel(Dialog)
-        self.versionLabel.setGeometry(QtCore.QRect(430, 30, 51, 16))
+        self.versionLabel.setGeometry(QtCore.QRect(146, 20, 81, 16))
         self.versionLabel.setObjectName("versionLabel")
-        self.label_4 = QtWidgets.QLabel(Dialog)
-        self.label_4.setGeometry(QtCore.QRect(10, 160, 301, 16))
-        self.label_4.setObjectName("label_4")
         self.label_5 = QtWidgets.QLabel(Dialog)
-        self.label_5.setGeometry(QtCore.QRect(10, 380, 351, 51))
+        self.label_5.setGeometry(QtCore.QRect(10, 180, 371, 61))
         self.label_5.setObjectName("label_5")
-        self.textBrowser_2 = QtWidgets.QTextBrowser(Dialog)
-        self.textBrowser_2.setGeometry(QtCore.QRect(10, 70, 471, 81))
-        self.textBrowser_2.setObjectName("textBrowser_2")
+        self.label_2 = QtWidgets.QLabel(Dialog)
+        self.label_2.setGeometry(QtCore.QRect(1, 1, 60, 60))
+        self.label_2.setText("")
+        self.label_2.setPixmap(QtGui.QPixmap(":/icons/icons/main.svg"))
+        self.label_2.setScaledContents(True)
+        self.label_2.setObjectName("label_2")
+        self.label_3 = QtWidgets.QLabel(Dialog)
+        self.label_3.setGeometry(QtCore.QRect(80, 40, 391, 71))
+        self.label_3.setWordWrap(True)
+        self.label_3.setObjectName("label_3")
         self.label_6 = QtWidgets.QLabel(Dialog)
-        self.label_6.setGeometry(QtCore.QRect(10, 50, 301, 16))
+        self.label_6.setGeometry(QtCore.QRect(10, 133, 341, 30))
         self.label_6.setObjectName("label_6")
 
         self.retranslateUi(Dialog)
@@ -393,12 +402,8 @@ class Ui_Dialog(object):
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Public License instead of this License.</p></body></html>", None, -1))
         self.label.setText(QtWidgets.QApplication.translate("Dialog", "pyFileSearcher", None, -1))
         self.versionLabel.setText(QtWidgets.QApplication.translate("Dialog", "(v. 0.9)", None, -1))
-        self.label_4.setText(QtWidgets.QApplication.translate("Dialog", "License info:", None, -1))
-        self.label_5.setText(QtWidgets.QApplication.translate("Dialog", "<html><head/><body><p><span style=\" font-size:10pt;\">Author: Sergey &quot;Qiwichupa&quot; Pavlov<br/>Sources: </span><a href=\"https://gitlab.com/qiwichupa/pyfilesearcher/\"><span style=\" font-size:10pt; text-decoration: underline; color:#0000ff;\">https://gitlab.com/qiwichupa/pyfilesearcher/</span></a></p></body></html>", None, -1))
-        self.textBrowser_2.setHtml(QtWidgets.QApplication.translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
-"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
-"p, li { white-space: pre-wrap; }\n"
-"</style></head><body style=\" font-family:\'Sans Serif\'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">pyFileSearcher was designed to be lightweight, easy to use, but capable of handling a large volume of files tool. A tool that I personally could use on large corporate servers to find out - which files have taken all my space in the last few days? It\'s free, it\'s opensource, it\'s for linux and windows.</p></body></html>", None, -1))
-        self.label_6.setText(QtWidgets.QApplication.translate("Dialog", "About application", None, -1))
+        self.label_5.setText(QtWidgets.QApplication.translate("Dialog", "<html><head/><body><p>Icons made by: <br/><a href=\"https://www.flaticon.com/authors/eucalyp\"><span style=\" text-decoration: underline; color:#0000ff;\">Eucalyp</span></a> from <a href=\"https://www.flaticon.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">www.flaticon.com</span></a> is licensed by <a href=\"http://creativecommons.org/licenses/by/3.0/\"><span style=\" text-decoration: underline; color:#0000ff;\">CC 3.0 BY</span></a><br/><a href=\"https://www.freepik.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">Freepik</span></a> from <a href=\"https://www.flaticon.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">www.flaticon.com</span></a> is licensed by <a href=\"http://creativecommons.org/licenses/by/3.0/\"><span style=\" text-decoration: underline; color:#0000ff;\">CC 3.0 BY</span></a><br/><a href=\"https://www.flaticon.com/authors/icon-works\"><span style=\" text-decoration: underline; color:#0000ff;\">Icon Works</span></a> from <a href=\"https://www.flaticon.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">www.flaticon.com</span></a> is licensed by <a href=\"http://creativecommons.org/licenses/by/3.0/\"><span style=\" text-decoration: underline; color:#0000ff;\">CC 3.0 BY</span></a></p><p><br/></p></body></html>", None, -1))
+        self.label_3.setText(QtWidgets.QApplication.translate("Dialog", "pyFileSearcher was designed to be lightweight, easy to use, but capable of handling a large volume of files tool. A tool that I personally could use on large corporate servers to find out - which files have taken all my space in the last few days? It\'s free, it\'s opensource, it\'s for linux and windows.", None, -1))
+        self.label_6.setText(QtWidgets.QApplication.translate("Dialog", "<html><head/><body><p><span style=\" font-size:10pt;\">Author: Sergey &quot;Qiwichupa&quot; Pavlov<br/>Sources: </span><a href=\"https://gitlab.com/qiwichupa/pyfilesearcher/\"><span style=\" font-size:10pt; text-decoration: underline; color:#0000ff;\">https://gitlab.com/qiwichupa/pyfilesearcher/</span></a></p></body></html>", None, -1))
 
+import icons_rc

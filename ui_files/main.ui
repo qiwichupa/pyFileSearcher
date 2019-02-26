@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="icons.qrc">
-    <normaloff>:/icons/icons/main.png</normaloff>:/icons/icons/main.png</iconset>
+    <normaloff>:/icons/icons/main.svg</normaloff>:/icons/icons/main.svg</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1037,7 +1037,7 @@
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionStartScan"/>
     <addaction name="actionPreferences"/>
@@ -1046,7 +1046,7 @@
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionShowHelpInfo"/>
     <addaction name="actionAbout"/>
@@ -1061,7 +1061,7 @@
      <normaloff>:/icons/icons/scan.png</normaloff>:/icons/icons/scan.png</iconset>
    </property>
    <property name="text">
-    <string>Start Scan</string>
+    <string>Start Indexing</string>
    </property>
   </action>
   <action name="actionPreferences">
@@ -1083,7 +1083,7 @@
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About</string>
+    <string>About...</string>
    </property>
   </action>
   <action name="actionExit">
@@ -1224,12 +1224,12 @@
    <slot>showNormal()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>238</x>
-     <y>174</y>
+     <x>261</x>
+     <y>175</y>
     </hint>
     <hint type="destinationlabel">
-     <x>286</x>
-     <y>177</y>
+     <x>298</x>
+     <y>176</y>
     </hint>
    </hints>
   </connection>

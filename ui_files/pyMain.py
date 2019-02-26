@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Thu Feb 21 14:36:55 2019
+# Created: Tue Feb 26 11:25:50 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -20,7 +20,7 @@ class Ui_MainWindow(object):
         sizePolicy.setHeightForWidth(MainWindow.sizePolicy().hasHeightForWidth())
         MainWindow.setSizePolicy(sizePolicy)
         icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icons/icons/main.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/main.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         MainWindow.setWindowIcon(icon)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -536,13 +536,13 @@ class Ui_MainWindow(object):
         self.MySQLPathsTableAddButton.setText(QtWidgets.QApplication.translate("MainWindow", "Add...", None, -1))
         self.MySQLPathsTableRemoveButton.setText(QtWidgets.QApplication.translate("MainWindow", "Remove", None, -1))
         self.tabsSearch.setTabText(self.tabsSearch.indexOf(self.tabMySQL), QtWidgets.QApplication.translate("MainWindow", "MySQL", None, -1))
-        self.menuFile.setTitle(QtWidgets.QApplication.translate("MainWindow", "File", None, -1))
-        self.menuHelp.setTitle(QtWidgets.QApplication.translate("MainWindow", "Help", None, -1))
-        self.actionStartScan.setText(QtWidgets.QApplication.translate("MainWindow", "Start Scan", None, -1))
+        self.menuFile.setTitle(QtWidgets.QApplication.translate("MainWindow", "&File", None, -1))
+        self.menuHelp.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Help", None, -1))
+        self.actionStartScan.setText(QtWidgets.QApplication.translate("MainWindow", "Start Indexing", None, -1))
         self.actionPreferences.setText(QtWidgets.QApplication.translate("MainWindow", "Preferences...", None, -1))
         self.actionPreferences.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+P", None, -1))
         self.actionShowHelpInfo.setText(QtWidgets.QApplication.translate("MainWindow", "Show Manual...", None, -1))
-        self.actionAbout.setText(QtWidgets.QApplication.translate("MainWindow", "About", None, -1))
+        self.actionAbout.setText(QtWidgets.QApplication.translate("MainWindow", "About...", None, -1))
         self.actionExit.setText(QtWidgets.QApplication.translate("MainWindow", "Exit", None, -1))
         self.actionExit.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+Q", None, -1))
 

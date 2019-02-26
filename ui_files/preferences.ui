@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="icons.qrc">
+    <normaloff>:/icons/icons/prefs.svg</normaloff>:/icons/icons/prefs.svg</iconset>
+  </property>
   <widget class="QDialogButtonBox" name="preferences">
    <property name="geometry">
     <rect>
@@ -85,7 +89,9 @@
    </property>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>preferences</sender>

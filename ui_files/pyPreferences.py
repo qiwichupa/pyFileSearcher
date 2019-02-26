@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file './preferences.ui',
-# licensing of './preferences.ui' applies.
+# Form implementation generated from reading ui file 'preferences.ui',
+# licensing of 'preferences.ui' applies.
 #
-# Created: Fri Feb  8 19:12:14 2019
+# Created: Tue Feb 26 11:11:42 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -14,6 +14,9 @@ class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
         Dialog.resize(390, 166)
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/prefs.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        Dialog.setWindowIcon(icon)
         self.preferences = QtWidgets.QDialogButtonBox(Dialog)
         self.preferences.setGeometry(QtCore.QRect(20, 120, 341, 32))
         self.preferences.setOrientation(QtCore.Qt.Horizontal)
@@ -45,3 +48,4 @@ class Ui_Dialog(object):
         self.PREFDisableWindowsLongPathSupport.setText(QtWidgets.QApplication.translate("Dialog", "Disable Windows long path support", None, -1))
         self.label.setText(QtWidgets.QApplication.translate("Dialog", "Maximum search results by default: ", None, -1))
 
+import icons_rc
