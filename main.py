@@ -45,7 +45,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99"
+__version__ = "0.99b"
 
 
 appDataPath = os.getcwd() + "/"
@@ -96,7 +96,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         QtWidgets.QMainWindow.__init__(self)
         self.setupUi(self)
 
-        self.setWindowTitle(__appname__)
+        self.setWindowTitle(__appname__ + " (v. " + __version__ + ")")
 
         self.settings = QtCore.QSettings(appDataPath + "settings.ini", QtCore.QSettings.IniFormat)
 
@@ -974,12 +974,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.DBCount.setDisabled(True)
             self.DBCountLabel.setText("DB Count (<font color=red>indexing...</font>): ")
             self.DBCountLabel.setToolTip("Check the pid file in the working directory if you are sure that indexing that indexing is stopped..")
-            self.actionStartScan.setText("Scan in progress")
+            self.actionStartScan.setText("Indexing in progress")
             self.actionStartScan.setDisabled(True)
         else:
             self.DBCount.setEnabled(True)
             self.DBCountLabel.setText("DB Count: ")
-            self.actionStartScan.setText("Start scan")
+            self.actionStartScan.setText("Start Indexing")
             self.actionStartScan.setEnabled(True)
 
     def tableFilesScrolled(self):
@@ -1573,7 +1573,6 @@ class HelpDialog(QtWidgets.QDialog, pyManual.Ui_Dialog):
         self.setupUi(self)
 
         self.setWindowTitle(__appname__ + " - Manual")
-        self.versionLabel.setText("(v. " + __version__ + ")")
 
 
 class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
