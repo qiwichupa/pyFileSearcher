@@ -43,7 +43,7 @@ from ui_files import pyManual
 
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99d"
+__version__ = "0.99e"
 
 appDataPath = os.getcwd() + "/"
 scanPIDFile = appDataPath + "scan.pid"
@@ -567,7 +567,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.MySQLPathsTableRemoveButton.setDisabled(True)
 
     def mysql_establish_connection(self):
-        """Trying to connect to database"""
+        """Connect to MySQL for work purposes"""
         try:
             self.dbConnMysql = my_sql.connect(
                 host=self.MySQLServerAddress.text(),
@@ -577,6 +577,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 db=self.MySQLDBName.text())
         except Exception as e:
             logger.critical("mysql error connection error: " + str(e))
+            sys.exit(1)
 
 
 
@@ -596,13 +597,14 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         except:
             r = range(0, 100)
+            logger.warning("...old removed key not found, it's ok while first run...")
         else:
-            logger.info("...old removed key is: " + str(oldRemovedKey) + "...")
+            logger.debug("...old removed key is: " + str(oldRemovedKey) + "...")
             r = list(range(0, int(oldRemovedKey))) + list(range(int(oldRemovedKey)+1, 100))
 
 
         self.newRemovedKey = random.choice(r)
-        logger.info("...new removed key is: " + str(self.newRemovedKey) + "...")
+        logger.debug("...new removed key is: " + str(self.newRemovedKey) + "...")
 
 
         self.dbConnMysql.close()
@@ -658,7 +660,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             if isScanMode == False:
                 QtWidgets.QMessageBox.critical(self, __appname__, "Unable to load settings from database:\r\n'" +
                                            get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
-            exit(1)
+            sys.exit(1)
 
         self.DBSettingsLabel.setText("Database \"DB" + str(DBNumber) + "\" settings")
 
@@ -690,7 +692,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             if isScanMode == False:
                 QtWidgets.QMessageBox.critical(self, __appname__, "Unable to remove database file:\r\n'" +
                                            get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
-            exit(1)
+            sys.exit(1)
 
     def dbCountEmitted(self, newDBCount):
         """Looks at the settings and compares the number of internal databases specified in them with
