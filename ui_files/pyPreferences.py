@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'preferences.ui',
 # licensing of 'preferences.ui' applies.
 #
-# Created: Tue Feb 26 11:11:42 2019
+# Created: Wed Feb 27 14:29:02 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -13,12 +13,14 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(390, 166)
+        Dialog.resize(390, 170)
+        Dialog.setMinimumSize(QtCore.QSize(390, 170))
+        Dialog.setMaximumSize(QtCore.QSize(390, 170))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/prefs.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Dialog.setWindowIcon(icon)
         self.preferences = QtWidgets.QDialogButtonBox(Dialog)
-        self.preferences.setGeometry(QtCore.QRect(20, 120, 341, 32))
+        self.preferences.setGeometry(QtCore.QRect(27, 140, 341, 20))
         self.preferences.setOrientation(QtCore.Qt.Horizontal)
         self.preferences.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.preferences.setObjectName("preferences")
@@ -36,6 +38,15 @@ class Ui_Dialog(object):
         self.label = QtWidgets.QLabel(Dialog)
         self.label.setGeometry(QtCore.QRect(20, 80, 231, 20))
         self.label.setObjectName("label")
+        self.label_2 = QtWidgets.QLabel(Dialog)
+        self.label_2.setGeometry(QtCore.QRect(20, 110, 91, 20))
+        self.label_2.setObjectName("label_2")
+        self.PREFLoggingLevel = QtWidgets.QComboBox(Dialog)
+        self.PREFLoggingLevel.setGeometry(QtCore.QRect(120, 110, 81, 20))
+        self.PREFLoggingLevel.setObjectName("PREFLoggingLevel")
+        self.PREFLoggingLevel.addItem("")
+        self.PREFLoggingLevel.addItem("")
+        self.PREFLoggingLevel.addItem("")
 
         self.retranslateUi(Dialog)
         QtCore.QObject.connect(self.preferences, QtCore.SIGNAL("accepted()"), Dialog.accept)
@@ -47,5 +58,9 @@ class Ui_Dialog(object):
         self.PREFUseExternalDB.setText(QtWidgets.QApplication.translate("Dialog", "Use external DB", None, -1))
         self.PREFDisableWindowsLongPathSupport.setText(QtWidgets.QApplication.translate("Dialog", "Disable Windows long path support", None, -1))
         self.label.setText(QtWidgets.QApplication.translate("Dialog", "Maximum search results by default: ", None, -1))
+        self.label_2.setText(QtWidgets.QApplication.translate("Dialog", "Logging level:", None, -1))
+        self.PREFLoggingLevel.setItemText(0, QtWidgets.QApplication.translate("Dialog", "DEBUG", None, -1))
+        self.PREFLoggingLevel.setItemText(1, QtWidgets.QApplication.translate("Dialog", "INFO", None, -1))
+        self.PREFLoggingLevel.setItemText(2, QtWidgets.QApplication.translate("Dialog", "WARNING", None, -1))
 
 import icons_rc

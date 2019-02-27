@@ -43,7 +43,7 @@ from ui_files import pyManual
 
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99c"
+__version__ = "0.99d"
 
 appDataPath = os.getcwd() + "/"
 scanPIDFile = appDataPath + "scan.pid"
@@ -263,7 +263,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Opens the preferences dialog"""
         initValues = {"useExternalDatabase": self.settings.value("useExternalDatabase"),
                       "disableWindowsLongPathSupport": self.settings.value("disableWindowsLongPathSupport"),
-                      "maxSearchResults": self.settings.value("maxSearchResults")
+                      "maxSearchResults": self.settings.value("maxSearchResults"),
+                      "LogLevel": self.settings.value("LogLevel")
                       }
         dialog = PreferencesDialog(initValues)
         if dialog.exec_():
@@ -271,6 +272,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.settings.setValue("disableWindowsLongPathSupport",
                                    utilities.bool2str(dialog.PREFDisableWindowsLongPathSupport.isChecked()))
             self.settings.setValue("maxSearchResults", str(dialog.PREFMaxSearchResults.value()))
+            self.settings.setValue("LogLevel", dialog.PREFLoggingLevel.currentText())
 
             self.refreshSQLTabs()
 
@@ -1617,6 +1619,10 @@ class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
             utilities.str2bool(initValues["disableWindowsLongPathSupport"]))
         self.PREFUseExternalDB.setChecked(utilities.str2bool(initValues["useExternalDatabase"]))
         self.PREFMaxSearchResults.setValue(int(initValues["maxSearchResults"]))
+
+        indx = self.PREFLoggingLevel.findText(initValues["LogLevel"])
+        self.PREFLoggingLevel.setCurrentIndex(indx)
+
 
 
 def unhandled_exception(exc_type, exc_value, exc_traceback):
