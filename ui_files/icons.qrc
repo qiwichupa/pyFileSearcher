@@ -1,0 +1,13 @@
+<RCC>
+  <qresource prefix="icons">
+    <file>icons/main.svg</file>
+    <file>icons/main.png</file>
+    <file>icons/main.ico</file>
+    <file>icons/prefs.svg</file>
+    <file>icons/manual.svg</file>
+    <file>icons/scan.svg</file>
+    <file>icons/main.png</file>
+    <file>icons/prefs.png</file>
+    <file>icons/scan.png</file>
+  </qresource>
+</RCC>
