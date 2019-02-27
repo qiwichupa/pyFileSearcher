@@ -32,32 +32,29 @@ import subprocess
 import sys
 import time
 
-
-
 from hashlib import md5
 
 import utilities
-
 
 from ui_files import pyMain
 from ui_files import pyPreferences
 from ui_files import pyAbout
 from ui_files import pyManual
 
-__appname__ = "pyFileSearcher"
-__version__ = "0.99b"
 
+__appname__ = "pyFileSearcher"
+__version__ = "0.99c"
 
 appDataPath = os.getcwd() + "/"
 scanPIDFile = appDataPath + "scan.pid"
+logfile = appDataPath + "pyfilesearcher.log"
 
-logging.basicConfig(filename=appDataPath + "pyfilesearcher.log",
+logging.basicConfig(filename=logfile,
                     format="%(asctime)-15s: %(name)-18s - %(levelname)-8s - %(module)-15s - %(funcName)-20s - %(lineno)-6d %(message)s",
                     level=logging.DEBUG)
 logger = logging.getLogger(name="main-gui")
 sys.stdout = utilities.LoggerWriter(logger.warning)
 sys.stderr = utilities.LoggerWriter(logger.warning)
-
 
 
 if len(sys.argv) <= 1 or sys.argv[1] != "--scan":
@@ -106,6 +103,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.actionAbout.triggered.connect(self.actionAboutEmitted)
         self.actionShowHelpInfo.triggered.connect(self.actionShowHelpInfoEmitted)
         self.actionExit.triggered.connect(self.exitActionTriggered)
+        self.actionOpenLog.triggered.connect(self.actionOpenLogEmitted)
 
         # Search Tab
         FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([\w \.\*\?-])*"), self)
@@ -183,12 +181,14 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         # run scan with --scan parameter
         if isScanMode:
-            logger.debug("Scan is running with command promt parameter!")
+            logger.info("Scan is running with command promt parameter!")
             self.updateDBEmitted()
 
     def load_initial_settings(self):
         """Load initial settings from configuration file and database"""
 
+        if not self.settings.value("LogLevel"):
+            self.settings.setValue("LogLevel", "INFO")
         if not self.settings.value("DBCount"):
             self.settings.setValue("DBCount", "1")
         if not self.settings.value("useExternalDatabase"):
@@ -201,6 +201,14 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.settings.setValue("filters", "")
 
         self.refreshSQLTabs()
+
+        #set non-default logging level
+        if self.settings.value("LogLevel") == "INFO":
+            logger.setLevel(logging.INFO)
+        elif self.settings.value("LogLevel") == "WARNINIG":
+            logger.setLevel(logging.WARNING)
+        elif self.settings.value("LogLevel") == "DEBUG":
+            logger.setLevel(logging.DEBUG)
 
         if self.settings.value("filters") == "":
             self.filters = []
@@ -270,7 +278,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Starts the file system scan. Depending on the settings, it generates scanning threads of either
             an internal or external database. For each thread, an updateDBThreads element is created, which is
             subsequently deleted to determine the end of the scan."""
-        logger.debug("UPDATING DB WAS STARTED. Creating PID-file: " + scanPIDFile)
+        logger.info("UPDATING DB WAS STARTED. Creating PID-file: " + scanPIDFile)
         os.close(os.open(scanPIDFile, os.O_CREAT))
 
         self.updateDBThreads = {}
@@ -291,13 +299,20 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.updateDBThreads[row].start()
 
     def actionAboutEmitted(self):
+        """Shows about dialog"""
         dialog = AboutDialog()
         dialog.pushButton.clicked.connect(dialog.close)
         dialog.exec_()
 
     def actionShowHelpInfoEmitted(self):
+        """Shows help dialog"""
         dialog = HelpDialog()
         dialog.pushButton.clicked.connect(dialog.close)
+        dialog.exec_()
+
+    def actionOpenLogEmitted(self):
+        """Shows log-file content"""
+        dialog = OpenLogDialog()
         dialog.exec_()
 
 #
@@ -571,7 +586,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         cursor = self.dbConnMysql.cursor()
 
-        logger.debug("MySQL preparation...")
+        logger.info("MySQL preparation...")
 
         try:
             cursor.execute("SELECT removed FROM Files LIMIT 1")
@@ -580,16 +595,16 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         except:
             r = range(0, 100)
         else:
-            logger.debug("...old removed key is: " + str(oldRemovedKey) + "...")
+            logger.info("...old removed key is: " + str(oldRemovedKey) + "...")
             r = list(range(0, int(oldRemovedKey))) + list(range(int(oldRemovedKey)+1, 100))
 
 
         self.newRemovedKey = random.choice(r)
-        logger.debug("...new removed key is: " + str(self.newRemovedKey) + "...")
+        logger.info("...new removed key is: " + str(self.newRemovedKey) + "...")
 
 
         self.dbConnMysql.close()
-        logger.debug("MySQL preparation complete!")
+        logger.info("MySQL preparation complete!")
 
 
     def mysql_post_update_procedure(self):
@@ -597,25 +612,16 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.mysql_establish_connection()
 
         cursor = self.dbConnMysql.cursor()
-        logger.debug("MySQL post-update procedure...")
-        logger.debug("...removing deleted files from DB...")
+        logger.info("MySQL post-update procedure...")
+        logger.info("...removing deleted files from DB...")
         try:
             cursor.execute("DELETE FROM Files WHERE removed <> %s", (self.newRemovedKey,))
             self.dbConnMysql.commit()
         except Exception as e:
             logger.warning("...Cleaning DB error: " + str(e))
-        '''
 
-        logger.debug("...recreating indexes...")
-        cursor.execute("""ALTER TABLE Files 
-                            ADD INDEX size_indexed_type (size, indexed, type),
-                            ADD INDEX indexed_size_type (indexed, size, type),
-                            ADD INDEX type_size_indexed (type, size, indexed),
-                            ADD INDEX path (path)""")
-        self.dbConnMysql.commit()
-        '''
         self.dbConnMysql.close()
-        logger.debug("MySQL post-update procedure complete.")
+        logger.info("MySQL post-update procedure complete.")
 
 #
 # MySQL THINGS - END SECTION
@@ -781,6 +787,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.menu.popup(QtGui.QCursor.pos())
 
+
+
     def menuOpenFolder(self):
         """Opens folder for selected file"""
         rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
@@ -850,14 +858,14 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if the list is empty, it starts the cleaning for MySQL and deletes the pid-file."""
         self.updateDBThreads[ThreadNumber].wait()
         del self.updateDBThreads[ThreadNumber]
-        logger.debug("Scan thread #" + str(ThreadNumber) + " is over.")
+        logger.info("Scan thread #" + str(ThreadNumber) + " is over.")
         if len(self.updateDBThreads) == 0:
             if self.DBScanEngine == "MySQL":
                 self.mysql_post_update_procedure()
             os.remove(scanPIDFile)
-            logger.debug("Scan is complete!")
+            logger.info("Scan is complete!")
             if isScanMode:
-                logger.debug("isScanMode - exit app")
+                logger.info("isScanMode - exit app")
                 self.exitActionTriggered()
 
 
@@ -1072,7 +1080,7 @@ class UpdateDBThread(QtCore.QThread):
 
     def run(self):
 
-        logger.debug("Scan thread is started for Sqlite DB #" + str(self.DBNumber))
+        logger.info("Scan thread is started for Sqlite DB #" + str(self.DBNumber))
 
         self.dbConn = sqlite3.connect(get_db_path(self.DBNumber))
         self.dbCursor = self.dbConn.cursor()
@@ -1155,7 +1163,7 @@ class UpdateDBThread(QtCore.QThread):
 
         self.dbConn.commit()
         self.dbCursor.execute("DELETE FROM Files WHERE removed = '0' ")
-        logger.debug("Final commit in sqlite scan thread #" + str(self.DBNumber))
+        logger.info("Final commit in sqlite scan thread #" + str(self.DBNumber))
         self.dbConn.commit()
         self.dbConn.execute("VACUUM")
 
@@ -1294,7 +1302,7 @@ class SaveSqliteDBSettingsThread(QtCore.QThread):
         self.dbSettings = dbSettings
 
     def run(self):
-        logger.debug("Saving settings for DB #" + str(self.DBNumber))
+        logger.info("Saving settings for DB #" + str(self.DBNumber))
         self.dbConn = sqlite3.connect(get_db_path(self.DBNumber))
         self.dbCursor = self.dbConn.cursor()
 
@@ -1466,7 +1474,7 @@ class UpdateMysqlDBThread(QtCore.QThread):
         self.removedKey = int(removedKey)
 
     def run(self):
-        logger.debug("Scan thread is started for MySQL. Thread #" + str(self.threadID) + ", path: " + self.path)
+        logger.info("Scan thread is started for MySQL. Thread #" + str(self.threadID) + ", path: " + self.path)
 
         self.open_connection()
 
@@ -1510,7 +1518,6 @@ class UpdateMysqlDBThread(QtCore.QThread):
         if self.windowsLongPathHack:
             rootpath = "\\\\?\\" + rootpath
 
-
         filesIndexed = 0
 
         sqlTransactionLimit = 20000
@@ -1522,10 +1529,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
         for entry in utilities.scantree(rootpath):
             # commit to DB every N (sqlTransactionLimit) files
             if sqlTransactionCounter >= sqlTransactionLimit:
-                #logger.debug("Thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
+                logger.debug("Thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
                 self.execute_and_commit_to_db(sql, varsArr)
 
-                #logger.debug("Thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
+                logger.debug("Thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
                 sqlTransactionCounter = 0
                 varsArr = []
 
@@ -1551,7 +1558,7 @@ class UpdateMysqlDBThread(QtCore.QThread):
         logger.debug("Thread #" + str(self.threadID) + ", starting FINAL commit to MySQL. Files indexed: " + str(
             filesIndexed))
         self.execute_and_commit_to_db(sql, varsArr)
-        logger.debug("Thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(filesIndexed))
+        logger.info("Thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(filesIndexed))
 
 
 
@@ -1564,6 +1571,29 @@ class AboutDialog(QtWidgets.QDialog, pyAbout.Ui_Dialog):
 
         self.setWindowTitle(__appname__ + " - About")
         self.versionLabel.setText("(v. " + __version__ + ")")
+
+
+class OpenLogDialog(QtWidgets.QDialog):
+
+    def __init__(self, parent=None):
+        QtWidgets.QDialog.__init__(self)
+
+        self.setWindowTitle(__appname__ + " - LogFile:" + str(logfile))
+        self.setMinimumWidth(800)
+        self.setMinimumHeight(400)
+
+        logtext = str(logfile) + ":\n\r\n\r"
+
+        with open(logfile, 'r') as infile:
+            for line in infile:
+                logtext +=  line
+
+        layout = QtWidgets.QVBoxLayout()
+        self.textEdit = QtWidgets.QTextEdit()
+        self.textEdit.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
+        self.textEdit.setText(logtext)
+        layout.addWidget(self.textEdit)
+        self.setLayout(layout)
 
 
 class HelpDialog(QtWidgets.QDialog, pyManual.Ui_Dialog):
@@ -1598,7 +1628,7 @@ def main():
     sys.excepthook = unhandled_exception
 
     if isScanMode and os.path.isfile(scanPIDFile):
-        logger.debug("Scan is running already, check PID file. App closed.")
+        logger.warning("Scan is running already, check PID file. App closed.")
         sys.exit(0)
 
     QtCore.QCoreApplication.setApplicationName(__appname__)

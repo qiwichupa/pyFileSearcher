@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Tue Feb 26 11:25:50 2019
+# Created: Wed Feb 27 11:37:39 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -402,9 +402,6 @@ class Ui_MainWindow(object):
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setObjectName("menuHelp")
         MainWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(MainWindow)
-        self.statusbar.setObjectName("statusbar")
-        MainWindow.setStatusBar(self.statusbar)
         self.actionStartScan = QtWidgets.QAction(MainWindow)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(QtGui.QPixmap(":/icons/icons/scan.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -421,11 +418,14 @@ class Ui_MainWindow(object):
         self.actionAbout.setObjectName("actionAbout")
         self.actionExit = QtWidgets.QAction(MainWindow)
         self.actionExit.setObjectName("actionExit")
+        self.actionOpenLog = QtWidgets.QAction(MainWindow)
+        self.actionOpenLog.setObjectName("actionOpenLog")
         self.menuFile.addAction(self.actionStartScan)
         self.menuFile.addAction(self.actionPreferences)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
         self.menuHelp.addAction(self.actionShowHelpInfo)
+        self.menuHelp.addAction(self.actionOpenLog)
         self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
@@ -541,9 +541,10 @@ class Ui_MainWindow(object):
         self.actionStartScan.setText(QtWidgets.QApplication.translate("MainWindow", "Start Indexing", None, -1))
         self.actionPreferences.setText(QtWidgets.QApplication.translate("MainWindow", "Preferences...", None, -1))
         self.actionPreferences.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+P", None, -1))
-        self.actionShowHelpInfo.setText(QtWidgets.QApplication.translate("MainWindow", "Show Manual...", None, -1))
-        self.actionAbout.setText(QtWidgets.QApplication.translate("MainWindow", "About...", None, -1))
+        self.actionShowHelpInfo.setText(QtWidgets.QApplication.translate("MainWindow", "Show Manual", None, -1))
+        self.actionAbout.setText(QtWidgets.QApplication.translate("MainWindow", "About", None, -1))
         self.actionExit.setText(QtWidgets.QApplication.translate("MainWindow", "Exit", None, -1))
         self.actionExit.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+Q", None, -1))
+        self.actionOpenLog.setText(QtWidgets.QApplication.translate("MainWindow", "Open log", None, -1))
 
 import icons_rc
