@@ -796,8 +796,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                     QtWidgets.QMessageBox.warning(self, __appname__, "Opening directory error: " + str(e))
             else:
                 try:
-                    subprocess.check_call(["xdg-open", row[self.tableFilesColumnPathIndx].text()],
-                                          stderr=subprocess.STDOUT)
+                    subprocess.check_call(["xdg-open", row[self.tableFilesColumnPathIndx].text()], stderr=subprocess.STDOUT)
 
                 except subprocess.CalledProcessError as e:
                     logger.warning("Opening directory error: " + str(e))
@@ -874,8 +873,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
         self.tableFilesFileIsChecked = {}  # see tableFilesScrolled()
-        self.tableFiles.setSortingEnabled(
-            False)  # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
+        self.tableFiles.setSortingEnabled(False)  # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
 
         # avoid double "press" via pressing enter in filter EditLines
         if not self.btnSearch.isEnabled():
@@ -934,10 +932,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if row > int(
                 self.settings.value("maxSearchResults")) - 1 and not self.FilterShowMoreResultsCheckbox.isChecked():
             self.FilterShowMoreResultsCheckbox.setVisible(True)
-            self.FilterShowMoreResultsCheckbox.setText(
-                "Show all results (NOT recommended! Uncheck during searching to stop loading the results)")
-            self.FilterShowMoreResultsCheckbox.setToolTip(
-                "Can produce heavy load on database and consume large amount of memory on local PC.")
+            self.FilterShowMoreResultsCheckbox.setText("Show all results (NOT recommended! Uncheck during searching to stop loading the results)")
+            self.FilterShowMoreResultsCheckbox.setToolTip("Can produce heavy load on database and consume large amount of memory on local PC.")
             self.SearchInSqliteDBThread.stop()
             return
 
@@ -947,8 +943,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setItem(row, self.tableFilesColumnNumIndx, numItem)
         self.tableFiles.setItem(row, self.tableFilesColumnFilnameIndx, QtWidgets.QTableWidgetItem(filename))
         self.tableFiles.setItem(row, self.tableFilesColumnTypeIndx, QtWidgets.QTableWidgetItem(
-            utilities.get_extension_from_filename(filename))
-                                # if there is a dot in filename - extract extension
+            utilities.get_extension_from_filename(filename)) # if there is a dot in filename - extract extension
                                 )
 
         sizeItem = QtWidgets.QTableWidgetItem()
@@ -976,8 +971,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if fileExists:
             self.DBCount.setDisabled(True)
             self.DBCountLabel.setText("DB Count (<font color=red>indexing...</font>): ")
-            self.DBCountLabel.setToolTip(
-                "Check the pid file in the working directory if you are sure that indexing that indexing is stopped..")
+            self.DBCountLabel.setToolTip("Check the pid file in the working directory if you are sure that indexing that indexing is stopped..")
             self.actionStartScan.setText("Indexing in progress")
             self.actionStartScan.setDisabled(True)
         else:
@@ -1002,8 +996,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
             rowId = self.tableFiles.item(i, self.tableFilesColumnNumIndx).text()
             if rowId not in self.tableFilesFileIsChecked:
-                fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i,
-                                                                                                                    self.tableFilesColumnFilnameIndx).text()
+                fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
                 if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
                     fullFilePath = "\\\\?\\" + fullFilePath
                 self.tableFilesFileIsChecked[rowId] = True
@@ -1197,8 +1190,7 @@ class SearchInSqliteDB(QtCore.QThread):
             if i == 1:
                 query = "SELECT filename, path, size, created, modified, indexed FROM Files WHERE 1 "
             else:
-                query += " UNION ALL SELECT filename, path, size, created, modified, indexed FROM DB" + str(
-                    i) + ".Files WHERE 1 "
+                query += " UNION ALL SELECT filename, path, size, created, modified, indexed FROM DB" + str(i) + ".Files WHERE 1 "
 
             # # query constructor
             # filename
@@ -1520,12 +1512,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
         for entry in utilities.scantree(rootpath):
             # commit to DB every N (sqlTransactionLimit) files
             if sqlTransactionCounter >= sqlTransactionLimit:
-                logger.debug(
-                    "Thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
+                logger.debug("Thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
                 self.execute_and_commit_to_db(sql, varsArr)
 
-                logger.debug(
-                    "Thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
+                logger.debug("Thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
                 sqlTransactionCounter = 0
                 varsArr = []
 
@@ -1551,8 +1541,7 @@ class UpdateMysqlDBThread(QtCore.QThread):
         logger.debug("Thread #" + str(self.threadID) + ", starting FINAL commit to MySQL. Files indexed: " + str(
             filesIndexed))
         self.execute_and_commit_to_db(sql, varsArr)
-        logger.info("Thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(
-            filesIndexed))
+        logger.info("Thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(filesIndexed))
 
 
 # DIALOG CLASSES
