@@ -16,7 +16,7 @@ import send2trash
 # But with python 3.4 and PySide - for win 2003 server build -  mysql.connector works fine,
 # and MySQLdb is difficult to install. So I leave both of it here.
 import MySQLdb as my_sql
-#import mysql.connector as my_sql
+# import mysql.connector as my_sql
 
 
 import csv
@@ -41,7 +41,6 @@ from ui_files import pyPreferences
 from ui_files import pyAbout
 from ui_files import pyManual
 
-
 __appname__ = "pyFileSearcher"
 __version__ = "0.99e"
 
@@ -55,7 +54,6 @@ logging.basicConfig(filename=logfile,
 logger = logging.getLogger(name="main-gui")
 sys.stdout = utilities.LoggerWriter(logger.warning)
 sys.stderr = utilities.LoggerWriter(logger.warning)
-
 
 if len(sys.argv) <= 1 or sys.argv[1] != "--scan":
     isScanMode = False
@@ -202,7 +200,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.refreshSQLTabs()
 
-        #set non-default logging level
+        # set non-default logging level
         if self.settings.value("LogLevel") == "INFO":
             logger.setLevel(logging.INFO)
         elif self.settings.value("LogLevel") == "WARNINIG":
@@ -256,9 +254,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.MySQLPathsTableItemSelectionChanged()
 
-
-# MAIN MENU ACTIONS
-#
+    # MAIN MENU ACTIONS
+    #
     def actionPreferencesEmitted(self):
         """Opens the preferences dialog"""
         initValues = {"useExternalDatabase": self.settings.value("useExternalDatabase"),
@@ -317,11 +314,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         dialog = OpenLogDialog()
         dialog.exec_()
 
-#
-# MAIN MENU ACTIONS - END SECTION
+    #
+    # MAIN MENU ACTIONS - END SECTION
 
-# SAVE/LOAD FILTERS
-#
+    # SAVE/LOAD FILTERS
+    #
     def FilterListSaveButtonEmitted(self):
         """Saves the current search settings as a new preset, or updates an existing preset."""
         filterName = self.FilterListLineEdit.text()
@@ -401,11 +398,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if len(self.filters) == 0:
             self.FilterListRemoveButton.setDisabled(True)
 
-#
-# SAVE/LOAD FILTERS - END SECTION
+    #
+    # SAVE/LOAD FILTERS - END SECTION
 
-# MySQL THINGS
-#
+    # MySQL THINGS
+    #
     def MySQLServerAddressEmitted(self):
         """Saves MySQL server address to settings"""
         self.settings.setValue("MySQL/MySQLServerAddress", self.MySQLServerAddress.text())
@@ -579,8 +576,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             logger.critical("mysql error connection error: " + str(e))
             sys.exit(1)
 
-
-
     def mysql_prepare_db_for_update(self):
         """If there is - selects the first value of the column 'removed' and generates a random new one
             that does not coincide with it. When scanning, this value is set for all new or updated rows in the
@@ -600,16 +595,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             logger.warning("...old removed key not found, it's ok while first run...")
         else:
             logger.debug("...old removed key is: " + str(oldRemovedKey) + "...")
-            r = list(range(0, int(oldRemovedKey))) + list(range(int(oldRemovedKey)+1, 100))
-
+            r = list(range(0, int(oldRemovedKey))) + list(range(int(oldRemovedKey) + 1, 100))
 
         self.newRemovedKey = random.choice(r)
         logger.debug("...new removed key is: " + str(self.newRemovedKey) + "...")
 
-
         self.dbConnMysql.close()
         logger.info("MySQL preparation complete!")
-
 
     def mysql_post_update_procedure(self):
         """Deletes all rows whose column 'removed' value is different from the one selected in the mysql_prepare_db_for_update."""
@@ -627,11 +619,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.dbConnMysql.close()
         logger.info("MySQL post-update procedure complete.")
 
-#
-# MySQL THINGS - END SECTION
+    #
+    # MySQL THINGS - END SECTION
 
-# Sqlite THINGS
-#
+    # Sqlite THINGS
+    #
     def select_db(self, DBNumber, runViaGUI=True):
         """At the time of selecting the internal (sqlite) database loads settings from it."""
         if runViaGUI is True:
@@ -656,10 +648,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         except Exception as e:
             logger.critical("Unable to load settings from database:\r\n'" +
-                                           get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
+                            get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
             if isScanMode == False:
                 QtWidgets.QMessageBox.critical(self, __appname__, "Unable to load settings from database:\r\n'" +
-                                           get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
+                                               get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
             sys.exit(1)
 
         self.DBSettingsLabel.setText("Database \"DB" + str(DBNumber) + "\" settings")
@@ -688,10 +680,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             os.remove(get_db_path(DBNumber))
         except Exception as e:
             logger.critical("Unable to remove database file:\r\n'" +
-                                           get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
+                            get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
             if isScanMode == False:
                 QtWidgets.QMessageBox.critical(self, __appname__, "Unable to remove database file:\r\n'" +
-                                           get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
+                                               get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
             sys.exit(1)
 
     def dbCountEmitted(self, newDBCount):
@@ -755,11 +747,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.DBApplySettingsButton.setDisabled(True)
         self.DBSelectDatabase.setFocus()
 
-#
-# Sqlite THINGS - END SECTION
+    #
+    # Sqlite THINGS - END SECTION
 
-# TABLE CONTEXT MENU
-#
+    # TABLE CONTEXT MENU
+    #
     def tableMenu(self, event):
         """Create context menu for tableFiles widget"""
         self.menu = QtWidgets.QMenu(self)
@@ -791,8 +783,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.menu.popup(QtGui.QCursor.pos())
 
-
-
     def menuOpenFolder(self):
         """Opens folder for selected file"""
         rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
@@ -806,13 +796,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                     QtWidgets.QMessageBox.warning(self, __appname__, "Opening directory error: " + str(e))
             else:
                 try:
-                    subprocess.check_call(["xdg-open", row[self.tableFilesColumnPathIndx].text()], stderr=subprocess.STDOUT)
+                    subprocess.check_call(["xdg-open", row[self.tableFilesColumnPathIndx].text()],
+                                          stderr=subprocess.STDOUT)
 
                 except subprocess.CalledProcessError as e:
                     logger.warning("Opening directory error: " + str(e))
-                    QtWidgets.QMessageBox.warning(self, __appname__,  "Opening directory error: " + str(e))
-
-
+                    QtWidgets.QMessageBox.warning(self, __appname__, "Opening directory error: " + str(e))
 
     def menuDeleteFiles(self):
         """Delete selected files"""
@@ -821,7 +810,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         for row in rows:
             try:
                 send2trash.send2trash(
-                row[self.tableFilesColumnPathIndx].text() + row[self.tableFilesColumnFilnameIndx].text()
+                    row[self.tableFilesColumnPathIndx].text() + row[self.tableFilesColumnFilnameIndx].text()
                 )
             except Exception as e:
                 logger.warning("Error while removing file: " + str(e))
@@ -854,8 +843,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.selectAll()
         self.menuExportSelectedToCsv()
 
-#
-# TABLE CONTEXT MENU - END SECTION
+    #
+    # TABLE CONTEXT MENU - END SECTION
 
     def removeScanThreadWhenThreadIsOver(self, ThreadNumber):
         """Catching signals of scanning threads. Removes a thread from the list of threads;
@@ -872,7 +861,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 logger.info("isScanMode - exit app")
                 self.exitActionTriggered()
 
-
     def FilterFilenameTextChanged(self):
         """Does not allow to run a search until the file name is specified."""
         if self.FilterFilename.text().strip() == "":
@@ -886,7 +874,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
         self.tableFilesFileIsChecked = {}  # see tableFilesScrolled()
-        self.tableFiles.setSortingEnabled(False) # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
+        self.tableFiles.setSortingEnabled(
+            False)  # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
 
         # avoid double "press" via pressing enter in filter EditLines
         if not self.btnSearch.isEnabled():
@@ -896,7 +885,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.btnSearch.setText("Searching...")
 
-        time.sleep(.2) # I think this helps the search button not to look "half-blocked"
+        time.sleep(.2)  # I think this helps the search button not to look "half-blocked"
 
         filters = {}
         filters["FilterFilename"] = self.FilterFilename.text()
@@ -945,8 +934,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if row > int(
                 self.settings.value("maxSearchResults")) - 1 and not self.FilterShowMoreResultsCheckbox.isChecked():
             self.FilterShowMoreResultsCheckbox.setVisible(True)
-            self.FilterShowMoreResultsCheckbox.setText("Show all results (NOT recommended! Uncheck during searching to stop loading the results)")
-            self.FilterShowMoreResultsCheckbox.setToolTip("Can produce heavy load on database and consume large amount of memory on local PC.")
+            self.FilterShowMoreResultsCheckbox.setText(
+                "Show all results (NOT recommended! Uncheck during searching to stop loading the results)")
+            self.FilterShowMoreResultsCheckbox.setToolTip(
+                "Can produce heavy load on database and consume large amount of memory on local PC.")
             self.SearchInSqliteDBThread.stop()
             return
 
@@ -956,7 +947,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setItem(row, self.tableFilesColumnNumIndx, numItem)
         self.tableFiles.setItem(row, self.tableFilesColumnFilnameIndx, QtWidgets.QTableWidgetItem(filename))
         self.tableFiles.setItem(row, self.tableFilesColumnTypeIndx, QtWidgets.QTableWidgetItem(
-                                                                    utilities.get_extension_from_filename(filename))
+            utilities.get_extension_from_filename(filename))
                                 # if there is a dot in filename - extract extension
                                 )
 
@@ -985,7 +976,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if fileExists:
             self.DBCount.setDisabled(True)
             self.DBCountLabel.setText("DB Count (<font color=red>indexing...</font>): ")
-            self.DBCountLabel.setToolTip("Check the pid file in the working directory if you are sure that indexing that indexing is stopped..")
+            self.DBCountLabel.setToolTip(
+                "Check the pid file in the working directory if you are sure that indexing that indexing is stopped..")
             self.actionStartScan.setText("Indexing in progress")
             self.actionStartScan.setDisabled(True)
         else:
@@ -1010,7 +1002,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
             rowId = self.tableFiles.item(i, self.tableFilesColumnNumIndx).text()
             if rowId not in self.tableFilesFileIsChecked:
-                fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
+                fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i,
+                                                                                                                    self.tableFilesColumnFilnameIndx).text()
                 if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
                     fullFilePath = "\\\\?\\" + fullFilePath
                 self.tableFilesFileIsChecked[rowId] = True
@@ -1045,8 +1038,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.mycheckScanPIDFileLoopThread.wait()
 
 
-
-
 # PID-FILE CHECKER
 class CheckScanPIDFileLoopThread(QtCore.QThread):
     pidFileExists = QtCore.Signal(bool)
@@ -1055,10 +1046,8 @@ class CheckScanPIDFileLoopThread(QtCore.QThread):
     def __init__(self, parent=None):
         QtCore.QThread.__init__(self)
 
-
     def run(self):
         self.pid_check()
-
 
     def pid_check(self):
         while self._isRunning is True:
@@ -1164,7 +1153,6 @@ class UpdateDBThread(QtCore.QThread):
                 except Exception as e:
                     logger.critical("Error while scan and update DB: " + str(e))
 
-
         self.dbConn.commit()
         self.dbCursor.execute("DELETE FROM Files WHERE removed = '0' ")
         logger.info("Final commit in sqlite scan thread #" + str(self.DBNumber))
@@ -1209,8 +1197,8 @@ class SearchInSqliteDB(QtCore.QThread):
             if i == 1:
                 query = "SELECT filename, path, size, created, modified, indexed FROM Files WHERE 1 "
             else:
-                query += " UNION ALL SELECT filename, path, size, created, modified, indexed FROM DB" + str(i) + ".Files WHERE 1 "
-
+                query += " UNION ALL SELECT filename, path, size, created, modified, indexed FROM DB" + str(
+                    i) + ".Files WHERE 1 "
 
             # # query constructor
             # filename
@@ -1229,7 +1217,7 @@ class SearchInSqliteDB(QtCore.QThread):
                     query += " UPPER(filename) GLOB UPPER(?) "
                     parameters += ["*." + ext]
                     if exts.index(ext) < len(exts) - 1:
-                        #print(str(exts.index(ext)) + " " + str(len(exts) - 1))
+                        # print(str(exts.index(ext)) + " " + str(len(exts) - 1))
                         query += " OR"
                 query += ")"
             # min size
@@ -1325,11 +1313,12 @@ class SaveSqliteDBSettingsThread(QtCore.QThread):
             self.dbCursor.execute("UPDATE Settings SET value = ? WHERE option=?", (value, option))
         except Exception as e:
             logger.critical("Unable to write option to DB" + str(self.DBNumber) + "\r\n" +
-                                           "Error:\r\n" + str(e))
+                            "Error:\r\n" + str(e))
             if isScanMode == False:
                 QtWidgets.QMessageBox.critical(self, __appname__,
-                                           "Unable to write option to DB" + str(self.DBNumber) + "\r\n" +
-                                           "Error:\r\n" + str(e))
+                                               "Unable to write option to DB" + str(self.DBNumber) + "\r\n" +
+                                               "Error:\r\n" + str(e))
+
 
 # MySQL CLASSES
 class SearchInMySQLDB(QtCore.QThread):
@@ -1366,7 +1355,6 @@ class SearchInMySQLDB(QtCore.QThread):
             logger.critical("Connection error: " + str(e))
             return
 
-
         dbCursor = self.dbConn.cursor()
 
         # SQL TABLE: hash, removed, filename, path, size, created, modified, indexed
@@ -1386,7 +1374,7 @@ class SearchInMySQLDB(QtCore.QThread):
         extFromFileName = utilities.get_extension_from_filename(self.filters["FilterFilename"].strip())
         # If a file name with a simple extension (contains only letters, numbers, and _) is specified,
         # the extension will be extracted from the name and the extension filter will be ignored in any case.
-        if  re.match("[\w_]+$", extFromFileName):
+        if re.match("[\w_]+$", extFromFileName):
             query += " AND (type = %s)"
             parameters += [extFromFileName]
         elif self.filters["FilterFileTypes"].strip() != "":
@@ -1432,12 +1420,12 @@ class SearchInMySQLDB(QtCore.QThread):
             queryTime = int(time.time()) - filterInSeconds
             query += " AND (Indexed > %s)"
             parameters += [queryTime]
-        #limit
+        # limit
         if not self.filters["FilterShowMoreResultsEnabled"]:
             # I request one result more than a certain limit in the settings. If there are really more results,
             # their number can be compared with the limit in the function responsible for filling in a QTableWidget
             # (SearchInDBThreadRowEmitted), and showing the checkbox to disable the limit.
-            limit = int(self.filters["FilterSearchLimit"]) +1
+            limit = int(self.filters["FilterSearchLimit"]) + 1
             query += "LIMIT %s"
             parameters += [limit]
 
@@ -1481,7 +1469,6 @@ class UpdateMysqlDBThread(QtCore.QThread):
         logger.info("Scan thread is started for MySQL. Thread #" + str(self.threadID) + ", path: " + self.path)
 
         self.open_connection()
-
 
         self.updateDB(self.path, self.removedKey)
         self.sigIsOver.emit(self.threadID)
@@ -1533,10 +1520,12 @@ class UpdateMysqlDBThread(QtCore.QThread):
         for entry in utilities.scantree(rootpath):
             # commit to DB every N (sqlTransactionLimit) files
             if sqlTransactionCounter >= sqlTransactionLimit:
-                logger.debug("Thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
+                logger.debug(
+                    "Thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
                 self.execute_and_commit_to_db(sql, varsArr)
 
-                logger.debug("Thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
+                logger.debug(
+                    "Thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
                 sqlTransactionCounter = 0
                 varsArr = []
 
@@ -1562,8 +1551,8 @@ class UpdateMysqlDBThread(QtCore.QThread):
         logger.debug("Thread #" + str(self.threadID) + ", starting FINAL commit to MySQL. Files indexed: " + str(
             filesIndexed))
         self.execute_and_commit_to_db(sql, varsArr)
-        logger.info("Thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(filesIndexed))
-
+        logger.info("Thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(
+            filesIndexed))
 
 
 # DIALOG CLASSES
@@ -1590,7 +1579,7 @@ class OpenLogDialog(QtWidgets.QDialog):
 
         with open(logfile, 'r') as infile:
             for line in infile:
-                logtext +=  line
+                logtext += line
 
         layout = QtWidgets.QVBoxLayout()
         self.textEdit = QtWidgets.QTextEdit()
@@ -1624,7 +1613,6 @@ class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
 
         indx = self.PREFLoggingLevel.findText(initValues["LogLevel"])
         self.PREFLoggingLevel.setCurrentIndex(indx)
-
 
 
 def unhandled_exception(exc_type, exc_value, exc_traceback):
