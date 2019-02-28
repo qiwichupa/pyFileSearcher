@@ -42,7 +42,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99e"
+__version__ = "0.99f"
 
 appDataPath = os.getcwd() + "/"
 scanPIDFile = appDataPath + "scan.pid"
@@ -200,13 +200,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.refreshSQLTabs()
 
-        # set non-default logging level
-        if self.settings.value("LogLevel") == "INFO":
-            logger.setLevel(logging.INFO)
-        elif self.settings.value("LogLevel") == "WARNINIG":
-            logger.setLevel(logging.WARNING)
-        elif self.settings.value("LogLevel") == "DEBUG":
-            logger.setLevel(logging.DEBUG)
+        self.apply_logging_level()
 
         if self.settings.value("filters") == "":
             self.filters = []
@@ -272,6 +266,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.settings.setValue("LogLevel", dialog.PREFLoggingLevel.currentText())
 
             self.refreshSQLTabs()
+            self.apply_logging_level()
 
     def updateDBEmitted(self):
         """Starts the file system scan. Depending on the settings, it generates scanning threads of either
@@ -1004,6 +999,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                     for column in range(0, self.tableFiles.columnCount()):
                         # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
                         self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
+
+    def apply_logging_level(self):
+        # set non-default logging level
+        if self.settings.value("LogLevel") == "INFO":
+            logger.setLevel(logging.INFO)
+        elif self.settings.value("LogLevel") == "WARNINIG":
+            logger.setLevel(logging.WARNING)
+        elif self.settings.value("LogLevel") == "DEBUG":
+            logger.setLevel(logging.DEBUG)
 
     def refreshSQLTabs(self):
         """Switches the availability of external and internal database tabs depending on settings"""
