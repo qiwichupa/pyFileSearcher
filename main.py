@@ -42,23 +42,18 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99f"
+__version__ = "0.99g"
 
-appDataPath = os.getcwd() + "/"
-scanPIDFile = appDataPath + "scan.pid"
-logfile = appDataPath + "pyfilesearcher.log"
+appDataPath = os.getcwd()
+scanPIDFile = os.path.join(appDataPath, "scan.pid")
+logfile = os.path.join(appDataPath, "pyfilesearcher.log")
 
 logging.basicConfig(filename=logfile,
-                    format="%(asctime)-15s: %(name)-18s - %(levelname)-8s - %(module)-15s - %(funcName)-20s - %(lineno)-6d %(message)s",
+                    format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
                     level=logging.DEBUG)
 logger = logging.getLogger(name="main-gui")
 sys.stdout = utilities.LoggerWriter(logger.warning)
 sys.stderr = utilities.LoggerWriter(logger.warning)
-
-if len(sys.argv) <= 1 or sys.argv[1] != "--scan":
-    isScanMode = False
-else:
-    isScanMode = True
 
 if platform.system() == "Linux":
     isLinux = True
@@ -67,11 +62,13 @@ elif platform.system() == "Windows":
     isWindows = True
     isLinux = False
 else:
-    sys.exit("This app is for only Linux and Windows, sorry!")
+    logger.critical("This app is for only Linux and Windows, sorry!")
+    sys.exit(1)
 
-
-def get_db_path(DBNumber: int):
-    return (appDataPath + "DB" + str(DBNumber) + ".sqlite3")
+if len(sys.argv) <= 1 or sys.argv[1] != "--scan":
+    isScanMode = False
+else:
+    isScanMode = True
 
 
 class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
@@ -93,7 +90,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.setWindowTitle(__appname__ + " (v. " + __version__ + ")")
 
-        self.settings = QtCore.QSettings(appDataPath + "settings.ini", QtCore.QSettings.IniFormat)
+        self.settings = QtCore.QSettings(os.path.join(appDataPath, "settings.ini"), QtCore.QSettings.IniFormat)
 
         # Menu items
         self.actionPreferences.triggered.connect(self.actionPreferencesEmitted)
@@ -104,7 +101,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.actionOpenLog.triggered.connect(self.actionOpenLogEmitted)
 
         # Search Tab
-        FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([\w \.\*\?-])*"), self)
+        FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([^\\\/:<>|])*"), self) # i don't know why this "^\\\" works as "not a '\'", but it works -_-
         self.FilterFilename.setValidator(FilterFilenameValidator)
         self.FilterFilename.textEdited.connect(self.FilterFilenameTextChanged)
         FilterFileTypesValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9]{1,8},)*"), self)
@@ -130,7 +127,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
 
         # Search Tab - Filter List
-        FilterListLineEditalidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9_-])*"), self)
+        FilterListLineEditalidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9_ -])*"), self)
         self.FilterListLineEdit.setValidator(FilterListLineEditalidator)
 
         self.FilterListSaveButton.setDisabled(True)
@@ -280,7 +277,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if self.settings.value("useExternalDatabase") == "False":
             self.DBScanEngine = "Sqlite"
             for DBNumber in range(1, self.DBCount.value() + 1):
-                self.updateDBThreads[DBNumber] = UpdateDBThread(DBNumber, self.settings)
+                self.updateDBThreads[DBNumber] = UpdateSqliteDBThread(DBNumber, self.settings)
                 self.updateDBThreads[DBNumber].sigIsOver.connect(self.removeScanThreadWhenThreadIsOver)
                 self.updateDBThreads[DBNumber].start()
         else:
@@ -1059,7 +1056,7 @@ class CheckScanPIDFileLoopThread(QtCore.QThread):
 
 
 # SQLITE CLASSES
-class UpdateDBThread(QtCore.QThread):
+class UpdateSqliteDBThread(QtCore.QThread):
     sigIsOver = QtCore.Signal(int)
 
     def __init__(self, DBNumber, settings, parent=None):
@@ -1070,7 +1067,7 @@ class UpdateDBThread(QtCore.QThread):
 
     def run(self):
 
-        logger.info("Scan thread is started for Sqlite DB #" + str(self.DBNumber))
+        logger.info("Scan thread #" + str(self.DBNumber) + ". Started.")
 
         self.dbConn = sqlite3.connect(get_db_path(self.DBNumber))
         self.dbCursor = self.dbConn.cursor()
@@ -1082,12 +1079,14 @@ class UpdateDBThread(QtCore.QThread):
                                                ("ExclusionsMode",)).fetchone()[0]
 
         rootPath = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?", ("RootPath",)).fetchone()[0]
+
         if rootPath:
-            self.updateDB(str(rootPath), exclusions, exclusionsMode)
+            logger.debug("Scan thread #" + str(self.DBNumber) + ". Path: " + rootPath)
+            self.updateSqliteDB(str(rootPath), exclusions, exclusionsMode)
 
         self.sigIsOver.emit(self.DBNumber)
 
-    def updateDB(self, rootpath, exclusions=None, exclusionsMode=None):
+    def updateSqliteDB(self, rootpath, exclusions=None, exclusionsMode=None):
         """Scan filesystem from given path"""
         if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
             self.windowsLongPathHack = True
@@ -1098,8 +1097,10 @@ class UpdateDBThread(QtCore.QThread):
             rootpath = "\\\\?\\" + rootpath
 
         exclusions = exclusions.split(",")
-
+        logger.debug("Scan thread #" + str(self.DBNumber) + ". Setting up removed flag for all files in DB...")
         self.dbCursor.execute("UPDATE Files SET removed=?", ("0",))
+        self.dbConn.commit()
+        logger.debug("Scan thread #" + str(self.DBNumber) + ". Setting up removed flag. Complete.")
 
         timer = time.time()
 
@@ -1109,9 +1110,12 @@ class UpdateDBThread(QtCore.QThread):
 
                 # commit every 3 sec
                 if time.time() - timer > 4:
+                    logger.debug("Scan thread #" + str(self.DBNumber) +  ". Commiting to DB")
                     self.dbConn.commit()
                     self.dbConn.close()
+                    logger.debug("Scan thread #" + str(self.DBNumber) + ". Connection closed")
                     time.sleep(0.1)
+                    logger.debug("Scan thread #" + str(self.DBNumber) + ". Open new connection to db")
                     self.dbConn = sqlite3.connect(get_db_path(self.DBNumber))
                     self.dbCursor = self.dbConn.cursor()
                     timer = time.time()
@@ -1150,11 +1154,15 @@ class UpdateDBThread(QtCore.QThread):
                 except Exception as e:
                     logger.critical("Error while scan and update DB: " + str(e))
 
+        logger.debug("Scan thread #" + str(self.DBNumber) + ". Final commit.")
         self.dbConn.commit()
+        logger.debug("Scan thread #" + str(self.DBNumber) + ". Cleaninig.")
         self.dbCursor.execute("DELETE FROM Files WHERE removed = '0' ")
-        logger.info("Final commit in sqlite scan thread #" + str(self.DBNumber))
         self.dbConn.commit()
+        logger.debug("Scan thread #" + str(self.DBNumber) + ". Vacuum.")
         self.dbConn.execute("VACUUM")
+        logger.debug("Scan thread #" + str(self.DBNumber) + ". Vacuum complete.")
+
 
 
 class SearchInSqliteDB(QtCore.QThread):
@@ -1256,7 +1264,6 @@ class SearchInSqliteDB(QtCore.QThread):
             limit = int(self.filters["FilterSearchLimit"]) + 1
             query += "LIMIT ?"
             parameters += [limit]
-
         query += ""  # for some cases )
         logger.debug("Execute search query with parameters: " + query + str(parameters))
         rows = dbCursor.execute(query, parameters).fetchall()
@@ -1306,6 +1313,7 @@ class SaveSqliteDBSettingsThread(QtCore.QThread):
 
     def save_setting_to_db(self, option, value):
         try:
+            logger.debug("Save settings to sqlite: " + "UPDATE Settings SET value = ? WHERE option=?"  + str([value, option]))
             self.dbCursor.execute("UPDATE Settings SET value = ? WHERE option=?", (value, option))
         except Exception as e:
             logger.critical("Unable to write option to DB" + str(self.DBNumber) + "\r\n" +
@@ -1462,11 +1470,11 @@ class UpdateMysqlDBThread(QtCore.QThread):
         self.removedKey = int(removedKey)
 
     def run(self):
-        logger.info("Scan thread is started for MySQL. Thread #" + str(self.threadID) + ", path: " + self.path)
+        logger.info("Scan thread #" + str(self.threadID) + ". Started. Path: " + self.path)
 
         self.open_connection()
 
-        self.updateDB(self.path, self.removedKey)
+        self.updateMysqlDB(self.path, self.removedKey)
         self.sigIsOver.emit(self.threadID)
 
     def open_connection(self):
@@ -1481,7 +1489,7 @@ class UpdateMysqlDBThread(QtCore.QThread):
                 charset="utf8"
             )
         except Exception as e:
-            logger.critical("Thread #" + str(self.threadID) + ". MySQL connection error: " + str(e))
+            logger.critical("Scan thread #" + str(self.threadID) + ". MySQL connection error: " + str(e))
             self.sigIsOver.emit(self.threadID)
             self.exit()
 
@@ -1492,10 +1500,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
             dbCursor.executemany(sql, values)
             self.dbConn.commit()
         except Exception as e:
-            logger.critical("MySQL execute and commit error: " + str(e))
+            logger.critical("Scan thread #" + str(self.threadID) + ". MySQL execute and commit error: " + str(e))
         dbCursor.close()
 
-    def updateDB(self, rootpath, removedKey):
+    def updateMysqlDB(self, rootpath, removedKey):
         """Scan filesystem from given path"""
         if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
             self.windowsLongPathHack = True
@@ -1516,10 +1524,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
         for entry in utilities.scantree(rootpath):
             # commit to DB every N (sqlTransactionLimit) files
             if sqlTransactionCounter >= sqlTransactionLimit:
-                logger.debug("Thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
+                logger.debug("Scan thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
                 self.execute_and_commit_to_db(sql, varsArr)
 
-                logger.debug("Thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
+                logger.debug("Scan thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
                 sqlTransactionCounter = 0
                 varsArr = []
 
@@ -1542,10 +1550,9 @@ class UpdateMysqlDBThread(QtCore.QThread):
             filesIndexed += 1
             sqlTransactionCounter += 1
 
-        logger.debug("Thread #" + str(self.threadID) + ", starting FINAL commit to MySQL. Files indexed: " + str(
-            filesIndexed))
+        logger.debug("Scan thread #" + str(self.threadID) + ", starting FINAL commit to MySQL. Files indexed: " + str(filesIndexed))
         self.execute_and_commit_to_db(sql, varsArr)
-        logger.info("Thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(filesIndexed))
+        logger.info("Scan thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(filesIndexed))
 
 
 # DIALOG CLASSES
@@ -1568,18 +1575,25 @@ class OpenLogDialog(QtWidgets.QDialog):
         self.setMinimumWidth(800)
         self.setMinimumHeight(400)
 
-        logtext = str(logfile) + ":\n\r\n\r"
+        logtext = ""
 
         with open(logfile, 'r') as infile:
             for line in infile:
                 logtext += line
 
+        widgetText = "<pre>" +  str(logfile) + ":\n\r\n\r" + logtext + "</pre>"
+
         layout = QtWidgets.QVBoxLayout()
         self.textEdit = QtWidgets.QTextEdit()
         self.textEdit.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
-        self.textEdit.setText(logtext)
+        self.textEdit.setText(widgetText)
         layout.addWidget(self.textEdit)
         self.setLayout(layout)
+
+        # scroll to bottom
+        self.textEdit.moveCursor(QtGui.QTextCursor.End)
+        self.textEdit.moveCursor(QtGui.QTextCursor.StartOfLine)
+        self.textEdit.ensureCursorVisible()
 
 
 class HelpDialog(QtWidgets.QDialog, pyManual.Ui_Dialog):
@@ -1612,6 +1626,8 @@ def unhandled_exception(exc_type, exc_value, exc_traceback):
     logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))
     sys.exit(1)
 
+def get_db_path(DBNumber: int):
+    return (os.path.join(appDataPath,"DB" + str(DBNumber) + ".sqlite3"))
 
 def main():
     sys.excepthook = unhandled_exception
