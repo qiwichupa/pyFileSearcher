@@ -42,7 +42,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99h"
+__version__ = "0.99i"
 
 appDataPath = os.getcwd()
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
@@ -50,12 +50,16 @@ logfile = os.path.join(appDataPath, "pyfilesearcher.log")
 
 # remove large logfile
 logFileSizeLimit = 8 # MB
-if os.stat(logfile).st_size > logFileSizeLimit*1024**2:
-    removedLogFileSize = os.stat(logfile).st_size
-    try:
-        os.remove(logfile)
-    except:
-        pass
+try:
+    os.stat(logfile).st_size
+    if os.stat(logfile).st_size > logFileSizeLimit*1024**2:
+        removedLogFileSize = os.stat(logfile).st_size
+        try:
+            os.remove(logfile)
+        except:
+            pass
+except:
+    pass
 logging.basicConfig(filename=logfile,
                     format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
                     level=logging.DEBUG)
