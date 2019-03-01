@@ -1096,7 +1096,7 @@
   </action>
   <action name="actionOpenLog">
    <property name="text">
-    <string>Open log</string>
+    <string>Open Log</string>
    </property>
   </action>
  </widget>

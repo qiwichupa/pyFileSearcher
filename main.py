@@ -42,18 +42,31 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99g"
+__version__ = "0.99h"
 
 appDataPath = os.getcwd()
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
 logfile = os.path.join(appDataPath, "pyfilesearcher.log")
 
+# remove large logfile
+logFileSizeLimit = 8 # MB
+if os.stat(logfile).st_size > logFileSizeLimit*1024**2:
+    removedLogFileSize = os.stat(logfile).st_size
+    try:
+        os.remove(logfile)
+    except:
+        pass
 logging.basicConfig(filename=logfile,
                     format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
                     level=logging.DEBUG)
 logger = logging.getLogger(name="main-gui")
 sys.stdout = utilities.LoggerWriter(logger.warning)
 sys.stderr = utilities.LoggerWriter(logger.warning)
+try:
+    removedLogFileSize
+    logger.info("Previous logfile was removed by size limit (" + str(logFileSizeLimit) + "MB). Size was: " + str(removedLogFileSize) + " bytes.")
+except:
+    pass
 
 if platform.system() == "Linux":
     isLinux = True
@@ -70,7 +83,7 @@ if len(sys.argv) <= 1 or sys.argv[1] != "--scan":
 else:
     isScanMode = True
 
-
+# MAIN APPLICATION CLASS
 class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     sigUpdateDB = QtCore.Signal(str)
     dbConn = {}
@@ -125,6 +138,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.tableFiles.itemEntered.connect(self.tableFilesScrolled)
         self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
+
+        # rename ctime column in linux because it's not a creation time in that case
+        if isLinux:
+            self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnCreatedIndx, QtWidgets.QTableWidgetItem("Linux ctime"))
+            #self.tableFiles.setColumnHidden(self.tableFilesColumnCreatedIndx, True)
 
         # Search Tab - Filter List
         FilterListLineEditalidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9_ -])*"), self)
@@ -269,7 +287,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Starts the file system scan. Depending on the settings, it generates scanning threads of either
             an internal or external database. For each thread, an updateDBThreads element is created, which is
             subsequently deleted to determine the end of the scan."""
-        logger.info("UPDATING DB WAS STARTED. Creating PID-file: " + scanPIDFile)
+        logger.info(">> INDEXING STARTED. Creating PID-file: " + scanPIDFile)
         os.close(os.open(scanPIDFile, os.O_CREAT))
 
         self.updateDBThreads = {}
@@ -282,10 +300,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.updateDBThreads[DBNumber].start()
         else:
             self.DBScanEngine = "MySQL"
-            self.mysql_prepare_db_for_update()
+            removedKey = self.mysql_prepare_db_for_update()
             for row in range(0, self.MySQLPathsTable.rowCount()):
                 path = self.MySQLPathsTable.item(row, 0).text()
-                self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings)
+                self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, removedKey, self.settings)
                 self.updateDBThreads[row].sigIsOver.connect(self.removeScanThreadWhenThreadIsOver)
                 self.updateDBThreads[row].start()
 
@@ -329,8 +347,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.settings.setValue("FILTER_" + filterName + "/FilterMaxSizeType", self.FilterMaxSizeType.currentIndex())
         self.settings.setValue("FILTER_" + filterName + "/FilterMaxSizeEnabled", self.FilterMaxSizeEnabled.isChecked())
         self.settings.setValue("FILTER_" + filterName + "/FilterIndexedLastDays", self.FilterIndexedLastDays.value())
-        self.settings.setValue("FILTER_" + filterName + "/FilterIndexedLastDaysEnabled",
-                               self.FilterIndexedLastDaysEnabled.isChecked())
+        self.settings.setValue("FILTER_" + filterName + "/FilterIndexedLastDaysEnabled", self.FilterIndexedLastDaysEnabled.isChecked())
 
         self.settings.setValue("filters", ",".join(self.filters))
 
@@ -589,11 +606,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             logger.debug("...old removed key is: " + str(oldRemovedKey) + "...")
             r = list(range(0, int(oldRemovedKey))) + list(range(int(oldRemovedKey) + 1, 100))
 
-        self.newRemovedKey = random.choice(r)
-        logger.debug("...new removed key is: " + str(self.newRemovedKey) + "...")
+        newRemovedKey = random.choice(r)
+        logger.debug("...new removed key is: " + str(newRemovedKey) + "...")
 
         self.dbConnMysql.close()
         logger.info("MySQL preparation complete!")
+        return(newRemovedKey)
 
     def mysql_post_update_procedure(self):
         """Deletes all rows whose column 'removed' value is different from the one selected in the mysql_prepare_db_for_update."""
@@ -847,7 +865,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             if self.DBScanEngine == "MySQL":
                 self.mysql_post_update_procedure()
             os.remove(scanPIDFile)
-            logger.info("Scan is complete!")
+            logger.info(">> INDEXING COMPLETED.")
             if isScanMode:
                 logger.info("isScanMode - exit app")
                 self.exitActionTriggered()
@@ -867,15 +885,31 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFilesFileIsChecked = {}  # see tableFilesScrolled()
         self.tableFiles.setSortingEnabled(False)  # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
 
-        # avoid double "press" via pressing enter in filter EditLines
-        if not self.btnSearch.isEnabled():
-            return
-
-        self.btnSearch.setDisabled(True)
+        # Now we need to save elements 'isEnabled' states, block them, and restore states in SearchInDBThreadSearchCompleteEmitted().
+        # It's almost complete elements list, except "show all" checkbox, which must be active for searching interruption
+        searchInterfaceElements = [
+            "FilterFilename",
+            "FilterPath",
+            "FilterFileTypes",
+            "FilterListLineEdit",
+            "FilterListRemoveButton",
+            "FilterListComboBox",
+            "FilterListSaveButton",
+            "FilterIndexedLastDaysEnabled",
+            "FilterIndexedLastDays",
+            "FilterMinSizeEnabled",
+            "FilterMinSize",
+            "FilterMinSizeType",
+            "FilterMaxSizeEnabled",
+            "FilterMaxSize",
+            "FilterMaxSizeType",
+            "btnSearch"
+            ]
+        self.searchInterfaceElementsStates = self.gui_elements_get_states(searchInterfaceElements)
+        self.gui_elements_set_disabled(searchInterfaceElements)
 
         self.btnSearch.setText("Searching...")
 
-        time.sleep(.2)  # I think this helps the search button not to look "half-blocked"
 
         filters = {}
         filters["FilterFilename"] = self.FilterFilename.text()
@@ -954,9 +988,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """After the search is completed, it unlocks the interface elements and forcibly launches the check for
             the existence of files visible to the user."""
         self.tableFiles.setSortingEnabled(True)
-        self.btnSearch.setDisabled(False)
+        self.gui_elements_restore_states(self.searchInterfaceElementsStates)
         self.btnSearch.setText("Search...")
-        self.tableFilesScrolled()
+        self.tableFilesScrolled() # This line activates the file existence check.
 
     def checkScanPIDFileLoopEmitted(self, fileExists):
         """Blocks the change in the number of internal databases during scanning into them"""
@@ -996,6 +1030,31 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                     for column in range(0, self.tableFiles.columnCount()):
                         # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
                         self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
+
+    def gui_elements_set_disabled(self, elements):
+        """Disable items on the list"""
+        for element in elements:
+            e = vars(self)[element]
+            e.setDisabled(True)
+
+    def gui_elements_restore_states(self, elementsAndStates):
+        """Apply enabled state saved with gui_elements_get_states()"""
+        elements = elementsAndStates["elements"]
+        states  = elementsAndStates["states"]
+
+        for element in elements:
+            e = vars(self)[element]
+            e.setEnabled(states[element])
+
+    def gui_elements_get_states(self, elements):
+        """Returns elements and 'isEnabled' states"""
+        elementsStates = {}
+        for element in elements:
+            e = vars(self)[element]
+            elementsStates[element] = e.isEnabled()
+
+        states = {"elements": elements, "states": elementsStates}
+        return(states)
 
     def apply_logging_level(self):
         # set non-default logging level
@@ -1162,7 +1221,6 @@ class UpdateSqliteDBThread(QtCore.QThread):
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Vacuum.")
         self.dbConn.execute("VACUUM")
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Vacuum complete.")
-
 
 
 class SearchInSqliteDB(QtCore.QThread):

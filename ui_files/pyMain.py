@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Wed Feb 27 11:37:39 2019
+# Created: Fri Mar  1 09:28:31 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -545,6 +545,6 @@ class Ui_MainWindow(object):
         self.actionAbout.setText(QtWidgets.QApplication.translate("MainWindow", "About", None, -1))
         self.actionExit.setText(QtWidgets.QApplication.translate("MainWindow", "Exit", None, -1))
         self.actionExit.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+Q", None, -1))
-        self.actionOpenLog.setText(QtWidgets.QApplication.translate("MainWindow", "Open log", None, -1))
+        self.actionOpenLog.setText(QtWidgets.QApplication.translate("MainWindow", "Open Log", None, -1))
 
 import icons_rc
