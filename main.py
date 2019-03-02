@@ -146,7 +146,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         # rename ctime column in linux because it's not a creation time in that case
         if isLinux:
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnCreatedIndx, QtWidgets.QTableWidgetItem("Linux ctime"))
-            #self.tableFiles.setColumnHidden(self.tableFilesColumnCreatedIndx, True)
 
         # Search Tab - Filter List
         FilterListLineEditalidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9_ -])*"), self)
@@ -462,8 +461,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.MySQLTestButton.setText("Test connection")
 
             self.MySQLInitDBCheckBox.setDisabled(True)
-
-
         else:
             self.MySQLTestButton.setStyleSheet('QPushButton {color: green;}')
             self.MySQLTestButton.setText("Connected.")
@@ -594,9 +591,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             that does not coincide with it. When scanning, this value is set for all new or updated rows in the
             database to identify deleted files and delete them in mysql_post_update_procedure."""
         self.mysql_establish_connection()
-
         cursor = self.dbConnMysql.cursor()
-
         logger.info("MySQL preparation...")
 
         try:
@@ -659,7 +654,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
             self.DBFileTypeFilter.setText(dbOptions["Exclusions"])
             self.DBRootScanPath.setItemText(0, dbOptions["RootPath"] if dbOptions["RootPath"] else "[Path is not set]")
-
         except Exception as e:
             logger.critical("Unable to load settings from database:\r\n'" +
                             get_db_path(DBNumber) + "'\r\nError:\r\n" + str(e))
@@ -911,9 +905,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             ]
         self.searchInterfaceElementsStates = self.gui_elements_get_states(searchInterfaceElements)
         self.gui_elements_set_disabled(searchInterfaceElements)
-
         self.btnSearch.setText("Searching...")
-
 
         filters = {}
         filters["FilterFilename"] = self.FilterFilename.text()
@@ -937,7 +929,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.SearchInSqliteDBThread.start()
             self.SearchInSqliteDBThread.setPriority(QtCore.QThread.LowestPriority)
         else:
-
             self.SearchInSqliteDBThread = SearchInMySQLDB(filters, self.settings)
             self.SearchInSqliteDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
             self.SearchInSqliteDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
@@ -973,7 +964,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setItem(row, self.tableFilesColumnNumIndx, numItem)
         self.tableFiles.setItem(row, self.tableFilesColumnFilnameIndx, QtWidgets.QTableWidgetItem(filename))
         self.tableFiles.setItem(row, self.tableFilesColumnTypeIndx, QtWidgets.QTableWidgetItem(
-            utilities.get_extension_from_filename(filename)) # if there is a dot in filename - extract extension
+                                                utilities.get_extension_from_filename(filename)  # if there is a dot in filename - extract extension
+                                                                                              )
                                 )
 
         sizeItem = QtWidgets.QTableWidgetItem()
@@ -1016,6 +1008,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             return
 
         upRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, 0)).row()
+
         if self.tableFiles.itemAt(0, self.tableFiles.height()):
             downRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, self.tableFiles.height())).row()
         else:
@@ -1090,7 +1083,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def closeEvent(self, event, *args, **kwargs):
         """Overrides the default close method"""
-
         self.mycheckScanPIDFileLoopThread.stop()
         self.mycheckScanPIDFileLoopThread.wait()
 
@@ -1215,7 +1207,9 @@ class UpdateSqliteDBThread(QtCore.QThread):
                         self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
                                               (key, "1", name, path, size, ctime, mtime, indexed))
                 except Exception as e:
-                    logger.critical("Error while scan and update DB: " + str(e))
+                    logger.critical("Error while scan and update DB: " + str(e) + ". Stopping thread.")
+                    self.sigIsOver.emit(self.DBNumber)
+                    self.exit(1)
 
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Final commit.")
         self.dbConn.commit()
