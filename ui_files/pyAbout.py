@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'about.ui',
 # licensing of 'about.ui' applies.
 #
-# Created: Tue Feb 26 11:12:35 2019
+# Created: Tue Mar  5 17:11:40 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -404,6 +404,6 @@ class Ui_Dialog(object):
         self.versionLabel.setText(QtWidgets.QApplication.translate("Dialog", "(v. 0.9)", None, -1))
         self.label_5.setText(QtWidgets.QApplication.translate("Dialog", "<html><head/><body><p>Icons made by: <br/><a href=\"https://www.flaticon.com/authors/eucalyp\"><span style=\" text-decoration: underline; color:#0000ff;\">Eucalyp</span></a> from <a href=\"https://www.flaticon.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">www.flaticon.com</span></a> is licensed by <a href=\"http://creativecommons.org/licenses/by/3.0/\"><span style=\" text-decoration: underline; color:#0000ff;\">CC 3.0 BY</span></a><br/><a href=\"https://www.freepik.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">Freepik</span></a> from <a href=\"https://www.flaticon.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">www.flaticon.com</span></a> is licensed by <a href=\"http://creativecommons.org/licenses/by/3.0/\"><span style=\" text-decoration: underline; color:#0000ff;\">CC 3.0 BY</span></a><br/><a href=\"https://www.flaticon.com/authors/icon-works\"><span style=\" text-decoration: underline; color:#0000ff;\">Icon Works</span></a> from <a href=\"https://www.flaticon.com/\"><span style=\" text-decoration: underline; color:#0000ff;\">www.flaticon.com</span></a> is licensed by <a href=\"http://creativecommons.org/licenses/by/3.0/\"><span style=\" text-decoration: underline; color:#0000ff;\">CC 3.0 BY</span></a></p><p><br/></p></body></html>", None, -1))
         self.label_3.setText(QtWidgets.QApplication.translate("Dialog", "pyFileSearcher was designed to be lightweight, easy to use, but capable of handling a large volume of files tool. A tool that I personally could use on large corporate servers to find out - which files have taken all my space in the last few days? It\'s free, it\'s opensource, it\'s for linux and windows.", None, -1))
-        self.label_6.setText(QtWidgets.QApplication.translate("Dialog", "<html><head/><body><p><span style=\" font-size:10pt;\">Author: Sergey &quot;Qiwichupa&quot; Pavlov<br/>Sources: </span><a href=\"https://gitlab.com/qiwichupa/pyfilesearcher/\"><span style=\" font-size:10pt; text-decoration: underline; color:#0000ff;\">https://gitlab.com/qiwichupa/pyfilesearcher/</span></a></p></body></html>", None, -1))
+        self.label_6.setText(QtWidgets.QApplication.translate("Dialog", "<html><head/><body><p><span style=\" font-size:10pt;\">Author: Sergey &quot;Qiwichupa&quot; Pavlov<br/>Sources: </span><a href=\"https://github.com/qiwichupa/pyFileSearcher\"><span style=\" text-decoration: underline; color:#0000ff;\">https://github.com/qiwichupa/pyFileSearcher</span></a></p></body></html>", None, -1))
 
 import icons_rc

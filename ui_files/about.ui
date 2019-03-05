@@ -486,7 +486,7 @@ p, li { white-space: pre-wrap; }
     </rect>
    </property>
    <property name="text">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Author: Sergey &amp;quot;Qiwichupa&amp;quot; Pavlov&lt;br/&gt;Sources: &lt;/span&gt;&lt;a href=&quot;https://gitlab.com/qiwichupa/pyfilesearcher/&quot;&gt;&lt;span style=&quot; font-size:10pt; text-decoration: underline; color:#0000ff;&quot;&gt;https://gitlab.com/qiwichupa/pyfilesearcher/&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt;&quot;&gt;Author: Sergey &amp;quot;Qiwichupa&amp;quot; Pavlov&lt;br/&gt;Sources: &lt;/span&gt;&lt;a href=&quot;https://github.com/qiwichupa/pyFileSearcher&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0000ff;&quot;&gt;https://github.com/qiwichupa/pyFileSearcher&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
  </widget>
