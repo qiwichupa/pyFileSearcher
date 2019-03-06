@@ -42,7 +42,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99j"
+__version__ = "0.99k"
 
 appDataPath = os.getcwd()
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
