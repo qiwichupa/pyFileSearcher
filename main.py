@@ -42,7 +42,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99i"
+__version__ = "0.99j"
 
 appDataPath = os.getcwd()
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
@@ -303,10 +303,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.updateDBThreads[DBNumber].start()
         else:
             self.DBScanEngine = "MySQL"
-            removedKey = self.mysql_prepare_db_for_update()
+            self.newRemovedKey = self.mysql_prepare_db_for_update()
             for row in range(0, self.MySQLPathsTable.rowCount()):
                 path = self.MySQLPathsTable.item(row, 0).text()
-                self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, removedKey, self.settings)
+                self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings)
                 self.updateDBThreads[row].sigIsOver.connect(self.removeScanThreadWhenThreadIsOver)
                 self.updateDBThreads[row].start()
 
@@ -1158,6 +1158,7 @@ class UpdateSqliteDBThread(QtCore.QThread):
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Setting up removed flag. Complete.")
 
         timer = time.time()
+        filesIndexed = 0
 
         for entry in utilities.scantree(rootpath):
             if entry.is_file():
@@ -1206,12 +1207,13 @@ class UpdateSqliteDBThread(QtCore.QThread):
 
                         self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
                                               (key, "1", name, path, size, ctime, mtime, indexed))
+                        filesIndexed += 1
                 except Exception as e:
                     logger.critical("Error while scan and update DB: " + str(e) + ". Stopping thread.")
                     self.sigIsOver.emit(self.DBNumber)
                     self.exit(1)
 
-        logger.debug("Scan thread #" + str(self.DBNumber) + ". Final commit.")
+        logger.info("Scan thread #" + str(self.DBNumber) + ". Final commit. Files indexed (total in thread):" + str(filesIndexed))
         self.dbConn.commit()
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Cleaninig.")
         self.dbCursor.execute("DELETE FROM Files WHERE removed = '0' ")
