@@ -303,10 +303,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.updateDBThreads[DBNumber].start()
         else:
             self.DBScanEngine = "MySQL"
-            removedKey = self.mysql_prepare_db_for_update()
+            self.newRemovedKey = self.mysql_prepare_db_for_update()
             for row in range(0, self.MySQLPathsTable.rowCount()):
                 path = self.MySQLPathsTable.item(row, 0).text()
-                self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, removedKey, self.settings)
+                self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings)
                 self.updateDBThreads[row].sigIsOver.connect(self.removeScanThreadWhenThreadIsOver)
                 self.updateDBThreads[row].start()
 
