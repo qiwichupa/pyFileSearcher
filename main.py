@@ -11,8 +11,8 @@ import PySide2.QtWidgets as QtWidgets
 import send2trash
 
 # About this one.
-# With python 3.7 and PySide2 and mysql.connector (https://pypi.org/project/mysql-connector-python/) - I have memory leak in scan thread.
-# So i prefer mysqlclient (MySQLdb fork - https://pypi.org/project/mysqlclient) - it's fully compatible.
+# With python 3.7, PySide2 AND mysql.connector (https://pypi.org/project/mysql-connector-python/) - I have memory leak in scan thread.
+# So I prefer mysqlclient (MySQLdb fork - https://pypi.org/project/mysqlclient) - it's fully compatible.
 # But with python 3.4 and PySide - for win 2003 server build -  mysql.connector works fine,
 # and mysqlclient is difficult to install. So I leave both of it here.
 import MySQLdb as my_sql
