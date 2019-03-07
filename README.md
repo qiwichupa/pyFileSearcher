@@ -12,11 +12,11 @@ The program is written in Python 3 using the Qt5.
 * Support for long paths (> 256 characters) in windows
 
 ## How it works
-The program runs through your hard disk and saves the minimum necessary information about the files: size, time of creation, modification, and time of the first indexing of the file (convenient for finding new files without looking at the attributes). To store this information, you can use the sqlite database (one for each target directory you want to index), or the MySQL database if you want to index hundreds of thousands and millions of files. In the latter case, you can use only one database, but specify several target directories (however, you can use several instances of this program, setting each to a separate database, if you really need). In both cases, each target directory is indexed in parallel with the others.
+The program runs through your hard disk and saves the minimum necessary information about the files: size, time of creation, modification, and time of the first indexing of the file (convenient for finding new files without looking at the attributes). To store this information, you can use the sqlite database (one for each target directory you want to index), or the MySQL database if you want to index hundreds of thousands and millions of files. In the latter case, you can use only one database, but specify several target directories. In both cases, each target directory is indexed in parallel with the others.
 
-After you have set up simple indexing parameters (target directories, and white or black lists of extensions in the case of using sqlite), you can run the program with the "--scan" parameter to automatically start indexing, after which the program will be closed. Use this key to run through the scheduler, for example. Be careful: the program uses the "working directory" to store configuration, sqlite databases, logs and pid-files - when launching the program via shortcuts or the scheduler, make sure that the working directory remains constant.
+After you have set up simple indexing parameters (target directories, and white or black lists of extensions in the case of using sqlite), you can run the program with the "--scan" parameter to automatically start indexing, after which the program will be closed. Use this key to run via the scheduler.
 
-During the scanning process, a pid-file is created in the working directory. Its existence blocks the process of launching a scan, if the program crashed - remove it manually.
+During the scanning process, a pid-file is created in the program directory. Its existence blocks the process of launching a scan, if the program crashed - remove it manually.
 
 ## Tests
 The program was tested on a file server with about 20 million files. Scan time - about 5 hours. Files in biggest thread: ~7000000 

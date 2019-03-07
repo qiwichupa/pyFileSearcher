@@ -3,8 +3,8 @@
 # Form implementation generated from reading ui file 'manual.ui',
 # licensing of 'manual.ui' applies.
 #
-# Created: Tue Feb 26 11:07:55 2019
-#      by: pyside2-uic  running on PySide2 5.12.0
+# Created: Thu Mar  7 12:56:33 2019
+#      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -52,17 +52,14 @@ class Ui_Dialog(object):
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">To store the index, you can use instances of the internal database (sqlite), or an external database (MySQL). I recommend using an external database if the number of your files exceeds several hundred thousand.</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">After setting the indexing, you can run the application with the --scan parameter, which will hide the main window and automatically start scanning. Convenient to run through the scheduler.</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'DejaVu Sans Mono\'; color:#000000; background-color:#ffffff;\">After you have set up simple indexing parameters (target directories, and white or black lists of extensions in the case of using sqlite), you can run the program with the &quot;--scan&quot; parameter to automatically start indexing, after which the program will be closed. Use this key to run via the scheduler.</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">The program uses the working directory to store settings and internal databases, keep this in mind when launching the program from different places and when using the scheduler.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">During the scanning process, a pid-file is created in the working directory. Its existence blocks the process of launching a scan, if the program crashed - remove it manually.</p>\n"
-"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">When the number of files is 20 million, the program has been tested with the following MySQL parameters:</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">innodb_buffer_pool_size = 3000M</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'DejaVu Sans Mono\'; color:#000000; background-color:#ffffff;\">During the scanning process, a pid-file is created in the program directory. Its existence blocks the process of launching a scan, if the program crashed - remove it manually.</span><span style=\" font-family:\'DejaVu Sans Mono\'; color:#000000;\"><br /></span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'DejaVu Sans Mono\'; font-weight:600; color:#000000;\">Test info</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'DejaVu Sans Mono\'; color:#000000; background-color:#ffffff;\">The program was tested on a file server with about 20 million files. Scan time - about 5 hours. Files in biggest thread: ~7000000 </span><span style=\" font-family:\'DejaVu Sans Mono\'; color:#000000;\"><br /></span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:\'DejaVu Sans Mono\'; color:#000000; background-color:#ffffff;\">My MySQL parameters:</span><span style=\" font-family:\'DejaVu Sans Mono\'; color:#000000;\"><br /></span>innodb_buffer_pool_size = 3000M</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">innodb_log_file_size = 128M</p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">innodb_log_buffer_size = 4M</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">innodb_flush_method = O_DIRECT</p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">This scan takes about 5 hours.</p></body></html>", None, -1))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">innodb_flush_method = O_DIRECT</p></body></html>", None, -1))
 
 import icons_rc
