@@ -838,7 +838,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Exports selected rows to csv"""
         csvObj = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=__appname__ + " - Save as csv",
                                                        directory=".", filter="Simple spreadsheet (*.csv)")
-        if csvObj:
+        if csvObj[0]:
             rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
             try:
                 with open(csvObj[0], 'w', newline='', encoding='utf-8-sig') as csvfile:
