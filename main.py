@@ -44,7 +44,13 @@ from ui_files import pyManual
 __appname__ = "pyFileSearcher"
 __version__ = "0.99m"
 
-os.chdir(os.path.dirname(os.path.abspath(__file__))) # go to script location
+# we go to script dir.
+# sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
+try:
+    sys._MEIPASS
+    os.chdir(sys._MEIPASS)
+except:
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 appDataPath = os.getcwd()
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
