@@ -9,9 +9,6 @@ def bool2str(arg):
         return("False")
 
 
-
-
-
 def mysql_query_wildficator(query):
     wild_query = query.replace("%", "\%").replace("_", "\_").replace("*", "%").replace("?", "_")
     return(wild_query)

@@ -42,7 +42,9 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99l"
+__version__ = "0.99m"
+
+os.chdir(os.path.dirname(os.path.abspath(__file__))) # go to script location
 
 appDataPath = os.getcwd()
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
@@ -1680,6 +1682,7 @@ class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
 
         indx = self.PREFLoggingLevel.findText(initValues["LogLevel"])
         self.PREFLoggingLevel.setCurrentIndex(indx)
+
 
 
 def unhandled_exception(exc_type, exc_value, exc_traceback):
