@@ -833,7 +833,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if csvObj:
             rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
             try:
-                with open(csvObj[0], 'w', newline='') as csvfile:
+                with open(csvObj[0], 'w', newline='', encoding='utf-8') as csvfile:
                     csvWriter = csv.writer(csvfile, delimiter=',', quotechar='\"', quoting=csv.QUOTE_MINIMAL)
 
                     for row in rows:
