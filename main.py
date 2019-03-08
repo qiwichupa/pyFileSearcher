@@ -630,6 +630,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         try:
             cursor.execute("DELETE FROM Files WHERE removed <> %s", (self.newRemovedKey,))
             self.dbConnMysql.commit()
+            removedCounter = cursor.rowcount
+            logger.info("...files removed from db: " + str(removedCounter) + " ...")
         except Exception as e:
             logger.warning("...Cleaning DB error: " + str(e))
 
