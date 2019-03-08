@@ -42,7 +42,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99n"
+__version__ = "0.99o"
 
 # we go to script dir.
 # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
