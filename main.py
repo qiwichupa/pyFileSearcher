@@ -778,7 +778,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if len(self.tableFiles.selectedItems()) > 8 or len(self.tableFiles.selectedItems()) == 0:
             menuOpenFolder.setDisabled(True)
 
-        menuDeleteFiles = QtWidgets.QAction('Move file(s) to Trash', self)
+        menuDeleteFiles = QtWidgets.QAction('Move file(s) to Trash...', self)
         menuDeleteFiles.triggered.connect(self.menuDeleteFiles)
         # menuDeleteFiles.setDisabled(True)
         self.menu.addAction(menuDeleteFiles)
@@ -820,19 +820,24 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def menuDeleteFiles(self):
         """Delete selected files"""
-        rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
-        errs = []
-        for row in rows:
-            try:
-                send2trash.send2trash(
-                    row[self.tableFilesColumnPathIndx].text() + row[self.tableFilesColumnFilnameIndx].text()
-                )
-            except Exception as e:
-                logger.warning("Error while removing file: " + str(e))
-                errs += [str(e)]
-        if len(errs) > 0:
-            QtWidgets.QMessageBox.warning(self, __appname__, "Error while removing file(s):\n\n" + "\n".join(errs))
-        self.tableFilesScrolled()
+        result = QtWidgets.QMessageBox.question(self, __appname__, "Are you sure you want to remove file(s)?", QtWidgets.QMessageBox.Yes
+                                                | QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.Yes)
+
+        if result == QtWidgets.QMessageBox.Yes:
+            rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
+            errs = []
+            for row in rows:
+                try:
+                    send2trash.send2trash(
+                        row[self.tableFilesColumnPathIndx].text() + row[self.tableFilesColumnFilnameIndx].text()
+                    )
+                except Exception as e:
+                    logger.warning("Error while removing file: " + str(e))
+                    errs += [str(e)]
+            if len(errs) > 0:
+                QtWidgets.QMessageBox.warning(self, __appname__, "Error while removing file(s):\n\n" + "\n".join(errs))
+            self.tableFilesScrolled(forcedCheck=True)
+
 
     def menuExportSelectedToCsv(self):
         """Exports selected rows to csv"""
@@ -1010,7 +1015,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.actionStartScan.setText("Start Indexing")
             self.actionStartScan.setEnabled(True)
 
-    def tableFilesScrolled(self):
+    def tableFilesScrolled(self, forcedCheck=False):
         """Checks the top and bottom line in the file table, checks for the presence of files at the moment. Marks missing files with color."""
         if self.tableFiles.rowCount() == 0:
             return
@@ -1026,7 +1031,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             # In order not to check the full range of all rows, add the ID of checked
             # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
             rowId = self.tableFiles.item(i, self.tableFilesColumnNumIndx).text()
-            if rowId not in self.tableFilesFileIsChecked:
+            if rowId not in self.tableFilesFileIsChecked or forcedCheck is True:
                 fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
                 if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
                     fullFilePath = "\\\\?\\" + fullFilePath
