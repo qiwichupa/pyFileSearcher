@@ -1,13 +1,11 @@
 def str2bool(arg):
     return(str(arg).lower() in ["true", "0", "ok"])
 
-
 def bool2str(arg):
     if arg:
         return("True")
     else:
         return("False")
-
 
 def mysql_query_wildficator(query):
     wild_query = query.replace("%", "\%").replace("_", "\_").replace("*", "%").replace("?", "_")
@@ -22,7 +20,6 @@ def mysql_index_is_exists(connection, tablename, index):
         return(True)
     else:
         return(False)
-
 
 def scantree(path):
     """Recursively yield DirEntry objects for given directory.
@@ -59,7 +56,7 @@ def get_selected_rows_from_qtablewidget(qTableWidget, sortByColumn=0):
         for column in range(0, qTableWidget.columnCount()):
             rowItems += [qTableWidget.item(row, column)]
         rows += [rowItems]
-    return(rows)
+    return(rows)\
 
 class LoggerWriter:
     def __init__(self, level):
