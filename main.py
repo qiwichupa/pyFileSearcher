@@ -116,6 +116,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.setWindowTitle(__appname__ + " (v. " + __version__ + ")")
 
         self.settings = QtCore.QSettings(os.path.join(appDataPath, "settings.ini"), QtCore.QSettings.IniFormat)
+        self.settings.setIniCodec("UTF-8")
 
         # Menu items
         self.actionPreferences.triggered.connect(self.actionPreferencesEmitted)
