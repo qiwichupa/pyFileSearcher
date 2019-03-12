@@ -134,7 +134,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.actionAbout.triggered.connect(self.actionAboutEmitted)
         self.actionShowHelpInfo.triggered.connect(self.actionShowHelpInfoEmitted)
         self.actionExit.triggered.connect(self.exitActionTriggered)
-        self.actionOpenLog.triggered.connect(self.actionOpenLogEmitted)
+        self.actionShowLog.triggered.connect(self.actionShowLogEmitted)
+        self.actionOpenWorkingDirectory.triggered.connect(self.actionOpenWorkingDirectoryEmitted)
 
         # Search Tab
         FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([^\\\/:<>|])*"), self) # i don't know why this "^\\\" works as "not a '\'", but it works -_-
@@ -341,10 +342,26 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         dialog.pushButton.clicked.connect(dialog.close)
         dialog.exec_()
 
-    def actionOpenLogEmitted(self):
+    def actionShowLogEmitted(self):
         """Shows log-file content"""
         dialog = OpenLogDialog()
         dialog.exec_()
+
+    def actionOpenWorkingDirectoryEmitted(self):
+        """Opens working directory (appDataPath)"""
+        if isWindows:
+            try:
+                os.startfile(appDataPath)
+            except Exception as e:
+                logger.warning("Opening directory error: \n" + str(e))
+                QtWidgets.QMessageBox.warning(self, __appname__, "Opening directory error: " + str(e))
+        else:
+            try:
+                subprocess.check_call(["xdg-open", appDataPath], stderr=subprocess.STDOUT)
+
+            except subprocess.CalledProcessError as e:
+                logger.warning("Opening directory error: " + str(e))
+                QtWidgets.QMessageBox.warning(self, __appname__, "Opening directory error: " + str(e))
 
     #
     # MAIN MENU ACTIONS - END SECTION

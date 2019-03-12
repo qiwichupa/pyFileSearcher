@@ -1048,8 +1048,11 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="actionShowLog"/>
+    <addaction name="actionOpenWorkingDirectory"/>
+    <addaction name="separator"/>
     <addaction name="actionShowHelpInfo"/>
-    <addaction name="actionOpenLog"/>
+    <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
@@ -1094,9 +1097,14 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionOpenLog">
+  <action name="actionShowLog">
    <property name="text">
-    <string>Open Log</string>
+    <string>Show Log</string>
+   </property>
+  </action>
+  <action name="actionOpenWorkingDirectory">
+   <property name="text">
+    <string>Open Working Directory</string>
    </property>
   </action>
  </widget>

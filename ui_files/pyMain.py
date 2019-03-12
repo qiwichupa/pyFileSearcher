@@ -3,8 +3,8 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Fri Mar  1 09:28:31 2019
-#      by: pyside2-uic  running on PySide2 5.12.0
+# Created: Tue Mar 12 09:05:23 2019
+#      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -418,14 +418,19 @@ class Ui_MainWindow(object):
         self.actionAbout.setObjectName("actionAbout")
         self.actionExit = QtWidgets.QAction(MainWindow)
         self.actionExit.setObjectName("actionExit")
-        self.actionOpenLog = QtWidgets.QAction(MainWindow)
-        self.actionOpenLog.setObjectName("actionOpenLog")
+        self.actionShowLog = QtWidgets.QAction(MainWindow)
+        self.actionShowLog.setObjectName("actionShowLog")
+        self.actionOpenWorkingDirectory = QtWidgets.QAction(MainWindow)
+        self.actionOpenWorkingDirectory.setObjectName("actionOpenWorkingDirectory")
         self.menuFile.addAction(self.actionStartScan)
         self.menuFile.addAction(self.actionPreferences)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
+        self.menuHelp.addAction(self.actionShowLog)
+        self.menuHelp.addAction(self.actionOpenWorkingDirectory)
+        self.menuHelp.addSeparator()
         self.menuHelp.addAction(self.actionShowHelpInfo)
-        self.menuHelp.addAction(self.actionOpenLog)
+        self.menuHelp.addSeparator()
         self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
@@ -545,6 +550,7 @@ class Ui_MainWindow(object):
         self.actionAbout.setText(QtWidgets.QApplication.translate("MainWindow", "About", None, -1))
         self.actionExit.setText(QtWidgets.QApplication.translate("MainWindow", "Exit", None, -1))
         self.actionExit.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+Q", None, -1))
-        self.actionOpenLog.setText(QtWidgets.QApplication.translate("MainWindow", "Open Log", None, -1))
+        self.actionShowLog.setText(QtWidgets.QApplication.translate("MainWindow", "Show Log", None, -1))
+        self.actionOpenWorkingDirectory.setText(QtWidgets.QApplication.translate("MainWindow", "Open Working Directory", None, -1))
 
 import icons_rc
