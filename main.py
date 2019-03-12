@@ -78,7 +78,7 @@ except:
 
 # logging
 logging.basicConfig(handlers=[logging.FileHandler(logfile, 'a', 'utf-8-sig')],
-                    format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s\r",
+                    format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
                     level=logging.DEBUG)
 logger = logging.getLogger(name="main-gui")
 sys.stdout = utilities.LoggerWriter(logger.warning)
@@ -1681,7 +1681,7 @@ class OpenLogDialog(QtWidgets.QDialog):
 
         logtext = ""
 
-        with open(logfile, 'r') as infile:
+        with open(logfile, 'r', encoding='utf-8-sig') as infile:
             for line in infile:
                 logtext += line
 
