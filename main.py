@@ -1,9 +1,10 @@
 # If you want to use it with python <3.6 and PySide:
 # - replace "QtWidgets." with "QtGui."
-# - replace "PySide2" with "PySide"
+# - replace "PySide2" with "PySide" (also in "icons_rc.py")
 # - remove "import PySide2.QtWidgets as QtWidgets"
-# - in utilities.py replace "from os import scandir" with "from scandir import scandir" (and install scandir module)
-# - resave UI files and resources with Qt Designer and pyside utils
+# - in "utilities.py" replace "from os import scandir" with "from scandir import scandir" (and install scandir module)
+# - resave UI files with Qt Designer and pyside utils
+
 
 import PySide2.QtCore as QtCore
 import PySide2.QtGui as QtGui
