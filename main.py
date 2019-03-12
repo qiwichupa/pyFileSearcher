@@ -42,17 +42,23 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99p"
+__version__ = "0.99q"
 
-# we go to script dir.
+# get path of program dir.
 # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
 try:
     sys._MEIPASS
-    os.chdir(sys._MEIPASS)
+    programDir = sys._MEIPASS
 except:
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    programDir =  os.path.dirname(os.path.abspath(__file__))
 
-appDataPath = os.getcwd()
+# set "data" in program dir as working directory
+appDataPath = os.path.join(programDir, "data")
+try:
+    os.makedirs(appDataPath, exist_ok=True)
+except:
+    appDataPath = programDir
+
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
 logfile = os.path.join(appDataPath, "pyfilesearcher.log")
 
