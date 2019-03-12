@@ -48,17 +48,17 @@ __version__ = "0.99q"
 # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
 try:
     sys._MEIPASS
-    programDir = sys._MEIPASS
+    appPath = sys._MEIPASS
 except:
-    programDir =  os.path.dirname(os.path.abspath(__file__))
+    appPath =  os.path.dirname(os.path.abspath(__file__))
 
 # set "data" in program dir as working directory
-appDataPath = os.path.join(programDir, "data")
+appDataPath = os.path.join(appPath, "data")
 try:
-    os.umask(0000) # directory will be created with 777 permissions
+    os.umask(0000) # directory will be created with 777 permissions (linux only)
     os.makedirs(appDataPath, exist_ok=True)
 except:
-    appDataPath = programDir
+    appDataPath = appPath
 
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
 logfile = os.path.join(appDataPath, "pyfilesearcher.log")
