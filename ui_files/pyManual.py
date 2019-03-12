@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'manual.ui',
 # licensing of 'manual.ui' applies.
 #
-# Created: Fri Mar  8 20:03:56 2019
+# Created: Tue Mar 12 10:25:05 2019
 #      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -54,9 +54,9 @@ class Ui_Dialog(object):
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000; background-color:#ffffff;\">After you have set up simple indexing parameters (target directories, and white or black lists of extensions in the case of using sqlite), you can run the program with the &quot;--scan&quot; parameter to automatically start indexing, after which the program will be closed. Use this key to run via the scheduler.</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000; background-color:#ffffff;\">During the scanning process, a pid-file is created in the program directory. Its existence blocks the process of launching a scan, if the program crashed - remove it manually.</span><span style=\" color:#000000;\"><br /></span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" color:#000000; background-color:#ffffff;\">During the scanning process, a pid-file is created in the working (&quot;data&quot;) directory. Its existence blocks the process of launching a scan, if the program crashed - remove it manually.</span><span style=\" color:#000000;\"><br /></span></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600; color:#000000;\">Files</span></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">These are the files you may need. All of them are located in the program directory.</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">These are the files you may need. All of them are located in the working (<span style=\" color:#000000; background-color:#ffffff;\">&quot;data&quot;)</span> directory.</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" text-decoration: underline; color:#000000;\">settings.ini</span><span style=\" color:#000000;\"> - all configuration except sqlite per-db settings</span></p>\n"
 "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" text-decoration: underline; color:#000000;\">DB#.sqlite3</span><span style=\" color:#000000;\"> - sqlite databases (One file will be created, even if you use MySQL. This is not critical, but do not delete it.)</span></p>\n"

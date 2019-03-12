@@ -16,7 +16,7 @@ The program runs through your hard disk and saves the minimum necessary informat
 
 After you have set up simple indexing parameters (target directories, and white or black lists of extensions in the case of using sqlite), you can run the program with the "--scan" parameter to automatically start indexing, after which the program will be closed. Use this key to run via the scheduler.
 
-During the scanning process, a pid-file is created in the program directory. Its existence blocks the process of launching a scan, if the program crashed - remove it manually.
+During the scanning process, a pid-file is created in the working ("data") directory. Its existence blocks the process of launching a scan, if the program crashed - remove it manually.
 
 ## Tests
 The program was tested on a file server with about 20 million files. Scan time - about 5 hours. Files in biggest thread: ~7000000 
