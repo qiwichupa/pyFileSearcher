@@ -42,7 +42,7 @@ from ui_files import pyAbout
 from ui_files import pyManual
 
 __appname__ = "pyFileSearcher"
-__version__ = "0.99q"
+__version__ = "0.99r"
 
 # get path of program dir.
 # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
@@ -345,7 +345,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def actionShowLogEmitted(self):
         """Shows log-file content"""
-        dialog = OpenLogDialog()
+        dialog = ShowLogDialog()
         dialog.exec_()
 
     def actionOpenWorkingDirectoryEmitted(self):
@@ -1670,7 +1670,7 @@ class AboutDialog(QtWidgets.QDialog, pyAbout.Ui_Dialog):
         self.versionLabel.setText("(v. " + __version__ + ")")
 
 
-class OpenLogDialog(QtWidgets.QDialog):
+class ShowLogDialog(QtWidgets.QDialog):
 
     def __init__(self, parent=None):
         QtWidgets.QDialog.__init__(self)
