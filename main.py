@@ -55,6 +55,7 @@ except:
 # set "data" in program dir as working directory
 appDataPath = os.path.join(programDir, "data")
 try:
+    os.umask(0000) # directory will be created with 777 permissions
     os.makedirs(appDataPath, exist_ok=True)
 except:
     appDataPath = programDir
