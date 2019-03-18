@@ -669,14 +669,21 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         SaveRemovedFilesForDaysInSec = int(self.settings.value("SaveRemovedFilesForDays")) * 86400
         removedTime = currentTime - SaveRemovedFilesForDaysInSec
         try:
-            cursor.execute("UPDATE Files SET removed=%s, indexed=%s WHERE removed <> %s AND removed <> %s", (-1, currentTime, self.newRemovedKey, -1))
-            self.dbConnMysql.commit()
-            removedCounter = cursor.rowcount
-            logger.info("...files set as removed: " + str(removedCounter) + " ...")
-            cursor.execute("DELETE FROM Files WHERE removed = %s AND indexed < %s", (-1, removedTime))
-            self.dbConnMysql.commit()
-            cleanCounter = cursor.rowcount
-            logger.info("...files removed from db: " + str(cleanCounter) + " ...")
+            if self.settings.value("SaveRemovedFilesForDays") != 0:
+                cursor.execute("UPDATE Files SET removed=%s, indexed=%s WHERE removed <> %s AND removed <> %s", (-1, currentTime, self.newRemovedKey, -1))
+                self.dbConnMysql.commit()
+                removedCounter = cursor.rowcount
+                logger.info("...files set as removed: " + str(removedCounter) + " ...")
+                cursor.execute("DELETE FROM Files WHERE removed = %s AND indexed < %s", (-1, removedTime))
+                self.dbConnMysql.commit()
+                cleanCounter = cursor.rowcount
+                logger.info("...files removed from db: " + str(cleanCounter) + " ...")
+            else:
+                logger.debug("...SaveRemovedFilesForDays=0, all removed files will be removed from db ...")
+                cursor.execute("DELETE FROM Files WHERE removed <> %s", (self.newRemovedKey,))
+                self.dbConnMysql.commit()
+                cleanCounter = cursor.rowcount
+                logger.info("...files removed from db: " + str(cleanCounter) + " ...")
         except Exception as e:
             logger.warning("...Cleaning DB error: " + str(e))
 
