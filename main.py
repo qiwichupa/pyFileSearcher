@@ -394,6 +394,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.settings.setValue("FILTER_" + filterName + "/FilterMaxSizeEnabled", self.FilterMaxSizeEnabled.isChecked())
         self.settings.setValue("FILTER_" + filterName + "/FilterIndexedLastDays", self.FilterIndexedLastDays.value())
         self.settings.setValue("FILTER_" + filterName + "/FilterIndexedLastDaysEnabled", self.FilterIndexedLastDaysEnabled.isChecked())
+        self.settings.setValue("FILTER_" + filterName + "/FilterSearchInRemoved", self.FilterSearchInRemoved.isChecked())
 
         self.settings.setValue("filters", ",".join(self.filters))
 
@@ -428,6 +429,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.FilterIndexedLastDays.setValue(int(self.settings.value("FILTER_" + filterName + "/FilterIndexedLastDays")))
         self.FilterIndexedLastDaysEnabled.setChecked(
             utilities.str2bool(self.settings.value("FILTER_" + filterName + "/FilterIndexedLastDaysEnabled")))
+        self.FilterSearchInRemoved.setChecked(
+            utilities.str2bool(self.settings.value("FILTER_" + filterName + "/FilterSearchInRemoved")))
 
         self.FilterFilenameTextChanged()
 
