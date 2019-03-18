@@ -669,7 +669,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         SaveRemovedFilesForDaysInSec = int(self.settings.value("SaveRemovedFilesForDays")) * 86400
         removedTime = currentTime - SaveRemovedFilesForDaysInSec
         try:
-            if self.settings.value("SaveRemovedFilesForDays") != 0:
+            if int(self.settings.value("SaveRemovedFilesForDays")) != 0:
                 cursor.execute("UPDATE Files SET removed=%s, indexed=%s WHERE removed <> %s AND removed <> %s", (-1, currentTime, self.newRemovedKey, -1))
                 self.dbConnMysql.commit()
                 removedCounter = cursor.rowcount
@@ -1304,7 +1304,7 @@ class UpdateSqliteDBThread(QtCore.QThread):
         currentTime = int(time.time())
         SaveRemovedFilesForDaysInSec = int(self.settings.value("SaveRemovedFilesForDays")) * 86400
         removedTime = currentTime - SaveRemovedFilesForDaysInSec
-        if self.settings.value("SaveRemovedFilesForDays") != 0:
+        if int(self.settings.value("SaveRemovedFilesForDays")) != 0:
             self.dbCursor.execute("UPDATE Files SET indexed=?, removed =?  WHERE removed=?", (currentTime, "-1", "0"))
             self.dbConn.commit()
             removedCounter = self.dbCursor.rowcount
@@ -1314,8 +1314,11 @@ class UpdateSqliteDBThread(QtCore.QThread):
             cleanCounter = self.dbCursor.rowcount
             logger.info("...files removed from db: " + str(cleanCounter) + " ...")
         else:
+            logger.debug("...SaveRemovedFilesForDays=0, all removed files will be removed from db ...")
             self.dbCursor.execute("DELETE FROM Files WHERE removed = ? OR  removed = ?", ("-1", "0"))
             self.dbConn.commit()
+            cleanCounter = self.dbCursor.rowcount
+            logger.info("...files removed from db: " + str(cleanCounter) + " ...")
 
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Vacuum.")
         self.dbConn.execute("VACUUM")
