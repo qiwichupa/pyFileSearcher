@@ -139,8 +139,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.actionOpenWorkingDirectory.triggered.connect(self.actionOpenWorkingDirectoryEmitted)
 
         # Search Tab
-        self.FilterSearchInRemoved.toggled.connect(
-            lambda checked: checked and self.FilterIndexedLastDaysEnabled.setChecked(False)) # uncheck "Indexed in last..." if we want to search in removed files
+        self.FilterSearchInRemoved.toggled.connect(self.FilterSearchInRemovedToggled)
 
         FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([^\\\/:<>|])*"), self) # i don't know why this "^\\\" works as "not a '\'", but it works -_-
         self.FilterFilename.setValidator(FilterFilenameValidator)
@@ -918,6 +917,14 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             if isScanMode:
                 logger.info("isScanMode - exit app")
                 self.exitActionTriggered()
+
+    def FilterSearchInRemovedToggled(self):
+        """When checkbox "Search in removed" is checked: unchecks "Indexed in last", renames "Indexed" column to "Removed" (and back)"""
+        if self.FilterSearchInRemoved.isChecked():
+            self.FilterIndexedLastDaysEnabled.setChecked(False)
+            self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Removed"))
+        else:
+            self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Indexed "))
 
     def FilterFilenameTextChanged(self):
         """Does not allow to run a search until the file name is specified."""
