@@ -1551,10 +1551,10 @@ class SearchInMySQLDB(QtCore.QThread):
             parameters += [queryTime]
         # in removed?
         if self.filters["FilterSearchInRemoved"]:
-            query += "AND (removed = %s)"
+            query += " AND (removed = %s) "
             parameters += [-1]
         else:
-            query += "AND (removed <> %s)"
+            query += " AND (removed <> %s) "
             parameters += [-1]
         # limit
         if not self.filters["FilterShowMoreResultsEnabled"]:
