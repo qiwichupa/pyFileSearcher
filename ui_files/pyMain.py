@@ -3,8 +3,8 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Mon Mar 18 12:01:21 2019
-#      by: pyside2-uic  running on PySide2 5.12.1
+# Created: Mon Mar 18 22:45:29 2019
+#      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -151,14 +151,14 @@ class Ui_MainWindow(object):
         self.FilterMinSize.setGeometry(QtCore.QRect(90, 30, 91, 21))
         self.FilterMinSize.setMaximum(999999999)
         self.FilterMinSize.setObjectName("FilterMinSize")
-        self.label_3 = QtWidgets.QLabel(self.frame_2)
-        self.label_3.setGeometry(QtCore.QRect(10, 10, 151, 16))
+        self.FilterLabelAdditionalFilters = QtWidgets.QLabel(self.frame_2)
+        self.FilterLabelAdditionalFilters.setGeometry(QtCore.QRect(10, 10, 151, 16))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setWeight(50)
         font.setBold(False)
-        self.label_3.setFont(font)
-        self.label_3.setObjectName("label_3")
+        self.FilterLabelAdditionalFilters.setFont(font)
+        self.FilterLabelAdditionalFilters.setObjectName("FilterLabelAdditionalFilters")
         self.FilterMaxSize = QtWidgets.QSpinBox(self.frame_2)
         self.FilterMaxSize.setEnabled(False)
         self.FilterMaxSize.setGeometry(QtCore.QRect(90, 50, 91, 21))
@@ -195,12 +195,12 @@ class Ui_MainWindow(object):
         self.FilterIndexedLastDays.setMinimum(1)
         self.FilterIndexedLastDays.setMaximum(999)
         self.FilterIndexedLastDays.setObjectName("FilterIndexedLastDays")
-        self.label = QtWidgets.QLabel(self.frame_2)
-        self.label.setGeometry(QtCore.QRect(190, 77, 41, 20))
-        self.label.setObjectName("label")
-        self.label_2 = QtWidgets.QLabel(self.frame_2)
-        self.label_2.setGeometry(QtCore.QRect(10, 106, 91, 14))
-        self.label_2.setObjectName("label_2")
+        self.FilterLabelDays = QtWidgets.QLabel(self.frame_2)
+        self.FilterLabelDays.setGeometry(QtCore.QRect(190, 77, 41, 20))
+        self.FilterLabelDays.setObjectName("FilterLabelDays")
+        self.FilterLabelSavedFilters = QtWidgets.QLabel(self.frame_2)
+        self.FilterLabelSavedFilters.setGeometry(QtCore.QRect(10, 106, 91, 14))
+        self.FilterLabelSavedFilters.setObjectName("FilterLabelSavedFilters")
         self.FilterListRemoveButton = QtWidgets.QPushButton(self.frame_2)
         self.FilterListRemoveButton.setGeometry(QtCore.QRect(110, 126, 15, 20))
         self.FilterListRemoveButton.setObjectName("FilterListRemoveButton")
@@ -507,7 +507,7 @@ class Ui_MainWindow(object):
         self.FilterFileTypes.setPlaceholderText(QtWidgets.QApplication.translate("MainWindow", "Filetype (exe,txt,docx)", None, -1))
         self.FilterSearchInRemoved.setText(QtWidgets.QApplication.translate("MainWindow", "Search in removed", None, -1))
         self.FilterShowMoreResultsCheckbox.setText(QtWidgets.QApplication.translate("MainWindow", "Show More Results", None, -1))
-        self.label_3.setText(QtWidgets.QApplication.translate("MainWindow", "Additional filters", None, -1))
+        self.FilterLabelAdditionalFilters.setText(QtWidgets.QApplication.translate("MainWindow", "Additional filters", None, -1))
         self.FilterMinSizeEnabled.setText(QtWidgets.QApplication.translate("MainWindow", "Min size:", None, -1))
         self.FilterMaxSizeEnabled.setText(QtWidgets.QApplication.translate("MainWindow", "Max size:", None, -1))
         self.FilterMinSizeType.setItemText(0, QtWidgets.QApplication.translate("MainWindow", "b", None, -1))
@@ -520,8 +520,8 @@ class Ui_MainWindow(object):
         self.FilterMaxSizeType.setItemText(3, QtWidgets.QApplication.translate("MainWindow", "Gb", None, -1))
         self.FilterIndexedLastDaysEnabled.setToolTip(QtWidgets.QApplication.translate("MainWindow", "Indexed for the first time in the last N days. If you are looking for fresh files.", None, -1))
         self.FilterIndexedLastDaysEnabled.setText(QtWidgets.QApplication.translate("MainWindow", "Indexed in last", None, -1))
-        self.label.setText(QtWidgets.QApplication.translate("MainWindow", "day(s)", None, -1))
-        self.label_2.setText(QtWidgets.QApplication.translate("MainWindow", "Saved filters", None, -1))
+        self.FilterLabelDays.setText(QtWidgets.QApplication.translate("MainWindow", "day(s)", None, -1))
+        self.FilterLabelSavedFilters.setText(QtWidgets.QApplication.translate("MainWindow", "Saved filters", None, -1))
         self.FilterListRemoveButton.setText(QtWidgets.QApplication.translate("MainWindow", "-", None, -1))
         self.FilterListSaveButton.setText(QtWidgets.QApplication.translate("MainWindow", "+", None, -1))
         self.FilterListLineEdit.setPlaceholderText(QtWidgets.QApplication.translate("MainWindow", "New name", None, -1))

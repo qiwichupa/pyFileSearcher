@@ -937,8 +937,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     def FilterSearchInRemovedToggled(self):
         """When checkbox "Search in removed" is checked: unchecks "Indexed in last", renames "Indexed" column to "Removed" (and back)"""
         if self.FilterSearchInRemoved.isChecked():
+            """
             self.FilterIndexedLastDaysEnabled.setChecked(False)
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Removed"))
+            """
+
             self.btnSearch.setText("Search in removed...")
         else:
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Indexed "))
