@@ -662,11 +662,18 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         cursor = self.dbConnMysql.cursor()
         logger.info("MySQL post-update procedure...")
         logger.info("...removing deleted files from DB...")
+        currentTime = int(time.time())
+        SaveRemovedFilesForDaysInSec = int(self.settings.value("SaveRemovedFilesForDays")) * 86400
+        removedTime = currentTime - SaveRemovedFilesForDaysInSec
         try:
-            cursor.execute("DELETE FROM Files WHERE removed <> %s", (self.newRemovedKey,))
+            cursor.execute("UPDATE Files SET removed=%s, indexed=%s WHERE removed <> %s AND removed <> %s", (-1, currentTime, self.newRemovedKey, -1))
             self.dbConnMysql.commit()
             removedCounter = cursor.rowcount
-            logger.info("...files removed from db: " + str(removedCounter) + " ...")
+            logger.info("...files set as removed: " + str(removedCounter) + " ...")
+            cursor.execute("DELETE FROM Files WHERE removed = %s AND indexed < %s", (-1, removedTime))
+            self.dbConnMysql.commit()
+            cleanCounter = cursor.rowcount
+            logger.info("...files removed from db: " + str(cleanCounter) + " ...")
         except Exception as e:
             logger.warning("...Cleaning DB error: " + str(e))
 
@@ -944,6 +951,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         # Now we need to save elements 'isEnabled' states, block them, and restore states in SearchInDBThreadSearchCompleteEmitted().
         # It's almost complete elements list, except "show all" checkbox, which must be active for searching interruption
         searchInterfaceElements = [
+            "FilterSearchInRemoved",
             "FilterFilename",
             "FilterPath",
             "FilterFileTypes",
@@ -966,6 +974,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.btnSearch.setText("Searching...")
 
         filters = {}
+        filters["FilterSearchInRemoved"] = self.FilterSearchInRemoved.isChecked()
         filters["FilterFilename"] = self.FilterFilename.text()
         filters["FilterPath"] = self.FilterPath.text()
         filters["FilterFileTypes"] = self.FilterFileTypes.text()
@@ -1540,6 +1549,13 @@ class SearchInMySQLDB(QtCore.QThread):
             queryTime = int(time.time()) - filterInSeconds
             query += " AND (Indexed > %s)"
             parameters += [queryTime]
+        # in removed?
+        if self.filters["FilterSearchInRemoved"]:
+            query += "AND (removed = %s)"
+            parameters += [-1]
+        else:
+            query += "AND (removed <> %s)"
+            parameters += [-1]
         # limit
         if not self.filters["FilterShowMoreResultsEnabled"]:
             # I request one result more than a certain limit in the settings. If there are really more results,
