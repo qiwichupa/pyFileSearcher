@@ -229,6 +229,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         if not self.settings.value("LogLevel"):
             self.settings.setValue("LogLevel", "INFO")
+        if not self.settings.value("SaveRemovedFilesForDays"):
+            self.settings.setValue("SaveRemovedFilesForDays", "0")
         if not self.settings.value("DBCount"):
             self.settings.setValue("DBCount", "1")
         if not self.settings.value("useExternalDatabase"):
@@ -297,7 +299,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         initValues = {"useExternalDatabase": self.settings.value("useExternalDatabase"),
                       "disableWindowsLongPathSupport": self.settings.value("disableWindowsLongPathSupport"),
                       "maxSearchResults": self.settings.value("maxSearchResults"),
-                      "LogLevel": self.settings.value("LogLevel")
+                      "LogLevel": self.settings.value("LogLevel"),
+                      "SaveRemovedFilesForDays": self.settings.value("SaveRemovedFilesForDays")
                       }
         dialog = PreferencesDialog(initValues)
         if dialog.exec_():
@@ -306,6 +309,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                                    utilities.bool2str(dialog.PREFDisableWindowsLongPathSupport.isChecked()))
             self.settings.setValue("maxSearchResults", str(dialog.PREFMaxSearchResults.value()))
             self.settings.setValue("LogLevel", dialog.PREFLoggingLevel.currentText())
+            self.settings.setValue("SaveRemovedFilesForDays", dialog.PREFSaveRemovedInfoDays.value())
 
             self.refreshSQLTabs()
             self.apply_logging_level()
@@ -1724,6 +1728,7 @@ class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
             utilities.str2bool(initValues["disableWindowsLongPathSupport"]))
         self.PREFUseExternalDB.setChecked(utilities.str2bool(initValues["useExternalDatabase"]))
         self.PREFMaxSearchResults.setValue(int(initValues["maxSearchResults"]))
+        self.PREFSaveRemovedInfoDays.setValue(int(initValues["SaveRemovedFilesForDays"]))
 
         indx = self.PREFLoggingLevel.findText(initValues["LogLevel"])
         self.PREFLoggingLevel.setCurrentIndex(indx)
