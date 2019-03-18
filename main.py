@@ -1314,7 +1314,7 @@ class UpdateSqliteDBThread(QtCore.QThread):
             cleanCounter = self.dbCursor.rowcount
             logger.info("...files removed from db: " + str(cleanCounter) + " ...")
         else:
-            self.dbCursor.execute("DELETE FROM Files WHERE removed = ? ", ("-1",))
+            self.dbCursor.execute("DELETE FROM Files WHERE removed = ? OR  removed = ?", ("-1", "0"))
             self.dbConn.commit()
 
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Vacuum.")
