@@ -1666,8 +1666,9 @@ class UpdateMysqlDBThread(QtCore.QThread):
         sqlTransactionLimit = 20000
         sqlTransactionCounter = 0
         varsArr = []
-        sql = "insert into `Files` (hash, removed, filename, type, path, size, created, modified, indexed)" \
-              " values(%s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE size=values(size), modified=values(modified), removed=values(removed)"
+        sql = """insert into `Files` (hash, removed, filename, type, path, size, created, modified, indexed)
+              values(%s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE size=values(size), modified=values(modified), 
+              indexed = IF(removed <> -1, indexed, values(indexed)), removed=values(removed) """
 
         for entry in utilities.scantree(rootpath):
             # commit to DB every N (sqlTransactionLimit) files
