@@ -892,7 +892,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 QtWidgets.QMessageBox.warning(self, __appname__, "Error while removing file(s):\n\n" + "\n".join(errs))
             self.tableFilesScrolled(forcedCheck=True)
 
-
     def menuExportSelectedToCsv(self):
         """Exports selected rows to csv"""
         csvObj = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=__appname__ + " - Save as csv",
@@ -940,8 +939,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if self.FilterSearchInRemoved.isChecked():
             self.FilterIndexedLastDaysEnabled.setChecked(False)
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Removed"))
+            self.btnSearch.setText("Search in removed...")
         else:
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Indexed "))
+            self.btnSearch.setText("Search...")
 
     def FilterFilenameTextChanged(self):
         """Does not allow to run a search until the file name is specified."""
@@ -1062,7 +1063,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             the existence of files visible to the user."""
         self.tableFiles.setSortingEnabled(True)
         self.gui_elements_restore_states(self.searchInterfaceElementsStates)
-        self.btnSearch.setText("Search...")
+        if self.FilterSearchInRemoved.isChecked():
+            self.btnSearch.setText("Search in removed...")
+        else:
+            self.btnSearch.setText("Search...")
         self.tableFilesScrolled() # This line activates the file existence check.
 
     def checkScanPIDFileLoopEmitted(self, fileExists):
