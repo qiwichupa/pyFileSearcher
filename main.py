@@ -1234,7 +1234,7 @@ class UpdateSqliteDBThread(QtCore.QThread):
 
         exclusions = exclusions.split(",")
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Setting up removed flag for all files in DB...")
-        self.dbCursor.execute("UPDATE Files SET removed=?", ("0",))
+        self.dbCursor.execute("UPDATE Files SET removed=? WHERE removed <> ? ", ("0", "-1"))
         self.dbConn.commit()
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Setting up removed flag. Complete.")
 
@@ -1280,11 +1280,14 @@ class UpdateSqliteDBThread(QtCore.QThread):
                         key = hash.hexdigest()
 
                         # SQL TABLE: hash, removed, filename, path, size, created, modified, indexed
-                        data = self.dbCursor.execute("SELECT indexed FROM Files WHERE hash=?", (key,)).fetchone()
-                        if data is None:
+                        data = self.dbCursor.execute("SELECT indexed, removed FROM Files WHERE hash=?", (key,)).fetchone()
+                        if data is None: # new file
                             indexed = now
                         else:
-                            indexed = data[0]
+                            if  data[1] == "-1": # file as removed in db, so refresh indexed time
+                                indexed = now
+                            else:
+                                indexed = data[0]
 
                         self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
                                               (key, "1", name, path, size, ctime, mtime, indexed))
@@ -1297,8 +1300,23 @@ class UpdateSqliteDBThread(QtCore.QThread):
         logger.info("Scan thread #" + str(self.DBNumber) + ". Final commit. Files indexed (total in thread):" + str(filesIndexed))
         self.dbConn.commit()
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Cleaninig.")
-        self.dbCursor.execute("DELETE FROM Files WHERE removed = '0' ")
-        self.dbConn.commit()
+
+        currentTime = int(time.time())
+        SaveRemovedFilesForDaysInSec = int(self.settings.value("SaveRemovedFilesForDays")) * 86400
+        removedTime = currentTime - SaveRemovedFilesForDaysInSec
+        if self.settings.value("SaveRemovedFilesForDays") != 0:
+            self.dbCursor.execute("UPDATE Files SET indexed=?, removed =?  WHERE removed=?", (currentTime, "-1", "0"))
+            self.dbConn.commit()
+            removedCounter = self.dbCursor.rowcount
+            logger.info("...files set as removed: " + str(removedCounter) + " ...")
+            self.dbCursor.execute("DELETE FROM Files WHERE removed = ? AND indexed < ?", ("-1", removedTime))
+            self.dbConn.commit()
+            cleanCounter = self.dbCursor.rowcount
+            logger.info("...files removed from db: " + str(cleanCounter) + " ...")
+        else:
+            self.dbCursor.execute("DELETE FROM Files WHERE removed = ? ", ("-1",))
+            self.dbConn.commit()
+
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Vacuum.")
         self.dbConn.execute("VACUUM")
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Vacuum complete.")
