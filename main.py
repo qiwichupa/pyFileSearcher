@@ -139,6 +139,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.actionOpenWorkingDirectory.triggered.connect(self.actionOpenWorkingDirectoryEmitted)
 
         # Search Tab
+        self.FilterSearchInRemoved.toggled.connect(
+            lambda checked: checked and self.FilterIndexedLastDaysEnabled.setChecked(False)) # uncheck "Indexed in last..." if we want to search in removed files
+
         FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([^\\\/:<>|])*"), self) # i don't know why this "^\\\" works as "not a '\'", but it works -_-
         self.FilterFilename.setValidator(FilterFilenameValidator)
         self.FilterFilename.textEdited.connect(self.FilterFilenameTextChanged)

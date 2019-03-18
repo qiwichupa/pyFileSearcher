@@ -3,8 +3,8 @@
 # Form implementation generated from reading ui file 'preferences.ui',
 # licensing of 'preferences.ui' applies.
 #
-# Created: Wed Feb 27 14:29:02 2019
-#      by: pyside2-uic  running on PySide2 5.12.0
+# Created: Mon Mar 18 12:01:30 2019
+#      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -13,14 +13,14 @@ from PySide2 import QtCore, QtGui, QtWidgets
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName("Dialog")
-        Dialog.resize(390, 170)
-        Dialog.setMinimumSize(QtCore.QSize(390, 170))
-        Dialog.setMaximumSize(QtCore.QSize(390, 170))
+        Dialog.resize(390, 200)
+        Dialog.setMinimumSize(QtCore.QSize(390, 200))
+        Dialog.setMaximumSize(QtCore.QSize(390, 200))
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/icons/icons/prefs.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Dialog.setWindowIcon(icon)
         self.preferences = QtWidgets.QDialogButtonBox(Dialog)
-        self.preferences.setGeometry(QtCore.QRect(27, 140, 341, 20))
+        self.preferences.setGeometry(QtCore.QRect(27, 170, 341, 20))
         self.preferences.setOrientation(QtCore.Qt.Horizontal)
         self.preferences.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.preferences.setObjectName("preferences")
@@ -39,14 +39,26 @@ class Ui_Dialog(object):
         self.label.setGeometry(QtCore.QRect(20, 80, 231, 20))
         self.label.setObjectName("label")
         self.label_2 = QtWidgets.QLabel(Dialog)
-        self.label_2.setGeometry(QtCore.QRect(20, 110, 91, 20))
+        self.label_2.setGeometry(QtCore.QRect(20, 140, 91, 20))
         self.label_2.setObjectName("label_2")
         self.PREFLoggingLevel = QtWidgets.QComboBox(Dialog)
-        self.PREFLoggingLevel.setGeometry(QtCore.QRect(120, 110, 81, 20))
+        self.PREFLoggingLevel.setGeometry(QtCore.QRect(120, 140, 81, 20))
         self.PREFLoggingLevel.setObjectName("PREFLoggingLevel")
         self.PREFLoggingLevel.addItem("")
         self.PREFLoggingLevel.addItem("")
         self.PREFLoggingLevel.addItem("")
+        self.label_3 = QtWidgets.QLabel(Dialog)
+        self.label_3.setGeometry(QtCore.QRect(20, 110, 151, 20))
+        self.label_3.setObjectName("label_3")
+        self.label_4 = QtWidgets.QLabel(Dialog)
+        self.label_4.setGeometry(QtCore.QRect(236, 110, 40, 20))
+        self.label_4.setObjectName("label_4")
+        self.PREFSaveRemovedInfoDays = QtWidgets.QSpinBox(Dialog)
+        self.PREFSaveRemovedInfoDays.setGeometry(QtCore.QRect(170, 110, 61, 20))
+        self.PREFSaveRemovedInfoDays.setMinimum(0)
+        self.PREFSaveRemovedInfoDays.setMaximum(999999999)
+        self.PREFSaveRemovedInfoDays.setProperty("value", 0)
+        self.PREFSaveRemovedInfoDays.setObjectName("PREFSaveRemovedInfoDays")
 
         self.retranslateUi(Dialog)
         QtCore.QObject.connect(self.preferences, QtCore.SIGNAL("accepted()"), Dialog.accept)
@@ -62,5 +74,7 @@ class Ui_Dialog(object):
         self.PREFLoggingLevel.setItemText(0, QtWidgets.QApplication.translate("Dialog", "DEBUG", None, -1))
         self.PREFLoggingLevel.setItemText(1, QtWidgets.QApplication.translate("Dialog", "INFO", None, -1))
         self.PREFLoggingLevel.setItemText(2, QtWidgets.QApplication.translate("Dialog", "WARNING", None, -1))
+        self.label_3.setText(QtWidgets.QApplication.translate("Dialog", "Save removed files info", None, -1))
+        self.label_4.setText(QtWidgets.QApplication.translate("Dialog", "day(s)", None, -1))
 
 import icons_rc

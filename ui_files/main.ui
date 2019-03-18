@@ -182,6 +182,12 @@
             <layout class="QGridLayout" name="gridLayout_2">
              <item row="0" column="0">
               <widget class="QLabel" name="labelFilters">
+               <property name="maximumSize">
+                <size>
+                 <width>50</width>
+                 <height>16777215</height>
+                </size>
+               </property>
                <property name="text">
                 <string>Filters</string>
                </property>
@@ -207,14 +213,7 @@
                </property>
               </spacer>
              </item>
-             <item row="4" column="1">
-              <widget class="QCheckBox" name="FilterShowMoreResultsCheckbox">
-               <property name="text">
-                <string>Show More Results</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0" colspan="2">
+             <item row="1" column="0" colspan="4">
               <widget class="QLineEdit" name="FilterFilename">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -233,7 +232,7 @@
                </property>
               </widget>
              </item>
-             <item row="2" column="0" colspan="2">
+             <item row="2" column="0" colspan="4">
               <widget class="QLineEdit" name="FilterPath">
                <property name="text">
                 <string/>
@@ -243,7 +242,7 @@
                </property>
               </widget>
              </item>
-             <item row="3" column="0" colspan="2">
+             <item row="3" column="0" colspan="4">
               <widget class="QLineEdit" name="FilterFileTypes">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -259,6 +258,39 @@
                </property>
                <property name="placeholderText">
                 <string>Filetype (exe,txt,docx)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="3">
+              <widget class="QCheckBox" name="FilterSearchInRemoved">
+               <property name="maximumSize">
+                <size>
+                 <width>140</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Search in removed</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1" colspan="2">
+              <spacer name="horizontalSpacer_2">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item row="4" column="1" colspan="3">
+              <widget class="QCheckBox" name="FilterShowMoreResultsCheckbox">
+               <property name="text">
+                <string>Show More Results</string>
                </property>
               </widget>
              </item>
@@ -1125,7 +1157,6 @@
   <tabstop>FilterListLineEdit</tabstop>
   <tabstop>FilterListSaveButton</tabstop>
   <tabstop>btnSearch</tabstop>
-  <tabstop>FilterShowMoreResultsCheckbox</tabstop>
   <tabstop>tableFiles</tabstop>
   <tabstop>tabsSearch</tabstop>
   <tabstop>DBSelectDatabase</tabstop>
@@ -1243,6 +1274,22 @@
     <hint type="destinationlabel">
      <x>298</x>
      <y>176</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>FilterSearchInRemoved</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>FilterIndexedLastDaysEnabled</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>586</x>
+     <y>81</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>756</x>
+     <y>153</y>
     </hint>
    </hints>
   </connection>
