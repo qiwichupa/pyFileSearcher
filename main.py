@@ -1416,6 +1416,12 @@ class SearchInSqliteDB(QtCore.QThread):
                 queryTime = int(time.time()) - filterInSeconds
                 query += " AND (Indexed > ?)"
                 parameters += [queryTime]
+            if self.filters["FilterSearchInRemoved"]:
+                query += " AND (removed = ?) "
+                parameters += ["-1"]
+            else:
+                query += " AND (removed <> ?) "
+                parameters += ["-1"]
         # limit
         if not self.filters["FilterShowMoreResultsEnabled"]:
             # I request one result more than a certain limit in the settings. If there are really more results,
