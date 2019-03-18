@@ -1690,6 +1690,9 @@ class ShowLogDialog(QtWidgets.QDialog):
         QtWidgets.QDialog.__init__(self)
 
         self.setWindowTitle(__appname__ + " - LogFile:" + str(logfile))
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/main.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.setWindowIcon(icon)
         self.setMinimumWidth(800)
         self.setMinimumHeight(400)
 
