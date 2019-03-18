@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Mon Mar 18 22:45:29 2019
+# Created: Mon Mar 18 22:50:28 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -191,7 +191,7 @@ class Ui_MainWindow(object):
         self.FilterIndexedLastDaysEnabled.setObjectName("FilterIndexedLastDaysEnabled")
         self.FilterIndexedLastDays = QtWidgets.QSpinBox(self.frame_2)
         self.FilterIndexedLastDays.setEnabled(False)
-        self.FilterIndexedLastDays.setGeometry(QtCore.QRect(125, 76, 56, 21))
+        self.FilterIndexedLastDays.setGeometry(QtCore.QRect(130, 76, 51, 21))
         self.FilterIndexedLastDays.setMinimum(1)
         self.FilterIndexedLastDays.setMaximum(999)
         self.FilterIndexedLastDays.setObjectName("FilterIndexedLastDays")
@@ -450,7 +450,6 @@ class Ui_MainWindow(object):
         QtCore.QObject.connect(self.FilterMaxSizeEnabled, QtCore.SIGNAL("toggled(bool)"), self.FilterMaxSizeType.setEnabled)
         QtCore.QObject.connect(self.FilterIndexedLastDaysEnabled, QtCore.SIGNAL("toggled(bool)"), self.FilterIndexedLastDays.setEnabled)
         QtCore.QObject.connect(self.MySQLInitDBCheckBox, QtCore.SIGNAL("stateChanged(int)"), self.MySQLInitDBButton.showNormal)
-        QtCore.QObject.connect(self.FilterSearchInRemoved, QtCore.SIGNAL("toggled(bool)"), self.FilterIndexedLastDaysEnabled.setDisabled)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.FilterFilename, self.FilterPath)
         MainWindow.setTabOrder(self.FilterPath, self.FilterFileTypes)

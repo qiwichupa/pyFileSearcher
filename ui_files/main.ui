@@ -487,9 +487,9 @@
              </property>
              <property name="geometry">
               <rect>
-               <x>125</x>
+               <x>130</x>
                <y>76</y>
-               <width>56</width>
+               <width>51</width>
                <height>21</height>
               </rect>
              </property>
@@ -1274,22 +1274,6 @@
     <hint type="destinationlabel">
      <x>298</x>
      <y>176</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>FilterSearchInRemoved</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>FilterIndexedLastDaysEnabled</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>586</x>
-     <y>81</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>756</x>
-     <y>153</y>
     </hint>
    </hints>
   </connection>

@@ -941,10 +941,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.FilterIndexedLastDaysEnabled.setChecked(False)
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Removed"))
             """
-
+            self.FilterIndexedLastDaysEnabled.setText("Removed in last")
             self.btnSearch.setText("Search in removed...")
         else:
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Indexed "))
+            self.FilterIndexedLastDaysEnabled.setText("Indexed in last")
             self.btnSearch.setText("Search...")
 
     def FilterFilenameTextChanged(self):
