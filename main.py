@@ -145,6 +145,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.cmdMoveFilesToTrash.triggered.connect(self.menuDeleteFiles)
         self.cmdExportSelectedToCSV.triggered.connect(self.menuExportSelectedToCsv)
         self.cmdExportAllToCSV.triggered.connect(self.menuExportAllToCsv)
+        self.cmdCalculateFolderSize.triggered.connect(self.menuCalculateFolderSize)
 
         # Search Tab
         self.FilterSearchInRemoved.toggled.connect(self.FilterSearchInRemovedToggled)
@@ -830,7 +831,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.menuCommands.popup(QtGui.QCursor.pos())
 
     def setCommandsMenu(self):
-        """sets the command menu"""
+        """sets the command menu behavior"""
         if len(self.tableFiles.selectedItems()) > 8 or len(self.tableFiles.selectedItems()) == 0:
             self.cmdOpenFolder.setDisabled(True)
         else:
@@ -850,6 +851,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.cmdExportAllToCSV.setDisabled(True)
         else:
             self.cmdExportAllToCSV.setDisabled(False)
+
+        if len(self.tableFiles.selectedItems()) > 8 or len(self.tableFiles.selectedItems()) == 0:
+            self.cmdCalculateFolderSize.setDisabled(True)
+        else:
+            self.cmdCalculateFolderSize.setDisabled(False)
 
     def menuOpenFolder(self):
         """Opens folder for selected file"""
@@ -915,6 +921,17 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Exports all search results to csv"""
         self.tableFiles.selectAll()
         self.menuExportSelectedToCsv()
+
+    def menuCalculateFolderSize(self):
+        """Calculates sum of all files in directory and subdirs"""
+        rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
+
+        for row in rows:
+            dir = row[self.tableFilesColumnPathIndx].text()
+
+        result = self.get_folder_size_and_files_count(dir)
+        #logger.info("Size of folder: " + str(size))
+        QtWidgets.QMessageBox.information(self, __appname__ + " - folder info", "Folder: " + dir + "\n\nTotal size: " + str(result["size"]) + " bytes\n\nTotal files:  " + str(result["filesCount"]))
 
     #
     # TABLE CONTEXT MENU - END SECTION
@@ -1143,6 +1160,21 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             logger.setLevel(logging.WARNING)
         elif self.settings.value("LogLevel") == "DEBUG":
             logger.setLevel(logging.DEBUG)
+
+    def get_folder_size_and_files_count(self, dir):
+        if utilities.str2bool(self.settings.value("useExternalDatabase")) == True:
+            self.mysql_establish_connection()
+            cursor = self.dbConnMysql.cursor()
+            cursor.execute("SELECT size FROM Files WHERE path LIKE %s", (dir + "%",))
+            sizes = cursor.fetchall()
+            resultSize = 0
+            for size in sizes:
+                resultSize += size[0]
+            filesCount = cursor.rowcount
+        else:
+            pass
+        result = {"size": resultSize, "filesCount": filesCount}
+        return(result)
 
     def refreshSQLTabs(self):
         """Switches the availability of external and internal database tabs depending on settings"""

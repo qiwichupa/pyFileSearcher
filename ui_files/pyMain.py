@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Tue Mar 19 10:45:49 2019
+# Created: Tue Mar 19 13:01:46 2019
 #      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -439,6 +439,8 @@ class Ui_MainWindow(object):
         self.cmdExportSelectedToCSV.setObjectName("cmdExportSelectedToCSV")
         self.cmdExportAllToCSV = QtWidgets.QAction(MainWindow)
         self.cmdExportAllToCSV.setObjectName("cmdExportAllToCSV")
+        self.cmdCalculateFolderSize = QtWidgets.QAction(MainWindow)
+        self.cmdCalculateFolderSize.setObjectName("cmdCalculateFolderSize")
         self.menuFile.addAction(self.actionStartScan)
         self.menuFile.addAction(self.actionPreferences)
         self.menuFile.addSeparator()
@@ -451,8 +453,11 @@ class Ui_MainWindow(object):
         self.menuHelp.addAction(self.actionAbout)
         self.menuCommands.addAction(self.cmdOpenFolder)
         self.menuCommands.addAction(self.cmdMoveFilesToTrash)
+        self.menuCommands.addSeparator()
         self.menuCommands.addAction(self.cmdExportSelectedToCSV)
         self.menuCommands.addAction(self.cmdExportAllToCSV)
+        self.menuCommands.addSeparator()
+        self.menuCommands.addAction(self.cmdCalculateFolderSize)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuCommands.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
@@ -575,9 +580,10 @@ class Ui_MainWindow(object):
         self.actionExit.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+Q", None, -1))
         self.actionShowLog.setText(QtWidgets.QApplication.translate("MainWindow", "Show Log", None, -1))
         self.actionOpenWorkingDirectory.setText(QtWidgets.QApplication.translate("MainWindow", "Open Working Directory", None, -1))
-        self.cmdOpenFolder.setText(QtWidgets.QApplication.translate("MainWindow", "Open Folder", None, -1))
+        self.cmdOpenFolder.setText(QtWidgets.QApplication.translate("MainWindow", "Open folder", None, -1))
         self.cmdMoveFilesToTrash.setText(QtWidgets.QApplication.translate("MainWindow", "Move file(s) to Trash...", None, -1))
         self.cmdExportSelectedToCSV.setText(QtWidgets.QApplication.translate("MainWindow", "Export selected to CSV...", None, -1))
         self.cmdExportAllToCSV.setText(QtWidgets.QApplication.translate("MainWindow", "Export all to CSV...", None, -1))
+        self.cmdCalculateFolderSize.setText(QtWidgets.QApplication.translate("MainWindow", "Calculate folder size...", None, -1))
 
 import icons_rc
