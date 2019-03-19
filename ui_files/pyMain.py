@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Tue Mar 19 10:04:41 2019
+# Created: Tue Mar 19 10:45:49 2019
 #      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -565,7 +565,7 @@ class Ui_MainWindow(object):
         self.tabsSearch.setTabText(self.tabsSearch.indexOf(self.tabMySQL), QtWidgets.QApplication.translate("MainWindow", "MySQL", None, -1))
         self.menuFile.setTitle(QtWidgets.QApplication.translate("MainWindow", "&File", None, -1))
         self.menuHelp.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Help", None, -1))
-        self.menuCommands.setTitle(QtWidgets.QApplication.translate("MainWindow", "Commands", None, -1))
+        self.menuCommands.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Commands", None, -1))
         self.actionStartScan.setText(QtWidgets.QApplication.translate("MainWindow", "Start Indexing", None, -1))
         self.actionPreferences.setText(QtWidgets.QApplication.translate("MainWindow", "Preferences...", None, -1))
         self.actionPreferences.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+P", None, -1))
