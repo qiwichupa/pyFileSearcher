@@ -1171,7 +1171,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             # mysql part
             self.mysql_establish_connection()
             cursor = self.dbConnMysql.cursor()
-            cursor.execute("SELECT size FROM Files WHERE path LIKE %s AND removed > 0", (dir + "%",))
+            query = """SELECT size FROM Files WHERE path LIKE %s AND removed > 0"""
+            cursor.execute(query, (dir.replace('\\','\\\\') + "%",))
             sizes = cursor.fetchall()
             cursor.close()
             self.dbConnMysql.close()
