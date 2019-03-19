@@ -663,7 +663,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         return(newRemovedKey)
 
     def mysql_post_update_procedure(self):
-        """Deletes all rows whose column 'removed' value is different from the one selected in the mysql_prepare_db_for_update."""
+        """Depends on 'SaveRemovedFilesForDays' settings value:
+           deletes all rows whose column 'removed' value is different from the one selected in the mysql_prepare_db_for_update,
+           or marks that rows by -1 value for 'removed' and cleanups db from old removed file records """
         self.mysql_establish_connection()
 
         cursor = self.dbConnMysql.cursor()
