@@ -1087,7 +1087,17 @@
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuCommands">
+    <property name="title">
+     <string>Commands</string>
+    </property>
+    <addaction name="cmdOpenFolder"/>
+    <addaction name="cmdMoveFilesToTrash"/>
+    <addaction name="cmdExportSelectedToCSV"/>
+    <addaction name="cmdExportAllToCSV"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuCommands"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionStartScan">
@@ -1137,6 +1147,26 @@
   <action name="actionOpenWorkingDirectory">
    <property name="text">
     <string>Open Working Directory</string>
+   </property>
+  </action>
+  <action name="cmdOpenFolder">
+   <property name="text">
+    <string>Open Folder</string>
+   </property>
+  </action>
+  <action name="cmdMoveFilesToTrash">
+   <property name="text">
+    <string>Move file(s) to Trash...</string>
+   </property>
+  </action>
+  <action name="cmdExportSelectedToCSV">
+   <property name="text">
+    <string>Export selected to CSV...</string>
+   </property>
+  </action>
+  <action name="cmdExportAllToCSV">
+   <property name="text">
+    <string>Export all to CSV...</string>
    </property>
   </action>
  </widget>

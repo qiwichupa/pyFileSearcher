@@ -138,6 +138,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.actionShowLog.triggered.connect(self.actionShowLogEmitted)
         self.actionOpenWorkingDirectory.triggered.connect(self.actionOpenWorkingDirectoryEmitted)
 
+        # Commands menu
+        self.menuCommands.aboutToShow.connect(self.setCommandsMenu)
+
         # Search Tab
         self.FilterSearchInRemoved.toggled.connect(self.FilterSearchInRemovedToggled)
 
@@ -161,7 +164,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setColumnWidth(self.tableFilesColumnCreatedIndx, 150)
         self.tableFiles.setColumnWidth(self.tableFilesColumnIndexedIndx, 150)
         self.tableFiles.setColumnWidth(self.tableFilesColumnFilnameIndx, 200)
-        self.tableFiles.contextMenuEvent = self.tableMenu
+        self.tableFiles.contextMenuEvent = self.openContextCommandMenu
 
         self.tableFiles.itemEntered.connect(self.tableFilesScrolled)
         self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
@@ -817,36 +820,36 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     # TABLE CONTEXT MENU
     #
-    def tableMenu(self, event):
+    def openContextCommandMenu(self, event):
         """Create context menu for tableFiles widget"""
-        self.menu = QtWidgets.QMenu(self)
+        self.setCommandsMenu()
+        self.menuCommands.popup(QtGui.QCursor.pos())
 
-        menuOpenFolder = QtWidgets.QAction('Open Folder', self)
-        menuOpenFolder.triggered.connect(self.menuOpenFolder)
-        self.menu.addAction(menuOpenFolder)
+    def setCommandsMenu(self):
+        """sets the command menu"""
+        self.cmdOpenFolder.triggered.connect(self.menuOpenFolder)
         if len(self.tableFiles.selectedItems()) > 8 or len(self.tableFiles.selectedItems()) == 0:
-            menuOpenFolder.setDisabled(True)
+            self.cmdOpenFolder.setDisabled(True)
+        else:
+            self.cmdOpenFolder.setDisabled(False)
 
-        menuDeleteFiles = QtWidgets.QAction('Move file(s) to Trash...', self)
-        menuDeleteFiles.triggered.connect(self.menuDeleteFiles)
-        # menuDeleteFiles.setDisabled(True)
-        self.menu.addAction(menuDeleteFiles)
+        self.cmdMoveFilesToTrash.triggered.connect(self.menuDeleteFiles)
         if len(self.tableFiles.selectedItems()) == 0:
-            menuDeleteFiles.setDisabled(True)
+            self.cmdMoveFilesToTrash.setDisabled(True)
+        else:
+            self.cmdMoveFilesToTrash.setDisabled(False)
 
-        menuExportSelectedToCsv = QtWidgets.QAction('Export selected to CSV...', self)
-        menuExportSelectedToCsv.triggered.connect(self.menuExportSelectedToCsv)
-        self.menu.addAction(menuExportSelectedToCsv)
+        self.cmdExportSelectedToCSV.triggered.connect(self.menuExportSelectedToCsv)
         if len(self.tableFiles.selectedItems()) == 0:
-            menuExportSelectedToCsv.setDisabled(True)
+            self.cmdExportSelectedToCSV.setDisabled(True)
+        else:
+            self.cmdExportSelectedToCSV.setDisabled(False)
 
-        menuExportAllToCsv = QtWidgets.QAction('Export all to CSV...', self)
-        menuExportAllToCsv.triggered.connect(self.menuExportAllToCsv)
-        self.menu.addAction(menuExportAllToCsv)
+        self.cmdExportAllToCSV.triggered.connect(self.menuExportAllToCsv)
         if self.tableFiles.rowCount() == 0:
-            menuExportAllToCsv.setDisabled(True)
-
-        self.menu.popup(QtGui.QCursor.pos())
+            self.cmdExportAllToCSV.setDisabled(True)
+        else:
+            self.cmdExportAllToCSV.setDisabled(False)
 
     def menuOpenFolder(self):
         """Opens folder for selected file"""

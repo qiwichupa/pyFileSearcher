@@ -3,8 +3,8 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Mon Mar 18 22:50:28 2019
-#      by: pyside2-uic  running on PySide2 5.12.0
+# Created: Tue Mar 19 10:04:41 2019
+#      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -408,6 +408,8 @@ class Ui_MainWindow(object):
         self.menuFile.setObjectName("menuFile")
         self.menuHelp = QtWidgets.QMenu(self.menubar)
         self.menuHelp.setObjectName("menuHelp")
+        self.menuCommands = QtWidgets.QMenu(self.menubar)
+        self.menuCommands.setObjectName("menuCommands")
         MainWindow.setMenuBar(self.menubar)
         self.actionStartScan = QtWidgets.QAction(MainWindow)
         icon1 = QtGui.QIcon()
@@ -429,6 +431,14 @@ class Ui_MainWindow(object):
         self.actionShowLog.setObjectName("actionShowLog")
         self.actionOpenWorkingDirectory = QtWidgets.QAction(MainWindow)
         self.actionOpenWorkingDirectory.setObjectName("actionOpenWorkingDirectory")
+        self.cmdOpenFolder = QtWidgets.QAction(MainWindow)
+        self.cmdOpenFolder.setObjectName("cmdOpenFolder")
+        self.cmdMoveFilesToTrash = QtWidgets.QAction(MainWindow)
+        self.cmdMoveFilesToTrash.setObjectName("cmdMoveFilesToTrash")
+        self.cmdExportSelectedToCSV = QtWidgets.QAction(MainWindow)
+        self.cmdExportSelectedToCSV.setObjectName("cmdExportSelectedToCSV")
+        self.cmdExportAllToCSV = QtWidgets.QAction(MainWindow)
+        self.cmdExportAllToCSV.setObjectName("cmdExportAllToCSV")
         self.menuFile.addAction(self.actionStartScan)
         self.menuFile.addAction(self.actionPreferences)
         self.menuFile.addSeparator()
@@ -439,7 +449,12 @@ class Ui_MainWindow(object):
         self.menuHelp.addAction(self.actionShowHelpInfo)
         self.menuHelp.addSeparator()
         self.menuHelp.addAction(self.actionAbout)
+        self.menuCommands.addAction(self.cmdOpenFolder)
+        self.menuCommands.addAction(self.cmdMoveFilesToTrash)
+        self.menuCommands.addAction(self.cmdExportSelectedToCSV)
+        self.menuCommands.addAction(self.cmdExportAllToCSV)
         self.menubar.addAction(self.menuFile.menuAction())
+        self.menubar.addAction(self.menuCommands.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -550,6 +565,7 @@ class Ui_MainWindow(object):
         self.tabsSearch.setTabText(self.tabsSearch.indexOf(self.tabMySQL), QtWidgets.QApplication.translate("MainWindow", "MySQL", None, -1))
         self.menuFile.setTitle(QtWidgets.QApplication.translate("MainWindow", "&File", None, -1))
         self.menuHelp.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Help", None, -1))
+        self.menuCommands.setTitle(QtWidgets.QApplication.translate("MainWindow", "Commands", None, -1))
         self.actionStartScan.setText(QtWidgets.QApplication.translate("MainWindow", "Start Indexing", None, -1))
         self.actionPreferences.setText(QtWidgets.QApplication.translate("MainWindow", "Preferences...", None, -1))
         self.actionPreferences.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+P", None, -1))
@@ -559,5 +575,9 @@ class Ui_MainWindow(object):
         self.actionExit.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+Q", None, -1))
         self.actionShowLog.setText(QtWidgets.QApplication.translate("MainWindow", "Show Log", None, -1))
         self.actionOpenWorkingDirectory.setText(QtWidgets.QApplication.translate("MainWindow", "Open Working Directory", None, -1))
+        self.cmdOpenFolder.setText(QtWidgets.QApplication.translate("MainWindow", "Open Folder", None, -1))
+        self.cmdMoveFilesToTrash.setText(QtWidgets.QApplication.translate("MainWindow", "Move file(s) to Trash...", None, -1))
+        self.cmdExportSelectedToCSV.setText(QtWidgets.QApplication.translate("MainWindow", "Export selected to CSV...", None, -1))
+        self.cmdExportAllToCSV.setText(QtWidgets.QApplication.translate("MainWindow", "Export all to CSV...", None, -1))
 
 import icons_rc
