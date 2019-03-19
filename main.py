@@ -464,27 +464,22 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     def MySQLServerAddressEmitted(self):
         """Saves MySQL server address to settings"""
         self.settings.setValue("MySQL/MySQLServerAddress", self.MySQLServerAddress.text())
-        pass
 
     def MySQLServerPortEmitted(self):
         """Saves MySQL server port to settings"""
         self.settings.setValue("MySQL/MySQLServerPort", self.MySQLServerPort.text())
-        pass
 
     def MySQLDBNameEmitted(self):
         """Saves MySQL database name to settings"""
         self.settings.setValue("MySQL/MySQLDBName", self.MySQLDBName.text())
-        pass
 
     def MySQLLoginEmitted(self):
         """Saves MySQL login to settings"""
         self.settings.setValue("MySQL/MySQLLogin", self.MySQLLogin.text())
-        pass
 
     def MySQLPasswordEmitted(self):
         """Saves MySQL password to settings"""
         self.settings.setValue("MySQL/MySQLPassword", self.MySQLPassword.text())
-        pass
 
     def MySQLTestButtonEmitted(self):
         """Tries to establish a connection to the server.
@@ -937,10 +932,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     def FilterSearchInRemovedToggled(self):
         """When checkbox "Search in removed" is checked: unchecks "Indexed in last", renames "Indexed" column to "Removed" (and back)"""
         if self.FilterSearchInRemoved.isChecked():
-            """
-            self.FilterIndexedLastDaysEnabled.setChecked(False)
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Removed"))
-            """
             self.FilterIndexedLastDaysEnabled.setText("Removed in last")
             self.btnSearch.setText("Search in removed...")
         else:
