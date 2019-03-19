@@ -412,6 +412,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         # setCurrentIndex instead of setCurrentText - for backward compatibility with pyside|qt4
         listIndex = self.FilterListComboBox.findText(filterName)
         self.FilterListComboBox.setCurrentIndex(listIndex)
+        self.FilterListSaveButton.setDisabled(True)
 
     def FilterListComboBoxEmitted(self):
         """Loads the search preset"""
