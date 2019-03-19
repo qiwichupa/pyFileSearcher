@@ -140,6 +140,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         # Commands menu
         self.menuCommands.aboutToShow.connect(self.setCommandsMenu)
+        self.cmdOpenFolder.triggered.connect(self.menuOpenFolder)
+        self.cmdMoveFilesToTrash.triggered.connect(self.menuDeleteFiles)
+        self.cmdExportSelectedToCSV.triggered.connect(self.menuExportSelectedToCsv)
+        self.cmdExportAllToCSV.triggered.connect(self.menuExportAllToCsv)
 
         # Search Tab
         self.FilterSearchInRemoved.toggled.connect(self.FilterSearchInRemovedToggled)
@@ -827,25 +831,21 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def setCommandsMenu(self):
         """sets the command menu"""
-        self.cmdOpenFolder.triggered.connect(self.menuOpenFolder)
         if len(self.tableFiles.selectedItems()) > 8 or len(self.tableFiles.selectedItems()) == 0:
             self.cmdOpenFolder.setDisabled(True)
         else:
             self.cmdOpenFolder.setDisabled(False)
 
-        self.cmdMoveFilesToTrash.triggered.connect(self.menuDeleteFiles)
         if len(self.tableFiles.selectedItems()) == 0:
             self.cmdMoveFilesToTrash.setDisabled(True)
         else:
             self.cmdMoveFilesToTrash.setDisabled(False)
 
-        self.cmdExportSelectedToCSV.triggered.connect(self.menuExportSelectedToCsv)
         if len(self.tableFiles.selectedItems()) == 0:
             self.cmdExportSelectedToCSV.setDisabled(True)
         else:
             self.cmdExportSelectedToCSV.setDisabled(False)
 
-        self.cmdExportAllToCSV.triggered.connect(self.menuExportAllToCsv)
         if self.tableFiles.rowCount() == 0:
             self.cmdExportAllToCSV.setDisabled(True)
         else:
@@ -908,6 +908,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             except Exception as e:
                 logger.warning("Error while exporting csv: " + str(e))
                 QtWidgets.QMessageBox.warning(self, __appname__, "Error while exporting csv: " + str(e))
+        else:
+            pass
 
     def menuExportAllToCsv(self):
         """Exports all search results to csv"""
