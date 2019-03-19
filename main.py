@@ -1605,7 +1605,7 @@ class SearchInMySQLDB(QtCore.QThread):
         # path
         if self.filters["FilterPath"].strip() != "":
             query += " AND (path LIKE %s) "
-            parameters += ["%" + utilities.mysql_query_wildficator(self.filters["FilterPath"]) + "%"]
+            parameters += ["%" + utilities.mysql_query_wildficator(self.filters["FilterPath"].replace('\\','\\\\')) + "%"]
         # extensions
         extFromFileName = utilities.get_extension_from_filename(self.filters["FilterFilename"].strip())
         # If a file name with a simple extension (contains only letters, numbers, and _) is specified,
