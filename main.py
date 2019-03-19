@@ -826,7 +826,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     #
     def openContextCommandMenu(self, event):
         """Create context menu for tableFiles widget"""
-        self.setCommandsMenu()
         self.menuCommands.popup(QtGui.QCursor.pos())
 
     def setCommandsMenu(self):
