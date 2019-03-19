@@ -46,6 +46,13 @@ def scantree(path):
 def get_extension_from_filename(name):
     return(name[name.rfind(".") + 1:] if name.rfind(".") != -1 else "")
 
+def get_humanized_size(num, suffix='B'):
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return("%.1f%s%s" % (num, 'Yi', suffix))
+
 def get_selected_rows_from_qtablewidget(qTableWidget, sortByColumn=0):
     indexes = qTableWidget.selectionModel().selectedRows(sortByColumn)
     rows = []

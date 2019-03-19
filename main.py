@@ -933,8 +933,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             dir = row[self.tableFilesColumnPathIndx].text()
 
         result = self.get_folder_size_and_files_count(dir)
-        #logger.info("Size of folder: " + str(size))
-        QtWidgets.QMessageBox.information(self, __appname__ + " - folder info", "Folder: " + dir + "\n\nTotal size: " + str(result["size"]) + " bytes\n\nTotal files:  " + str(result["filesCount"]))
+        logger.info("Get size of folder(" + dir + "): " + str(result["size"]) + " byte(s) in " + str(result["filesCount"]) + " file(s)")
+        QtWidgets.QMessageBox.information(self, __appname__ + " - folder info",
+                                          "Folder: " + dir +
+                                          "\n\nTotal size: " + utilities.get_humanized_size(result["size"]) + " (" + str(result["size"]) + ")" +
+                                          "\n\nTotal files:  " + str(result["filesCount"])
+                                          )
 
     #
     # TABLE CONTEXT MENU - END SECTION
