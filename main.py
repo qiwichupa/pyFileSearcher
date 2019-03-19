@@ -1352,17 +1352,18 @@ class SearchInSqliteDB(QtCore.QThread):
             self.dbConn.execute("ATTACH DATABASE '" + get_db_path(i) + "' AS DB" + str(i))
 
         # I am forming a sql query. It looks a little scary, but in fact
-        # the loop and the piece after it forms such a string:
-        # (SELECT ... FROM Files WHERE...) (UNION ALL SELECT ... FROM DB#.Files WHERE ...) (LIMIT ...)
-        # loops:         ^first one                    ^second and others^        after loops^
+        # the loop and the pieces before and after it forms such a string:
+        # SELECT... FROM (SELECT ... FROM Files WHERE...) (UNION ALL SELECT ... FROM DB#.Files WHERE ...) ( GROUP BY ... LIMIT ...)
+        # loops:                             ^first one                    ^second and others^        after loops^
         parameters = []
+        query = "SELECT filename, path, size, created, modified, indexed FROM ("
         for i in range(1, self.DBCount + 1):
             dbCursor = self.dbConn.cursor()
             # SQL TABLE: hash, removed, filename, path, size, created, modified, indexed
             if i == 1:
-                query = "SELECT filename, path, size, created, modified, indexed FROM Files WHERE 1 "
+                query += " SELECT filename, path, size, created, modified, indexed FROM Files f" + str(i) + " WHERE 1 "
             else:
-                query += " UNION ALL SELECT filename, path, size, created, modified, indexed FROM DB" + str(i) + ".Files WHERE 1 "
+                query += " UNION ALL SELECT filename, path, size, created, modified, indexed FROM DB" + str(i) + ".Files f" + str(i) + " WHERE 1 "
 
             # # query constructor
             # filename
@@ -1422,6 +1423,8 @@ class SearchInSqliteDB(QtCore.QThread):
             else:
                 query += " AND (removed <> ?) "
                 parameters += ["-1"]
+        # close first SELECT and remove duplicates by GROUP
+        query += ") T GROUP BY filename, path  "
         # limit
         if not self.filters["FilterShowMoreResultsEnabled"]:
             # I request one result more than a certain limit in the settings. If there are really more results,
@@ -1434,6 +1437,7 @@ class SearchInSqliteDB(QtCore.QThread):
         logger.debug("Execute search query with parameters: " + query + str(parameters))
         rows = dbCursor.execute(query, parameters).fetchall()
         counter = 0
+
         for row in rows:
             if not self._isRunning:  # this variable can be changed from main class for search interruption
                 self.searchComplete.emit()
@@ -1447,7 +1451,6 @@ class SearchInSqliteDB(QtCore.QThread):
             # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
             # so doubleconverted - in this place and in SearchInDBThreadRowEmitted()
             size = str(size)
-
             self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
 
         self.searchComplete.emit()
