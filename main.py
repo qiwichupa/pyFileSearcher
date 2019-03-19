@@ -41,6 +41,7 @@ from ui_files import pyMain
 from ui_files import pyPreferences
 from ui_files import pyAbout
 from ui_files import pyManual
+from ui_files import pyLogViewer
 
 __appname__ = "pyFileSearcher"
 __version__ = "1.0.0-devel2"
@@ -1746,32 +1747,20 @@ class AboutDialog(QtWidgets.QDialog, pyAbout.Ui_Dialog):
         self.versionLabel.setText("(v. " + __version__ + ")")
 
 
-class ShowLogDialog(QtWidgets.QDialog):
+class ShowLogDialog(QtWidgets.QDialog, pyLogViewer.Ui_Dialog):
 
     def __init__(self, parent=None):
         QtWidgets.QDialog.__init__(self)
+        self.setupUi(self)
 
         self.setWindowTitle(__appname__ + " - LogFile:" + str(logfile))
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/icons/icons/main.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.setWindowIcon(icon)
-        self.setMinimumWidth(800)
-        self.setMinimumHeight(400)
 
         logtext = ""
-
         with open(logfile, 'r', encoding='utf-8-sig') as infile:
             for line in infile:
                 logtext += line
-
         widgetText = "<pre>" +  str(logfile) + ":\n\r\n\r" + logtext + "</pre>"
-
-        layout = QtWidgets.QVBoxLayout()
-        self.textEdit = QtWidgets.QTextEdit()
-        self.textEdit.setLineWrapMode(QtWidgets.QTextEdit.NoWrap)
         self.textEdit.setText(widgetText)
-        layout.addWidget(self.textEdit)
-        self.setLayout(layout)
 
         # scroll to bottom
         self.textEdit.moveCursor(QtGui.QTextCursor.End)
