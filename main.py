@@ -923,7 +923,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.menuExportSelectedToCsv()
 
     def menuCalculateFolderSize(self):
-        """Calculates sum of all files in directory and subdirs"""
+        """Shows the total size of the directory and subdirectories, and the total number of files"""
         rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
 
         for row in rows:
@@ -1162,17 +1162,43 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             logger.setLevel(logging.DEBUG)
 
     def get_folder_size_and_files_count(self, dir):
+        """Calculates and returns as a dictionary:
+        the total size of the directory and subdirectories, and the total number of files"""
         if utilities.str2bool(self.settings.value("useExternalDatabase")) == True:
+            # mysql part
             self.mysql_establish_connection()
             cursor = self.dbConnMysql.cursor()
-            cursor.execute("SELECT size FROM Files WHERE path LIKE %s", (dir + "%",))
+            cursor.execute("SELECT size FROM Files WHERE path LIKE %s AND removed > 0", (dir + "%",))
             sizes = cursor.fetchall()
-            resultSize = 0
-            for size in sizes:
-                resultSize += size[0]
-            filesCount = cursor.rowcount
+            cursor.close()
+            self.dbConnMysql.close()
         else:
-            pass
+            # sqlite part, about sql query logics read in "SearchInSqliteDB" class
+            dbConn = sqlite3.connect(pathlib.Path(get_db_path(1)).as_uri() + "?mode=ro", uri=True)
+            for i in range(2, self.DBCount.value() + 1):
+                dbConn.execute("ATTACH DATABASE '" + get_db_path(i) + "' AS DB" + str(i))
+            cursor = dbConn.cursor()
+            parameters = []
+            query = "SELECT  size FROM ("
+            for i in range(1, self.DBCount.value() + 1):
+                if i == 1:
+                    query += " SELECT filename, path, size FROM Files f" + str(i) + " WHERE UPPER(path) GLOB UPPER(?) AND removed > 0"
+                    parameters += [dir + "*"]
+                else:
+                    query += " UNION ALL SELECT filename, path, size FROM DB" + str(i) + ".Files f" + str(i) + " WHERE UPPER(path) GLOB UPPER(?) AND removed > 0"
+                    parameters += [dir + "*"]
+            query += ") T GROUP BY filename, path"
+            cursor.execute(query, parameters)
+            sizes = cursor.fetchall()
+            cursor.close()
+            dbConn.close()
+
+        resultSize = 0
+        filesCount = 0
+        for size in sizes:
+            resultSize += size[0]
+            filesCount += 1
+
         result = {"size": resultSize, "filesCount": filesCount}
         return(result)
 
