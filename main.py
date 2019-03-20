@@ -179,7 +179,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.itemEntered.connect(self.tableFilesScrolled)
         self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
 
-        self.tableFiles.setItemDelegateForColumn(self.tableFilesColumnSizeIndx, SizeItemDelegate())
+        self.tableFilesSizeItemDelegate = SizeItemDelegate()
+        self.tableFiles.setItemDelegateForColumn(self.tableFilesColumnSizeIndx, self.tableFilesSizeItemDelegate)
 
         # rename ctime column in linux because it's not a creation time in that case
         if isLinux:
