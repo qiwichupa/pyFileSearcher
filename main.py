@@ -1290,7 +1290,7 @@ class SizeItemDelegate(QtWidgets.QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         """custom line edit with input validator: only digits and dot, that can be humanized by get_humanized_size()"""
         lineEdit = QtWidgets.QLineEdit(parent)
-        validator = QtGui.QRegExpValidator(QtCore.QRegExp("[\d]+.[\d]+"), self)
+        validator = QtGui.QRegExpValidator(QtCore.QRegExp("\d+\.\d+"), self)
         lineEdit.setValidator(validator)
         return lineEdit
 
