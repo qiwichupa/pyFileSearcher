@@ -42,6 +42,7 @@ from ui_files import pyPreferences
 from ui_files import pyAbout
 from ui_files import pyManual
 from ui_files import pyLogViewer
+from ui_files import pyFolderSize
 
 __appname__ = "pyFileSearcher"
 __version__ = "1.0.0-devel2"
@@ -146,6 +147,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.cmdExportSelectedToCSV.triggered.connect(self.menuExportSelectedToCsv)
         self.cmdExportAllToCSV.triggered.connect(self.menuExportAllToCsv)
         self.cmdCalculateFolderSize.triggered.connect(self.menuCalculateFolderSize)
+
+        # Tools menu
+        self.toolsFolderSize.triggered.connect(self.folderSizeEmitted)
 
         # Search Tab
         self.FilterSearchInRemoved.toggled.connect(self.FilterSearchInRemovedToggled)
@@ -351,6 +355,20 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         dialog = AboutDialog()
         dialog.pushButton.clicked.connect(dialog.close)
         dialog.exec_()
+
+    def folderSizeEmitted(self):
+        """Shows folder size tool dialog"""
+        dialog = FolderSizeDialog()
+        #self.fsdialog.path.connect(self.get_folder_size_and_files_count)
+        if dialog.exec_():
+            dir = dialog.linePath.text().strip()
+            result = self.get_folder_size_and_files_count(dir)
+            logger.info("Get size of folder(" + dir + "): " + str(result["size"]) + " byte(s) in " + str(result["filesCount"]) + " file(s)")
+            QtWidgets.QMessageBox.information(self, __appname__ + " - folder info",
+                                              "Folder: " + dir +
+                                              "\n\nTotal size: " + utilities.get_humanized_size(result["size"]) + " (" + str(result["size"]) + ")" +
+                                              "\n\nTotal files:  " + str(result["filesCount"])
+                                              )
 
     def actionShowHelpInfoEmitted(self):
         """Shows help dialog"""
@@ -1860,7 +1878,34 @@ class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
         indx = self.PREFLoggingLevel.findText(initValues["LogLevel"])
         self.PREFLoggingLevel.setCurrentIndex(indx)
 
+class FolderSizeDialog(QtWidgets.QDialog, pyFolderSize.Ui_Dialog):
 
+    def __init__(self, parent=None):
+        QtWidgets.QDialog.__init__(self)
+        self.setupUi(self)
+
+        self.setWindowTitle(__appname__ + " - Folder size")
+
+        self.buttonGetSize.setDisabled(True)
+        self.browseButton.clicked.connect(self.browseClicked)
+        self.linePath.textEdited.connect(self.linePathEdited)
+        self.buttonGetSize.clicked.connect(self.getSizeClicked)
+
+    def browseClicked(self):
+        path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select directory", ".")
+        if path:
+            path = QtCore.QDir.toNativeSeparators(path)
+            self.linePath.setText(path)
+            self.linePathEdited()
+
+    def linePathEdited(self):
+        if len(self.linePath.text().strip()) > 0:
+            self.buttonGetSize.setDisabled(False)
+        else:
+            self.buttonGetSize.setDisabled(True)
+
+    def getSizeClicked(self):
+        self.accept()
 
 def unhandled_exception(exc_type, exc_value, exc_traceback):
     logger.critical("Uncaught exception", exc_info=(exc_type, exc_value, exc_traceback))

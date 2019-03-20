@@ -1099,8 +1099,15 @@
     <addaction name="separator"/>
     <addaction name="cmdCalculateFolderSize"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>&amp;Tools</string>
+    </property>
+    <addaction name="toolsFolderSize"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCommands"/>
+   <addaction name="menuTools"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionStartScan">
@@ -1174,7 +1181,12 @@
   </action>
   <action name="cmdCalculateFolderSize">
    <property name="text">
-    <string>Calculate folder size...</string>
+    <string>Calculate folder size</string>
+   </property>
+  </action>
+  <action name="toolsFolderSize">
+   <property name="text">
+    <string>Folder size...</string>
    </property>
   </action>
  </widget>

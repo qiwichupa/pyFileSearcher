@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Tue Mar 19 13:01:46 2019
+# Created: Wed Mar 20 08:47:28 2019
 #      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -410,6 +410,8 @@ class Ui_MainWindow(object):
         self.menuHelp.setObjectName("menuHelp")
         self.menuCommands = QtWidgets.QMenu(self.menubar)
         self.menuCommands.setObjectName("menuCommands")
+        self.menuTools = QtWidgets.QMenu(self.menubar)
+        self.menuTools.setObjectName("menuTools")
         MainWindow.setMenuBar(self.menubar)
         self.actionStartScan = QtWidgets.QAction(MainWindow)
         icon1 = QtGui.QIcon()
@@ -441,6 +443,8 @@ class Ui_MainWindow(object):
         self.cmdExportAllToCSV.setObjectName("cmdExportAllToCSV")
         self.cmdCalculateFolderSize = QtWidgets.QAction(MainWindow)
         self.cmdCalculateFolderSize.setObjectName("cmdCalculateFolderSize")
+        self.toolsFolderSize = QtWidgets.QAction(MainWindow)
+        self.toolsFolderSize.setObjectName("toolsFolderSize")
         self.menuFile.addAction(self.actionStartScan)
         self.menuFile.addAction(self.actionPreferences)
         self.menuFile.addSeparator()
@@ -458,8 +462,10 @@ class Ui_MainWindow(object):
         self.menuCommands.addAction(self.cmdExportAllToCSV)
         self.menuCommands.addSeparator()
         self.menuCommands.addAction(self.cmdCalculateFolderSize)
+        self.menuTools.addAction(self.toolsFolderSize)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuCommands.menuAction())
+        self.menubar.addAction(self.menuTools.menuAction())
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
@@ -571,6 +577,7 @@ class Ui_MainWindow(object):
         self.menuFile.setTitle(QtWidgets.QApplication.translate("MainWindow", "&File", None, -1))
         self.menuHelp.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Help", None, -1))
         self.menuCommands.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Commands", None, -1))
+        self.menuTools.setTitle(QtWidgets.QApplication.translate("MainWindow", "&Tools", None, -1))
         self.actionStartScan.setText(QtWidgets.QApplication.translate("MainWindow", "Start Indexing", None, -1))
         self.actionPreferences.setText(QtWidgets.QApplication.translate("MainWindow", "Preferences...", None, -1))
         self.actionPreferences.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+P", None, -1))
@@ -584,6 +591,7 @@ class Ui_MainWindow(object):
         self.cmdMoveFilesToTrash.setText(QtWidgets.QApplication.translate("MainWindow", "Move file(s) to Trash...", None, -1))
         self.cmdExportSelectedToCSV.setText(QtWidgets.QApplication.translate("MainWindow", "Export selected to CSV...", None, -1))
         self.cmdExportAllToCSV.setText(QtWidgets.QApplication.translate("MainWindow", "Export all to CSV...", None, -1))
-        self.cmdCalculateFolderSize.setText(QtWidgets.QApplication.translate("MainWindow", "Calculate folder size...", None, -1))
+        self.cmdCalculateFolderSize.setText(QtWidgets.QApplication.translate("MainWindow", "Calculate folder size", None, -1))
+        self.toolsFolderSize.setText(QtWidgets.QApplication.translate("MainWindow", "Folder size...", None, -1))
 
 import icons_rc
