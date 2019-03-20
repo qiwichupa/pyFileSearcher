@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Wed Mar 20 21:46:34 2019
+# Created: Wed Mar 20 22:00:12 2019
 #      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -38,7 +38,7 @@ class Ui_MainWindow(object):
         self.tableFiles.setMinimumSize(QtCore.QSize(0, 200))
         self.tableFiles.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.tableFiles.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContents)
-        self.tableFiles.setAutoScroll(False)
+        self.tableFiles.setAutoScroll(True)
         self.tableFiles.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked)
         self.tableFiles.setTabKeyNavigation(False)
         self.tableFiles.setProperty("showDropIndicator", True)
