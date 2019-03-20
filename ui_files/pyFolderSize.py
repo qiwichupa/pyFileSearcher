@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'folderSize.ui',
 # licensing of 'folderSize.ui' applies.
 #
-# Created: Wed Mar 20 09:48:16 2019
+# Created: Wed Mar 20 14:57:05 2019
 #      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -16,6 +16,9 @@ class Ui_Dialog(object):
         Dialog.resize(451, 149)
         Dialog.setMinimumSize(QtCore.QSize(451, 149))
         Dialog.setMaximumSize(QtCore.QSize(451, 149))
+        icon = QtGui.QIcon()
+        icon.addPixmap(QtGui.QPixmap(":/icons/icons/main.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        Dialog.setWindowIcon(icon)
         self.linePath = QtWidgets.QLineEdit(Dialog)
         self.linePath.setGeometry(QtCore.QRect(10, 90, 331, 22))
         self.linePath.setObjectName("linePath")
@@ -40,3 +43,4 @@ class Ui_Dialog(object):
         self.buttonGetSize.setText(QtWidgets.QApplication.translate("Dialog", "Get Size", None, -1))
         self.label.setText(QtWidgets.QApplication.translate("Dialog", "<html><head/><body><p><span style=\" color:#000000;\">Make sure that the entire directory, the size of which you want to find out, has been indexed.</span></p><p><span style=\" color:#ff0000;\">If only the D:\\app\\ and D:\\work\\ directories were indexed, the D:\\ size query will return only their total size.</span></p></body></html>", None, -1))
 
+import icons_rc
