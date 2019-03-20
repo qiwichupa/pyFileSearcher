@@ -179,7 +179,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.itemEntered.connect(self.tableFilesScrolled)
         self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
 
-        self.tableFilesSizeItemDelegate = SizeItemDelegate()
+        self.tableFilesSizeItemDelegate = SizeItemDelegate() # must be class-wide for python 3.4 and works fine as local with 3.7 O_o
         self.tableFiles.setItemDelegateForColumn(self.tableFilesColumnSizeIndx, self.tableFilesSizeItemDelegate)
 
         # rename ctime column in linux because it's not a creation time in that case
@@ -754,7 +754,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.DBSettingsLabel.setText("Database \"DB" + str(DBNumber) + "\" settings")
 
-        return (True)
+        return(True)
 
     def create_db(self, DBNumber):
         """Create new sqlite database with default settings for slot N"""
@@ -1293,7 +1293,7 @@ class SizeItemDelegate(QtWidgets.QStyledItemDelegate):
         lineEdit = QtWidgets.QLineEdit(parent)
         validator = QtGui.QRegExpValidator(QtCore.QRegExp("\d+\.\d+"), self)
         lineEdit.setValidator(validator)
-        return lineEdit
+        return(lineEdit)
 
 
 # SQLITE CLASSES
@@ -1932,7 +1932,7 @@ def unhandled_exception(exc_type, exc_value, exc_traceback):
     sys.exit(1)
 
 def get_db_path(DBNumber: int):
-    return (os.path.join(appDataPath,"DB" + str(DBNumber) + ".sqlite3"))
+    return(os.path.join(appDataPath,"DB" + str(DBNumber) + ".sqlite3"))
 
 def main():
     sys.excepthook = unhandled_exception

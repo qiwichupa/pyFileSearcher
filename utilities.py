@@ -64,7 +64,7 @@ def get_selected_rows_from_qtablewidget(qTableWidget, sortByColumn=0):
         for column in range(0, qTableWidget.columnCount()):
             rowItems += [qTableWidget.item(row, column)]
         rows += [rowItems]
-    return(rows)\
+    return(rows)
 
 class LoggerWriter:
     def __init__(self, level):
