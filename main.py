@@ -1413,17 +1413,17 @@ class UpdateSqliteDBThread(QtCore.QThread):
             self.dbCursor.execute("UPDATE Files SET indexed=?, removed =?  WHERE removed=?", (currentTime, "-1", "0"))
             self.dbConn.commit()
             removedCounter = self.dbCursor.rowcount
-            logger.info("...files set as removed: " + str(removedCounter) + " ...")
+            logger.info("Scan thread #" + str(self.DBNumber) + ". Files set as removed: " + str(removedCounter))
             self.dbCursor.execute("DELETE FROM Files WHERE removed = ? AND indexed < ?", ("-1", removedTime))
             self.dbConn.commit()
             cleanCounter = self.dbCursor.rowcount
-            logger.info("...files removed from db: " + str(cleanCounter) + " ...")
+            logger.info("Scan thread #" + str(self.DBNumber) + ". Files removed from db: " + str(cleanCounter))
         else:
-            logger.debug("...SaveRemovedFilesForDays=0, all removed files will be removed from db ...")
+            logger.debug("Scan thread #" + str(self.DBNumber) + ". SaveRemovedFilesForDays=0, all removed files will be removed from db")
             self.dbCursor.execute("DELETE FROM Files WHERE removed = ? OR  removed = ?", ("-1", "0"))
             self.dbConn.commit()
             cleanCounter = self.dbCursor.rowcount
-            logger.info("...files removed from db: " + str(cleanCounter) + " ...")
+            logger.info("Scan thread #" + str(self.DBNumber) + ". Files removed from db: " + str(cleanCounter))
 
         logger.debug("Scan thread #" + str(self.DBNumber) + ". Vacuum.")
         self.dbConn.execute("VACUUM")
