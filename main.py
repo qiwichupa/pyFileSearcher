@@ -179,7 +179,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.itemEntered.connect(self.tableFilesScrolled)
         self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
 
-        self.tableFiles.setItemDelegateForColumn(self.tableFilesColumnSizeIndx, SizeItemDelegate(self))
+        self.tableFiles.setItemDelegateForColumn(self.tableFilesColumnSizeIndx, SizeItemDelegate())
 
         # rename ctime column in linux because it's not a creation time in that case
         if isLinux:
@@ -1281,11 +1281,19 @@ class CheckScanPIDFileLoopThread(QtCore.QThread):
 # HUMANIZATOR FOR SIZE COLUMN
 class SizeItemDelegate(QtWidgets.QStyledItemDelegate):
 
-    def __init__(self,  parent=None):
+    def __init__(self, parent=None):
         QtWidgets.QStyledItemDelegate.__init__(self)
 
     def displayText(self, value, locale=None):
-        return utilities.get_humanized_size(value)
+        return(utilities.get_humanized_size(value))
+
+    def createEditor(self, parent, option, index):
+        """custom line edit with input validator: only digits and dot, that can be humanized by get_humanized_size()"""
+        lineEdit = QtWidgets.QLineEdit(parent)
+        validator = QtGui.QRegExpValidator(QtCore.QRegExp("[\d]+.[\d]+"), self)
+        lineEdit.setValidator(validator)
+        return lineEdit
+
 
 # SQLITE CLASSES
 class UpdateSqliteDBThread(QtCore.QThread):
