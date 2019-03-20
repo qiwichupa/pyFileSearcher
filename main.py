@@ -178,6 +178,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.tableFiles.itemEntered.connect(self.tableFilesScrolled)
         self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
+        self.tableFiles.setItemDelegateForColumn(self.tableFilesColumnSizeIndx, SizeItemDelegate(self))
 
         # rename ctime column in linux because it's not a creation time in that case
         if isLinux:
@@ -1275,6 +1276,14 @@ class CheckScanPIDFileLoopThread(QtCore.QThread):
     def stop(self):
         self._isRunning = False
 
+class SizeItemDelegate(QtWidgets.QStyledItemDelegate):
+
+    def __init__(self,  parent=None):
+        QtWidgets.QStyledItemDelegate.__init__(self)
+
+
+    def displayText(self, value, locale=None):
+        return utilities.get_humanized_size(value)
 
 # SQLITE CLASSES
 class UpdateSqliteDBThread(QtCore.QThread):
