@@ -1143,7 +1143,7 @@
   </action>
   <action name="actionExit">
    <property name="text">
-    <string>Exit</string>
+    <string>Quit</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
@@ -1153,10 +1153,16 @@
    <property name="text">
     <string>Show Log</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
+   </property>
   </action>
   <action name="actionOpenWorkingDirectory">
    <property name="text">
     <string>Open Working Directory</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
    </property>
   </action>
   <action name="cmdOpenFolder">
@@ -1187,6 +1193,9 @@
   <action name="toolsFolderSize">
    <property name="text">
     <string>Folder size...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

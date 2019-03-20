@@ -3,8 +3,8 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Wed Mar 20 08:47:28 2019
-#      by: pyside2-uic  running on PySide2 5.12.1
+# Created: Wed Mar 20 21:46:34 2019
+#      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -583,15 +583,18 @@ class Ui_MainWindow(object):
         self.actionPreferences.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+P", None, -1))
         self.actionShowHelpInfo.setText(QtWidgets.QApplication.translate("MainWindow", "Show Manual", None, -1))
         self.actionAbout.setText(QtWidgets.QApplication.translate("MainWindow", "About", None, -1))
-        self.actionExit.setText(QtWidgets.QApplication.translate("MainWindow", "Exit", None, -1))
+        self.actionExit.setText(QtWidgets.QApplication.translate("MainWindow", "Quit", None, -1))
         self.actionExit.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+Q", None, -1))
         self.actionShowLog.setText(QtWidgets.QApplication.translate("MainWindow", "Show Log", None, -1))
+        self.actionShowLog.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+L", None, -1))
         self.actionOpenWorkingDirectory.setText(QtWidgets.QApplication.translate("MainWindow", "Open Working Directory", None, -1))
+        self.actionOpenWorkingDirectory.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+D", None, -1))
         self.cmdOpenFolder.setText(QtWidgets.QApplication.translate("MainWindow", "Open folder", None, -1))
         self.cmdMoveFilesToTrash.setText(QtWidgets.QApplication.translate("MainWindow", "Move file(s) to Trash...", None, -1))
         self.cmdExportSelectedToCSV.setText(QtWidgets.QApplication.translate("MainWindow", "Export selected to CSV...", None, -1))
         self.cmdExportAllToCSV.setText(QtWidgets.QApplication.translate("MainWindow", "Export all to CSV...", None, -1))
         self.cmdCalculateFolderSize.setText(QtWidgets.QApplication.translate("MainWindow", "Calculate folder size", None, -1))
         self.toolsFolderSize.setText(QtWidgets.QApplication.translate("MainWindow", "Folder size...", None, -1))
+        self.toolsFolderSize.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+S", None, -1))
 
 import icons_rc
