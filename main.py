@@ -1542,7 +1542,7 @@ class SearchInSqliteDB(QtCore.QThread):
                 if self.filters["FilterMinSizeType"] == "Mb":
                     minsize = self.filters["FilterMinSize"] * 1048576
                 if self.filters["FilterMinSizeType"] == "Gb":
-                    minsize = self.filters["FilterMinSize"] + 1073741824
+                    minsize = self.filters["FilterMinSize"] * 1073741824
 
                 query += " AND (size >= ?)"
                 parameters += [minsize]
@@ -1555,7 +1555,7 @@ class SearchInSqliteDB(QtCore.QThread):
                 if self.filters["FilterMaxSizeType"] == "Mb":
                     maxsize = self.filters["FilterMaxSize"] * 1048576
                 if self.filters["FilterMaxSizeType"] == "Gb":
-                    maxsize = self.filters["FilterMaxSize"] + 1073741824
+                    maxsize = self.filters["FilterMaxSize"] * 1073741824
 
                 query += " AND (size <= ?)"
                 parameters += [maxsize]
@@ -1718,7 +1718,7 @@ class SearchInMySQLDB(QtCore.QThread):
             if self.filters["FilterMinSizeType"] == "Mb":
                 minsize = self.filters["FilterMinSize"] * 1048576
             if self.filters["FilterMinSizeType"] == "Gb":
-                minsize = self.filters["FilterMinSize"] + 1073741824
+                minsize = self.filters["FilterMinSize"] * 1073741824
 
             query += " AND (size >= %s)"
             parameters += [minsize]
@@ -1731,7 +1731,7 @@ class SearchInMySQLDB(QtCore.QThread):
             if self.filters["FilterMaxSizeType"] == "Mb":
                 maxsize = self.filters["FilterMaxSize"] * 1048576
             if self.filters["FilterMaxSizeType"] == "Gb":
-                maxsize = self.filters["FilterMaxSize"] + 1073741824
+                maxsize = self.filters["FilterMaxSize"] * 1073741824
 
             query += " AND (size <= %s)"
             parameters += [maxsize]
