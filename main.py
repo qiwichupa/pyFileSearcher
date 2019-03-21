@@ -177,7 +177,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.contextMenuEvent = self.openContextCommandMenu
 
         self.tableFiles.cellEntered.connect(self.tableFilesScrolled)
-        self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
+        self.tableFiles.cellClicked.connect(self.check_files_existence)
 
         self.tableFilesSizeItemDelegate = SizeItemDelegate() # must be class-wide for python 3.4 and works fine as local with 3.7 O_o
         self.tableFiles.setItemDelegateForColumn(self.tableFilesColumnSizeIndx, self.tableFilesSizeItemDelegate)
@@ -918,7 +918,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                     errs += [str(e)]
             if len(errs) > 0:
                 QtWidgets.QMessageBox.warning(self, __appname__, "Error while removing file(s):\n\n" + "\n".join(errs))
-            self.tableFilesScrolled(forcedCheck=True)
+            self.check_files_existence(forcedCheck=True)
 
     def menuExportSelectedToCsv(self):
         """Exports selected rows to csv"""
@@ -1002,7 +1002,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             collects filters, runs the search threads depending on the database used."""
         self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
-        self.tableFilesFileIsChecked = {}  # see tableFilesScrolled()
+        self.tableFilesFileIsChecked = {}  # see check_files_existence()
         self.tableFiles.setSortingEnabled(False)  # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
 
         # Now we need to save elements 'isEnabled' states, block them, and restore states in SearchInDBThreadSearchCompleteEmitted().
@@ -1113,7 +1113,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.btnSearch.setText("Search in removed...")
         else:
             self.btnSearch.setText("Search...")
-        self.tableFilesScrolled() # This line activates the file existence check.
+        self.check_files_existence() # This line activates the file existence check.
 
     def checkScanPIDFileLoopEmitted(self, fileExists):
         """Blocks the change in the number of internal databases during scanning into them"""
@@ -1129,7 +1129,27 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.actionStartScan.setText("Start Indexing")
             self.actionStartScan.setEnabled(True)
 
-    def tableFilesScrolled(self, forcedCheck=False):
+
+    def tableFilesScrolled(self):
+        """creates a countdown timer, or updates it.
+        When the countdown expires, the signal starts checking the files.
+        Necessary for smooth scrolling of search results."""
+        try:
+            self.checkFileExistenceDelayer
+            self.checkFileExistenceDelayer.currentTimer = 1
+        except:
+            self.checkFileExistenceDelayer = Delayer(1)
+            self.checkFileExistenceDelayer.sig.connect(self.check_files_existence)
+            self.checkFileExistenceDelayer.sig.connect(self.remove_checkFileExistenceDelayer)
+            self.checkFileExistenceDelayer.start()
+
+    def remove_checkFileExistenceDelayer(self):
+        """Removes the countdown timer (allows you to make a new one when tableFilesScrolled)"""
+        self.checkFileExistenceDelayer.wait()
+        self.checkFileExistenceDelayer = None
+        del self.checkFileExistenceDelayer
+
+    def check_files_existence(self, forcedCheck=False):
         """Checks the top and bottom line in the file table, checks for the presence of files at the moment. Marks missing files with color."""
         if self.tableFiles.rowCount() == 0:
             return
@@ -1158,6 +1178,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                     for column in range(0, self.tableFiles.columnCount()):
                         # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
                         self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
+
 
     def gui_elements_set_disabled(self, elements):
         """Disable items on the list"""
@@ -1281,6 +1302,25 @@ class CheckScanPIDFileLoopThread(QtCore.QThread):
 
     def stop(self):
         self._isRunning = False
+
+# DELAYER THREAD
+class Delayer(QtCore.QThread):
+    sig = QtCore.Signal(int)
+
+    def __init__(self, timer=3, parent=None):
+        QtCore.QThread.__init__(self)
+
+        self.defaultTimer = timer
+        self.currentTimer = timer
+
+    def run(self):
+        self.run_timer()
+
+    def run_timer(self):
+        while self.currentTimer > 0:
+            time.sleep(.1)
+            self.currentTimer -= .1
+        self.sig.emit(0)
 
 
 # HUMANIZATOR FOR SIZE COLUMN
