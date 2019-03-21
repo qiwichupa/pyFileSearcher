@@ -176,7 +176,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setColumnWidth(self.tableFilesColumnFilnameIndx, 200)
         self.tableFiles.contextMenuEvent = self.openContextCommandMenu
 
-        self.tableFiles.itemEntered.connect(self.tableFilesScrolled)
+        self.tableFiles.cellEntered.connect(self.tableFilesScrolled)
         self.tableFiles.cellClicked.connect(self.tableFilesScrolled)
 
         self.tableFilesSizeItemDelegate = SizeItemDelegate() # must be class-wide for python 3.4 and works fine as local with 3.7 O_o
@@ -1146,11 +1146,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
             rowId = self.tableFiles.item(i, self.tableFilesColumnNumIndx).text()
             if rowId not in self.tableFilesFileIsChecked or forcedCheck is True:
+                self.tableFilesFileIsChecked[rowId] = True
                 fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
                 if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
                     fullFilePath = "\\\\?\\" + fullFilePath
                 self.tableFilesFileIsChecked[rowId] = True
+
+                logger.debug("Checking file: " + fullFilePath)
                 if not os.path.isfile(fullFilePath):
+                    logger.debug("... not found: " + fullFilePath)
                     for column in range(0, self.tableFiles.columnCount()):
                         # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
                         self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
