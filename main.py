@@ -1293,10 +1293,8 @@ class SizeItemDelegate(QtWidgets.QStyledItemDelegate):
         return(utilities.get_humanized_size(value))
 
     def createEditor(self, parent, option, index):
-        """custom line edit with input validator: only digits and dot, that can be humanized by get_humanized_size()"""
+        """custom readonly QlineEdit"""
         lineEdit = QtWidgets.QLineEdit(parent)
-        validator = QtGui.QRegExpValidator(QtCore.QRegExp("\d+\.\d+"), self)
-        lineEdit.setValidator(validator)
         lineEdit.setReadOnly(True)
         return(lineEdit)
 
