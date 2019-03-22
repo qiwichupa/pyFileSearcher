@@ -111,6 +111,7 @@ else:
 # MAIN APPLICATION CLASS
 class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     sigUpdateDB = QtCore.Signal(str)
+    checkingFileExistenceThreads = {}
     dbConn = {}
 
     tableFilesColumnNumIndx = 0
@@ -1129,11 +1130,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.actionStartScan.setText("Start Indexing")
             self.actionStartScan.setEnabled(True)
 
+    ## CHECKING FILE EXISTENCE
+    #
 
     def tableFilesScrolled(self):
         """creates a countdown timer, or updates it.
         When the countdown expires, the signal starts checking the files.
-        Necessary for smooth scrolling of search results."""
+       It was necessary for the smooth scrolling of search results when the check
+       was not made into separate threads. At the moment, the delay simply allows you
+       to avoid unnecessary checks with fast scrolling.."""
         try:
             self.checkFileExistenceDelayer
             self.checkFileExistenceDelayer.currentTimer = 1
@@ -1150,7 +1155,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         del self.checkFileExistenceDelayer
 
     def check_files_existence(self, forcedCheck=False):
-        """Checks the top and bottom line in the file table, checks for the presence of files at the moment. Marks missing files with color."""
+        """Defines the top and bottom visible row.
+        For each row:
+        if rowId (first column) is not in the dictionary
+        - adds to the dictionary (it is cleaned with every new search)
+        - start the thread of checking the file for existence.
+        A thread emits a signal if the file is not found - the signal is associated with paint_row_in_red()."""
         if self.tableFiles.rowCount() == 0:
             return
 
@@ -1161,24 +1171,29 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         else:
             downRow = self.tableFiles.rowCount()
 
-        for i in range(upRow, downRow):
+        for rowIndx in range(upRow, downRow):
             # In order not to check the full range of all rows, add the ID of checked
             # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
-            rowId = self.tableFiles.item(i, self.tableFilesColumnNumIndx).text()
+            rowId = self.tableFiles.item(rowIndx, self.tableFilesColumnNumIndx).text()
             if rowId not in self.tableFilesFileIsChecked or forcedCheck is True:
                 self.tableFilesFileIsChecked[rowId] = True
-                fullFilePath = self.tableFiles.item(i, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(i, self.tableFilesColumnFilnameIndx).text()
+                fullFilePath = self.tableFiles.item(rowIndx, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(rowIndx, self.tableFilesColumnFilnameIndx).text()
                 if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
                     fullFilePath = "\\\\?\\" + fullFilePath
                 self.tableFilesFileIsChecked[rowId] = True
 
-                logger.debug("Checking file: " + fullFilePath)
-                if not os.path.isfile(fullFilePath):
-                    logger.debug("... not found: " + fullFilePath)
-                    for column in range(0, self.tableFiles.columnCount()):
-                        # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
-                        self.tableFiles.item(i, column).setBackground(QtGui.QColor(255, 161, 137))
+                self.checkingFileExistenceThreads[rowIndx] = FileExistenceChecker(rowIndx, fullFilePath)
+                self.checkingFileExistenceThreads[rowIndx].rowSig.connect(self. paint_row_in_red)
+                self.checkingFileExistenceThreads[rowIndx].start()
 
+    def paint_row_in_red(self, row):
+        """Sets red background for row in search results"""
+        for column in range(0, self.tableFiles.columnCount()):
+            # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
+            self.tableFiles.item(row, column).setBackground(QtGui.QColor(255, 161, 137))
+
+    #
+    ## CHECKING FILE EXISTENCE - END SECTION
 
     def gui_elements_set_disabled(self, elements):
         """Disable items on the list"""
@@ -1321,6 +1336,30 @@ class Delayer(QtCore.QThread):
             time.sleep(.1)
             self.currentTimer -= .1
         self.sig.emit(0)
+
+# CHECK FILE EXISTENCE THREAD
+class FileExistenceChecker(QtCore.QThread):
+    rowSig = QtCore.Signal(int)
+
+    def __init__(self, row, fullPathToFile, parent=None):
+        QtCore.QThread.__init__(self)
+
+        self.row = row
+        self.fullPathToFile = fullPathToFile
+
+    def run(self):
+        self.check_file()
+
+    def check_file(self):
+        logger.debug("Checking file: {}".format(self.fullPathToFile))
+        if not os.path.isfile(self.fullPathToFile):
+            logger.debug("... not found: {}".format(self.fullPathToFile))
+            self.rowSig.emit(self.row)
+        else:
+            logger.debug("...   checked: {}".format(self.fullPathToFile))
+        logger.debug("Checking file: {} complete".format(self.fullPathToFile))
+
+
 
 
 # HUMANIZATOR FOR SIZE COLUMN
