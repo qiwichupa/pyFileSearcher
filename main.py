@@ -1003,6 +1003,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             collects filters, runs the search threads depending on the database used."""
         self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
+        self.checkingFileExistenceThreads = {}
         self.tableFilesFileIsChecked = {}  # see check_files_existence()
         self.tableFiles.setSortingEnabled(False)  # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
 
@@ -1139,11 +1140,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
        It was necessary for the smooth scrolling of search results when the check
        was not made into separate threads. At the moment, the delay simply allows you
        to avoid unnecessary checks with fast scrolling.."""
+        delay = .5
         try:
             self.checkFileExistenceDelayer
-            self.checkFileExistenceDelayer.currentTimer = 1
+            self.checkFileExistenceDelayer.currentTimer = delay
         except:
-            self.checkFileExistenceDelayer = Delayer(1)
+            self.checkFileExistenceDelayer = Delayer(delay)
             self.checkFileExistenceDelayer.sig.connect(self.check_files_existence)
             self.checkFileExistenceDelayer.sig.connect(self.remove_checkFileExistenceDelayer)
             self.checkFileExistenceDelayer.start()
@@ -1190,7 +1192,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Sets red background for row in search results"""
         for column in range(0, self.tableFiles.columnCount()):
             # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
-            self.tableFiles.item(row, column).setBackground(QtGui.QColor(255, 161, 137))
+            try:
+                self.tableFiles.item(row, column).setBackground(QtGui.QColor(255, 161, 137))
+            except:
+                pass
 
     #
     ## CHECKING FILE EXISTENCE - END SECTION
@@ -1352,11 +1357,14 @@ class FileExistenceChecker(QtCore.QThread):
 
     def check_file(self):
         logger.debug("Checking file: {}".format(self.fullPathToFile))
-        if not os.path.isfile(self.fullPathToFile):
-            logger.debug("... not found: {}".format(self.fullPathToFile))
-            self.rowSig.emit(self.row)
-        else:
-            logger.debug("...   checked: {}".format(self.fullPathToFile))
+        try:
+            if not os.path.isfile(self.fullPathToFile):
+                logger.debug("... not found: {}".format(self.fullPathToFile))
+                self.rowSig.emit(self.row)
+            else:
+                logger.debug("...   checked: {}".format(self.fullPathToFile))
+        except Exception as e:
+            logger.warning(str(e))
         logger.debug("Checking file: {} complete".format(self.fullPathToFile))
 
 
