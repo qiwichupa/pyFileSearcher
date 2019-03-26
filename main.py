@@ -1008,8 +1008,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 pass
             return
 
+        # will be enabled back by signal "self.SearchInDBThread.unlockSearchButton"
+        # the idea is to block the button until the sql query is executed.
         self.btnSearch.setDisabled(True)
         self.btnSearch.setText("Stop")
+
         self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
         self.checkingFileExistenceThreads = {}
@@ -1039,7 +1042,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.searchInterfaceElementsStates = self.gui_elements_get_states(searchInterfaceElements)
         self.gui_elements_set_disabled(searchInterfaceElements)
 
-
         filters = {}
         filters["FilterSearchInRemoved"] = self.FilterSearchInRemoved.isChecked()
         filters["FilterFilename"] = self.FilterFilename.text()
@@ -1061,11 +1063,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         else:
             self.SearchInDBThread = SearchInMySQLDB(filters, self.settings)
         self.SearchInDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
+        self.SearchInDBThread.unlockSearchButton.connect(self.btnSearch.setEnabled)
         self.SearchInDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
         self.SearchInDBThread.start()
         self.SearchInDBThread.setPriority(QtCore.QThread.LowestPriority)
 
-        self.btnSearch.setEnabled(True)
+        #self.btnSearch.setEnabled(True)
 
     def SearchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime, indexed):
         """While executing sql - gets returned rows and inserts them into QTableWidget.
@@ -1528,6 +1531,7 @@ class UpdateSqliteDBThread(QtCore.QThread):
 class SearchInSqliteDB(QtCore.QThread):
     rowEmitted = QtCore.Signal(str, str, str, int, int, int)
     searchComplete = QtCore.Signal()
+    unlockSearchButton = QtCore.Signal(bool)
     dbConn = {}
     _isRunning = True
 
@@ -1636,6 +1640,7 @@ class SearchInSqliteDB(QtCore.QThread):
         query += ""  # for some cases )
         logger.debug("Execute search query with parameters: " + query + str(parameters))
         dbCursor.execute(query, parameters)
+        self.unlockSearchButton.emit(True)
         for row in utilities.sql_search_result_iterator(dbCursor):
             if not self._isRunning:  # this variable can be changed from main class for search interruption
                 self.searchComplete.emit()
@@ -1647,7 +1652,7 @@ class SearchInSqliteDB(QtCore.QThread):
             size = str(size)
             self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
             time.sleep(.005)
-
+        self.unlockSearchButton.emit(True)
         self.searchComplete.emit()
 
 
@@ -1807,6 +1812,7 @@ class SearchInMySQLDB(QtCore.QThread):
         query += ""  # for some cases )
         logger.debug("Execute search query with parameters: " + query + str(parameters))
         dbCursor.execute(query, parameters)
+        self.unlockSearchButton.emit(True)
         for row in utilities.sql_search_result_iterator(dbCursor):
             if not self._isRunning:  # this variable can be changed from main class for search process interruption
                 self.searchComplete.emit()
@@ -1820,6 +1826,7 @@ class SearchInMySQLDB(QtCore.QThread):
             self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
             time.sleep(.005)
         self.dbConn.close()
+        self.unlockSearchButton.emit(True)
         self.searchComplete.emit()
 
 
