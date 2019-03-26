@@ -999,8 +999,17 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.btnSearch.setEnabled(True)
 
     def btnSearchEmitted(self):
-        """Starts the search process. Cleans the results table,
+        """Starts (or stops) the search process. Cleans the results table,
             collects filters, runs the search threads depending on the database used."""
+        if self.btnSearch.text() == "Stop":
+            try:
+                self.SearchInDBThread.stop()
+            except:
+                pass
+            return
+
+        self.btnSearch.setDisabled(True)
+        self.btnSearch.setText("Stop")
         self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
         self.checkingFileExistenceThreads = {}
@@ -1025,12 +1034,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             "FilterMinSizeType",
             "FilterMaxSizeEnabled",
             "FilterMaxSize",
-            "FilterMaxSizeType",
-            "btnSearch"
+            "FilterMaxSizeType"
             ]
         self.searchInterfaceElementsStates = self.gui_elements_get_states(searchInterfaceElements)
         self.gui_elements_set_disabled(searchInterfaceElements)
-        self.btnSearch.setText("Searching...")
+
 
         filters = {}
         filters["FilterSearchInRemoved"] = self.FilterSearchInRemoved.isChecked()
@@ -1049,17 +1057,18 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         filters["FilterSearchLimit"] = self.settings.value("maxSearchResults")
 
         if self.settings.value("useExternalDatabase") == "False":
-            self.SearchInSqliteDBThread = SearchInSqliteDB(self.DBCount.value(), filters)
-            self.SearchInSqliteDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
-            self.SearchInSqliteDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
-            self.SearchInSqliteDBThread.start()
-            self.SearchInSqliteDBThread.setPriority(QtCore.QThread.LowestPriority)
+            self.SearchInDBThread = SearchInSqliteDB(self.DBCount.value(), filters)
+            self.SearchInDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
+            self.SearchInDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
+            self.SearchInDBThread.start()
+            self.SearchInDBThread.setPriority(QtCore.QThread.LowestPriority)
         else:
-            self.SearchInSqliteDBThread = SearchInMySQLDB(filters, self.settings)
-            self.SearchInSqliteDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
-            self.SearchInSqliteDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
-            self.SearchInSqliteDBThread.start()
-            self.SearchInSqliteDBThread.setPriority(QtCore.QThread.LowestPriority)
+            self.SearchInDBThread = SearchInMySQLDB(filters, self.settings)
+            self.SearchInDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
+            self.SearchInDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
+            self.SearchInDBThread.start()
+            self.SearchInDBThread.setPriority(QtCore.QThread.LowestPriority)
+        self.btnSearch.setEnabled(True)
 
     def SearchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime, indexed):
         """While executing sql - gets returned rows and inserts them into QTableWidget.
@@ -1079,9 +1088,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if row > int(
                 self.settings.value("maxSearchResults")) - 1 and not self.FilterShowMoreResultsCheckbox.isChecked():
             self.FilterShowMoreResultsCheckbox.setVisible(True)
-            self.FilterShowMoreResultsCheckbox.setText("Show all results (NOT recommended! Uncheck during searching to stop loading the results)")
-            self.FilterShowMoreResultsCheckbox.setToolTip("Can produce heavy load on database and consume large amount of memory on local PC.")
-            self.SearchInSqliteDBThread.stop()
+            self.FilterShowMoreResultsCheckbox.setText("Show all results (can produce heavy load on DB and consume large amount of RAM on local PC.)")
+            self.SearchInDBThread.stop()
             return
 
         self.tableFiles.insertRow(row)
