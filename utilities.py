@@ -21,6 +21,14 @@ def mysql_index_is_exists(connection, tablename, index):
     else:
         return(False)
 
+def sql_search_result_iterator(cursor, chunkSize=1000):
+    while True:
+        results = cursor.fetchmany(chunkSize)
+        if not results:
+            break
+        for result in results:
+            yield result
+
 def scantree(path):
     """Recursively yield DirEntry objects for given directory.
     Usage:

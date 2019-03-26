@@ -1630,23 +1630,18 @@ class SearchInSqliteDB(QtCore.QThread):
             parameters += [limit]
         query += ""  # for some cases )
         logger.debug("Execute search query with parameters: " + query + str(parameters))
-        rows = dbCursor.execute(query, parameters).fetchall()
-        counter = 0
-
-        for row in rows:
+        dbCursor.execute(query, parameters)
+        for row in utilities.sql_search_result_iterator(dbCursor):
             if not self._isRunning:  # this variable can be changed from main class for search interruption
                 self.searchComplete.emit()
                 return
-            if counter > 500:
-                counter = 0
-                time.sleep(.2)
-            counter += 1
             filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
 
             # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
             # so doubleconverted - in this place and in SearchInDBThreadRowEmitted()
             size = str(size)
             self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
+            time.sleep(.005)
 
         self.searchComplete.emit()
 
@@ -1807,16 +1802,10 @@ class SearchInMySQLDB(QtCore.QThread):
         query += ""  # for some cases )
         logger.debug("Execute search query with parameters: " + query + str(parameters))
         dbCursor.execute(query, parameters)
-        rows = dbCursor.fetchall()
-        counter = 0
-        for row in rows:
+        for row in utilities.sql_search_result_iterator(dbCursor):
             if not self._isRunning:  # this variable can be changed from main class for search process interruption
                 self.searchComplete.emit()
                 return
-            if counter > 500:
-                counter = 0
-                time.sleep(.2)
-            counter += 1
             filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
 
             # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
@@ -1824,6 +1813,7 @@ class SearchInMySQLDB(QtCore.QThread):
             size = str(size)
 
             self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
+            time.sleep(.005)
         self.dbConn.close()
         self.searchComplete.emit()
 
