@@ -1058,16 +1058,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         if self.settings.value("useExternalDatabase") == "False":
             self.SearchInDBThread = SearchInSqliteDB(self.DBCount.value(), filters)
-            self.SearchInDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
-            self.SearchInDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
-            self.SearchInDBThread.start()
-            self.SearchInDBThread.setPriority(QtCore.QThread.LowestPriority)
         else:
             self.SearchInDBThread = SearchInMySQLDB(filters, self.settings)
-            self.SearchInDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
-            self.SearchInDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
-            self.SearchInDBThread.start()
-            self.SearchInDBThread.setPriority(QtCore.QThread.LowestPriority)
+        self.SearchInDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
+        self.SearchInDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
+        self.SearchInDBThread.start()
+        self.SearchInDBThread.setPriority(QtCore.QThread.LowestPriority)
+
         self.btnSearch.setEnabled(True)
 
     def SearchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime, indexed):
