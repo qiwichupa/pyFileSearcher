@@ -154,11 +154,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.toolsFolderSize.triggered.connect(self.folderSizeEmitted)
 
         ## Search Tab
-        self.FilterSearchInRemoved.toggled.connect(self.FilterSearchInRemovedToggled)
+        self.FilterSearchInRemoved.toggled.connect(self.filterSearchInRemovedToggled)
 
         FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([^\\\/:<>|])*"), self) # i don't know why this "^\\\" works as "not a '\'", but it works -_-
         self.FilterFilename.setValidator(FilterFilenameValidator)
-        self.FilterFilename.textEdited.connect(self.FilterFilenameTextChanged)
+        self.FilterFilename.textEdited.connect(self.filterFilenameTextChanged)
         FilterFileTypesValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9]{1,8},)*"), self)
         self.FilterFileTypes.setValidator(FilterFileTypesValidator)
 
@@ -195,11 +195,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.FilterListSaveButton.setDisabled(True)
 
-        self.FilterListLineEdit.textEdited.connect(self.FilterListLineEditEditedEmitted)
+        self.FilterListLineEdit.textEdited.connect(self.filterListLineEditEditedEmitted)
 
-        self.FilterListSaveButton.clicked.connect(self.FilterListSaveButtonEmitted)
-        self.FilterListRemoveButton.clicked.connect(self.FilterListRemoveButtonEmitted)
-        self.FilterListComboBox.activated.connect(self.FilterListComboBoxEmitted)
+        self.FilterListSaveButton.clicked.connect(self.filterListSaveButtonEmitted)
+        self.FilterListRemoveButton.clicked.connect(self.filterListRemoveButtonEmitted)
+        self.FilterListComboBox.activated.connect(self.filterListComboBoxEmitted)
 
         ## Database Tab
         DBFileTypeFilterValidator = QtGui.QRegExpValidator(QtCore.QRegExp("(^[,])?([a-z0-9]{1,8},)*"), self)
@@ -208,28 +208,28 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.DBSelectDatabase.activated.connect(self.select_db)
         self.DBCount.valueChanged.connect(self.dbCountEmitted)
 
-        self.DBFileTypeFilter.textEdited.connect(self.DBFileTypeFilterEmitted)
-        self.DBFileTypeFilterMode.activated.connect(self.DBFileTypeFilterModeEmitted)
-        self.DBRootScanPath.activated.connect(self.DBRootScanPathEmitted)
+        self.DBFileTypeFilter.textEdited.connect(self.dbFileTypeFilterEmitted)
+        self.DBFileTypeFilterMode.activated.connect(self.dbFileTypeFilterModeEmitted)
+        self.DBRootScanPath.activated.connect(self.dbRootScanPathEmitted)
 
         self.DBApplySettingsButton.setDisabled(True)
-        self.DBApplySettingsButton.clicked.connect(self.DBApplySettingsButtonEmitted)
+        self.DBApplySettingsButton.clicked.connect(self.dbApplySettingsButtonEmitted)
 
         ## MySQL tab
-        self.MySQLServerAddress.textEdited.connect(self.MySQLServerAddressEmitted)
-        self.MySQLServerPort.textEdited.connect(self.MySQLServerPortEmitted)
-        self.MySQLDBName.textEdited.connect(self.MySQLDBNameEmitted)
-        self.MySQLLogin.textEdited.connect(self.MySQLLoginEmitted)
-        self.MySQLPassword.textEdited.connect(self.MySQLPasswordEmitted)
+        self.MySQLServerAddress.textEdited.connect(self.mySQLServerAddressEmitted)
+        self.MySQLServerPort.textEdited.connect(self.mySQLServerPortEmitted)
+        self.MySQLDBName.textEdited.connect(self.mySQLDBNameEmitted)
+        self.MySQLLogin.textEdited.connect(self.mySQLLoginEmitted)
+        self.MySQLPassword.textEdited.connect(self.mySQLPasswordEmitted)
 
-        self.MySQLTestButton.clicked.connect(self.MySQLTestButtonEmitted)
+        self.MySQLTestButton.clicked.connect(self.mySQLTestButtonEmitted)
         self.MySQLInitDBCheckBox.toggled.connect(self.MySQLInitDBButton.setEnabled)
-        self.MySQLInitDBButton.clicked.connect(self.MySQLInitDBButtonEmitted)
+        self.MySQLInitDBButton.clicked.connect(self.mySQLInitDBButtonEmitted)
 
-        self.MySQLPathsTableAddButton.clicked.connect(self.MySQLPathsTableAddButtonEmitted)
-        self.MySQLPathsTableRemoveButton.clicked.connect(self.MySQLPathsTableRemoveButtonEmitted)
+        self.MySQLPathsTableAddButton.clicked.connect(self.mySQLPathsTableAddButtonEmitted)
+        self.MySQLPathsTableRemoveButton.clicked.connect(self.mySQLPathsTableRemoveButtonEmitted)
 
-        self.MySQLPathsTable.itemSelectionChanged.connect(self.MySQLPathsTableItemSelectionChanged)
+        self.MySQLPathsTable.itemSelectionChanged.connect(self.mySQLPathsTableItemSelectionChanged)
 
         ## Load Settings
         self.load_initial_settings()
@@ -308,7 +308,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.MySQLPathsTable.setItem(row - 1, 1, QtWidgets.QTableWidgetItem(dir))
         self.settings.endArray()
 
-        self.MySQLPathsTableItemSelectionChanged()
+        self.mySQLPathsTableItemSelectionChanged()
 
     # MAIN MENU ACTIONS
     #
@@ -408,7 +408,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     # SAVE/LOAD FILTERS
     #
-    def FilterListSaveButtonEmitted(self):
+    def filterListSaveButtonEmitted(self):
         """Saves the current search settings as a new preset, or updates an existing preset."""
         filterName = self.FilterListLineEdit.text()
         if filterName not in self.filters:
@@ -438,7 +438,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.FilterListComboBox.setCurrentIndex(listIndex)
         self.FilterListSaveButton.setDisabled(True)
 
-    def FilterListComboBoxEmitted(self):
+    def filterListComboBoxEmitted(self):
         """Loads the search preset"""
 
         if self.FilterListComboBox.currentIndex() == 0:
@@ -466,20 +466,20 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.FilterSearchInRemoved.setChecked(
             utilities.str2bool(self.settings.value("FILTER_" + filterName + "/FilterSearchInRemoved")))
 
-        self.FilterFilenameTextChanged()
+        self.filterFilenameTextChanged()
 
         self.FilterListLineEdit.setText(filterName)
         self.FilterListSaveButton.setEnabled(True)
         self.FilterListRemoveButton.setEnabled(True)
 
-    def FilterListLineEditEditedEmitted(self):
+    def filterListLineEditEditedEmitted(self):
         """Disables the save preset button if the preset name is not specified."""
         if self.FilterListLineEdit.text() == "":
             self.FilterListSaveButton.setDisabled(True)
         else:
             self.FilterListSaveButton.setEnabled(True)
 
-    def FilterListRemoveButtonEmitted(self):
+    def filterListRemoveButtonEmitted(self):
         """Deletes the selected preset."""
         filterName = self.FilterListComboBox.currentText()
 
@@ -495,27 +495,27 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     # MySQL THINGS
     #
-    def MySQLServerAddressEmitted(self):
+    def mySQLServerAddressEmitted(self):
         """Saves MySQL server address to settings"""
         self.settings.setValue("MySQL/MySQLServerAddress", self.MySQLServerAddress.text())
 
-    def MySQLServerPortEmitted(self):
+    def mySQLServerPortEmitted(self):
         """Saves MySQL server port to settings"""
         self.settings.setValue("MySQL/MySQLServerPort", self.MySQLServerPort.text())
 
-    def MySQLDBNameEmitted(self):
+    def mySQLDBNameEmitted(self):
         """Saves MySQL database name to settings"""
         self.settings.setValue("MySQL/MySQLDBName", self.MySQLDBName.text())
 
-    def MySQLLoginEmitted(self):
+    def mySQLLoginEmitted(self):
         """Saves MySQL login to settings"""
         self.settings.setValue("MySQL/MySQLLogin", self.MySQLLogin.text())
 
-    def MySQLPasswordEmitted(self):
+    def mySQLPasswordEmitted(self):
         """Saves MySQL password to settings"""
         self.settings.setValue("MySQL/MySQLPassword", self.MySQLPassword.text())
 
-    def MySQLTestButtonEmitted(self):
+    def mySQLTestButtonEmitted(self):
         """Tries to establish a connection to the server.
             Upon successful connection, the database initialization option is active."""
 
@@ -543,7 +543,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         finally:
             self.MySQLTestButton.setEnabled(True)
 
-    def MySQLInitDBButtonEmitted(self):
+    def mySQLInitDBButtonEmitted(self):
         """Database initialization. A table is created. If the table already exists, it will be deleted and re-created."""
         try:
             dbConn = my_sql.connect(
@@ -610,7 +610,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.MySQLInitDBButton.setText("Complete!")
             self.MySQLInitDBCheckBox.setChecked(False)
 
-    def MySQLPathsTableAddButtonEmitted(self):
+    def mySQLPathsTableAddButtonEmitted(self):
         """Opens the directory selection dialog. The selected directory is added
            to the list, after which the entire list is saved in the settings file."""
         path = QtWidgets.QFileDialog.getExistingDirectory(self, "Select directory", ".")
@@ -626,7 +626,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.settings.setValue("directory", [self.MySQLPathsTable.item(i, 0).text()])
             self.settings.endArray()
 
-    def MySQLPathsTableRemoveButtonEmitted(self):
+    def mySQLPathsTableRemoveButtonEmitted(self):
         """Removes the selected directory from the list of directories,
            after which the list of directories is saved in the settings file"""
         if self.MySQLPathsTable.selectedItems():
@@ -640,7 +640,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.settings.setValue("directory", [self.MySQLPathsTable.item(i, 0).text()])
             self.settings.endArray()
 
-    def MySQLPathsTableItemSelectionChanged(self):
+    def mySQLPathsTableItemSelectionChanged(self):
         """Checks for the presence of selected lines in the directory list.
            If something is selected, the delete button becomes active."""
         if self.MySQLPathsTable.selectedItems():
@@ -809,15 +809,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             pass
         self.settings.setValue("DBCount", newDBCount)
 
-    def DBFileTypeFilterEmitted(self):
+    def dbFileTypeFilterEmitted(self):
         """Sets Apply button active when Exclusions was edited"""
         self.DBApplySettingsButton.setEnabled(True)
 
-    def DBFileTypeFilterModeEmitted(self):
+    def dbFileTypeFilterModeEmitted(self):
         """Makes Apply button active when ExclusionsMode (Whitelist|Blacklist) was selected"""
         self.DBApplySettingsButton.setEnabled(True)
 
-    def DBRootScanPathEmitted(self):
+    def dbRootScanPathEmitted(self):
         """Makes Apply button active when path was selected, and sets path into first slot in combobox"""
         if self.DBRootScanPath.currentIndex() is 1:
             currentPath = self.DBRootScanPath.itemText(0)
@@ -828,7 +828,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.DBApplySettingsButton.setEnabled(True)
             self.DBRootScanPath.setCurrentIndex(0)
 
-    def DBApplySettingsButtonEmitted(self):
+    def dbApplySettingsButtonEmitted(self):
         """Saves internal database settings to it"""
         self.DBSelectDatabase.setDisabled(True)
         currentDB = self.DBSelectDatabase.currentIndex() + 1
@@ -838,10 +838,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         dbSettings["DBRootScanPath"] = self.DBRootScanPath.itemText(0)
 
         self.SaveSqliteDBSettingsThread = SaveSqliteDBSettingsThread(currentDB, dbSettings)
-        self.SaveSqliteDBSettingsThread.settingsSavedSig.connect(self.SaveSqliteDBSettingsThreadSavedSigEmitted)
+        self.SaveSqliteDBSettingsThread.settingsSavedSig.connect(self.saveSqliteDBSettingsThreadSavedSigEmitted)
         self.SaveSqliteDBSettingsThread.start()
 
-    def SaveSqliteDBSettingsThreadSavedSigEmitted(self, DBNumber):
+    def saveSqliteDBSettingsThreadSavedSigEmitted(self, DBNumber):
         """After saving the settings - rereads the settings of the internal database and unlocks the interface"""
         self.select_db(DBNumber, False)
         self.DBSelectDatabase.setEnabled(True)
@@ -982,7 +982,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 logger.info("isScanMode - exit app")
                 self.exitActionTriggered()
 
-    def FilterSearchInRemovedToggled(self):
+    def filterSearchInRemovedToggled(self):
         """When checkbox "Search in removed" is checked: unchecks "Indexed in last", renames "Indexed" column to "Removed" (and back)"""
         if self.FilterSearchInRemoved.isChecked():
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnIndexedIndx, QtWidgets.QTableWidgetItem("Removed"))
@@ -993,7 +993,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.FilterIndexedLastDaysEnabled.setText("Indexed in last")
             self.btnSearch.setText("Search...")
 
-    def FilterFilenameTextChanged(self):
+    def filterFilenameTextChanged(self):
         """Does not allow to run a search until the file name is specified."""
         if self.FilterFilename.text().strip() == "":
             self.btnSearch.setDisabled(True)
@@ -1025,7 +1025,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFilesFileIsChecked = {}  # see check_files_existence()
         self.tableFiles.setSortingEnabled(False)  # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
 
-        # Now we need to save elements 'isEnabled' states, block them, and restore states in SearchInDBThreadSearchCompleteEmitted().
+        # Now we need to save elements 'isEnabled' states, block them, and restore states in searchInDBThreadSearchCompleteEmitted().
         # It's almost complete elements list, except "show all" checkbox, which must be active for searching interruption
         searchInterfaceElements = [
             "FilterSearchInRemoved",
@@ -1068,9 +1068,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.SearchInDBThread = SearchInSqliteDB(self.DBCount.value(), filters)
         else:
             self.SearchInDBThread = SearchInMySQLDB(filters, self.settings)
-        self.SearchInDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
+        self.SearchInDBThread.rowEmitted.connect(self.searchInDBThreadRowEmitted)
         self.SearchInDBThread.unlockSearchButton.connect(self.enableStopButton)
-        self.SearchInDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
+        self.SearchInDBThread.searchComplete.connect(self.searchInDBThreadSearchCompleteEmitted)
         self.SearchInDBThread.start()
         self.SearchInDBThread.setPriority(QtCore.QThread.LowestPriority)
 
@@ -1079,7 +1079,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.btnSearch.setText("Stop")
         self.btnSearch.setEnabled(True)
 
-    def SearchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime, indexed):
+    def searchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime, indexed):
         """While executing sql - gets returned rows and inserts them into QTableWidget.
             Checks the option to limit the number of search results in the settings, if the number of results
             begins to exceed this number - makes visible the checkbox for disabling restrictions and stops the search thread.
@@ -1123,7 +1123,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.setItem(row, self.tableFilesColumnCreatedIndx, QtWidgets.QTableWidgetItem(ctime))
         self.tableFiles.setItem(row, self.tableFilesColumnPathIndx, QtWidgets.QTableWidgetItem(path))
 
-    def SearchInDBThreadSearchCompleteEmitted(self):
+    def searchInDBThreadSearchCompleteEmitted(self):
         """After the search is completed, it unlocks the interface elements and forcibly launches the check for
             the existence of files visible to the user."""
         self.tableFiles.setSortingEnabled(True)
@@ -1642,7 +1642,7 @@ class SearchInSqliteDB(QtCore.QThread):
         if not self.filters["FilterShowMoreResultsEnabled"]:
             # I request one result more than a certain limit in the settings. If there are really more results,
             # their number can be compared with the limit in the function responsible for filling in a QTableWidget
-            # (SearchInDBThreadRowEmitted), and showing the checkbox to disable the limit.
+            # (searchInDBThreadRowEmitted), and showing the checkbox to disable the limit.
             limit = int(self.filters["FilterSearchLimit"]) + 1
             query += "LIMIT ?"
             parameters += [limit]
@@ -1657,7 +1657,7 @@ class SearchInSqliteDB(QtCore.QThread):
             filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
 
             # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
-            # so doubleconverted - in this place and in SearchInDBThreadRowEmitted()
+            # so doubleconverted - in this place and in searchInDBThreadRowEmitted()
             size = str(size)
             self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
             time.sleep(.005)
@@ -1814,7 +1814,7 @@ class SearchInMySQLDB(QtCore.QThread):
         if not self.filters["FilterShowMoreResultsEnabled"]:
             # I request one result more than a certain limit in the settings. If there are really more results,
             # their number can be compared with the limit in the function responsible for filling in a QTableWidget
-            # (SearchInDBThreadRowEmitted), and showing the checkbox to disable the limit.
+            # (searchInDBThreadRowEmitted), and showing the checkbox to disable the limit.
             limit = int(self.filters["FilterSearchLimit"]) + 1
             query += "LIMIT %s"
             parameters += [limit]
@@ -1830,7 +1830,7 @@ class SearchInMySQLDB(QtCore.QThread):
             filename, path, size, ctime, mtime, indexed = row[0], row[1], row[2], row[3], row[4], row[5]
 
             # next one is needed because Signal cannot (?) emmit integer over 4 bytes,
-            # so doubleconverted - in this place and in SearchInDBThreadRowEmitted()
+            # so doubleconverted - in this place and in searchInDBThreadRowEmitted()
             size = str(size)
 
             self.rowEmitted.emit(filename, path, size, ctime, mtime, indexed)
