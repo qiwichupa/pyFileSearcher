@@ -1877,7 +1877,7 @@ class UpdateMysqlDBThread(QtCore.QThread):
             self.dbConn.commit()
         except Exception as e:
             logger.critical("Scan thread #" + str(self.threadID) + ". MySQL execute and commit error: " + str(e) + ". Stopping thread.")
-            self.sigIsOver.emit(self.DBNumber)
+            self.sigIsOver.emit(self.threadID)
             self.exit(1)
         dbCursor.close()
 
