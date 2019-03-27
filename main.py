@@ -1014,7 +1014,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     def start_searching(self):
         """Cleans the results table, collects filters, runs the search threads depending on the database used."""
 
-        # will be enabled back by signal "self.SearchInDBThread.unlockSearchButton"
+        # "self.btnSearch" will be enabled back by signal "self.SearchInDBThread.unlockSearchButton"
         # the idea is to block the button until the sql query is executed.
         self.btnSearch.setDisabled(True)
         self.btnSearch.setText("Wait")
