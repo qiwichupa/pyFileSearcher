@@ -1013,7 +1013,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         # will be enabled back by signal "self.SearchInDBThread.unlockSearchButton"
         # the idea is to block the button until the sql query is executed.
         self.btnSearch.setDisabled(True)
-        self.btnSearch.setText("Stop")
+        self.btnSearch.setText("Wait")
 
         self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
@@ -1065,12 +1065,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         else:
             self.SearchInDBThread = SearchInMySQLDB(filters, self.settings)
         self.SearchInDBThread.rowEmitted.connect(self.SearchInDBThreadRowEmitted)
-        self.SearchInDBThread.unlockSearchButton.connect(self.btnSearch.setEnabled)
+        self.SearchInDBThread.unlockSearchButton.connect(self.enableStopButton)
         self.SearchInDBThread.searchComplete.connect(self.SearchInDBThreadSearchCompleteEmitted)
         self.SearchInDBThread.start()
         self.SearchInDBThread.setPriority(QtCore.QThread.LowestPriority)
 
-        #self.btnSearch.setEnabled(True)
+    def enableStopButton(self):
+        """Makes the search button (as a stop button) active after completing the SQL query and starting to display search results."""
+        self.btnSearch.setText("Stop")
+        self.btnSearch.setEnabled(True)
 
     def SearchInDBThreadRowEmitted(self, filename, path, size, ctime, mtime, indexed):
         """While executing sql - gets returned rows and inserts them into QTableWidget.
