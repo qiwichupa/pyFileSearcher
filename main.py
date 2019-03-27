@@ -113,6 +113,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     sigUpdateDB = QtCore.Signal(str)
     checkingFileExistenceThreads = {}
     dbConn = {}
+    tableFilesItemDelegates = {}
 
     tableFilesColumnNumIndx = 0
     tableFilesColumnFilnameIndx = 1
@@ -132,7 +133,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.settings = QtCore.QSettings(os.path.join(appDataPath, "settings.ini"), QtCore.QSettings.IniFormat)
         self.settings.setIniCodec("UTF-8")
 
-        # Menu items
+        ## Menu items
         self.actionPreferences.triggered.connect(self.actionPreferencesEmitted)
         self.actionStartScan.triggered.connect(self.updateDBEmitted)
         self.actionAbout.triggered.connect(self.actionAboutEmitted)
@@ -141,7 +142,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.actionShowLog.triggered.connect(self.actionShowLogEmitted)
         self.actionOpenWorkingDirectory.triggered.connect(self.actionOpenWorkingDirectoryEmitted)
 
-        # Commands menu
+        ## Commands menu
         self.menuCommands.aboutToShow.connect(self.setCommandsMenu)
         self.cmdOpenFolder.triggered.connect(self.menuOpenFolder)
         self.cmdMoveFilesToTrash.triggered.connect(self.menuDeleteFiles)
@@ -149,10 +150,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.cmdExportAllToCSV.triggered.connect(self.menuExportAllToCsv)
         self.cmdCalculateFolderSize.triggered.connect(self.menuCalculateFolderSize)
 
-        # Tools menu
+        ## Tools menu
         self.toolsFolderSize.triggered.connect(self.folderSizeEmitted)
 
-        # Search Tab
+        ## Search Tab
         self.FilterSearchInRemoved.toggled.connect(self.FilterSearchInRemovedToggled)
 
         FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([^\\\/:<>|])*"), self) # i don't know why this "^\\\" works as "not a '\'", but it works -_-
@@ -180,14 +181,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.cellEntered.connect(self.tableFilesScrolled)
         self.tableFiles.cellClicked.connect(self.check_files_existence)
 
-        self.tableFilesSizeItemDelegate = SizeItemDelegate() # must be class-wide for python 3.4 and works fine as local with 3.7 O_o
-        self.tableFiles.setItemDelegateForColumn(self.tableFilesColumnSizeIndx, self.tableFilesSizeItemDelegate)
+        # delegate must be class-wide for python 3.4 and works fine as local with 3.7 O_o
+        self.tableFilesItemDelegates["Size"] = SizeItemDelegate()
+        self.tableFiles.setItemDelegateForColumn(self.tableFilesColumnSizeIndx, self.tableFilesItemDelegates["Size"])
 
         # rename ctime column in linux because it's not a creation time in that case
         if isLinux:
             self.tableFiles.setHorizontalHeaderItem(self.tableFilesColumnCreatedIndx, QtWidgets.QTableWidgetItem("Linux ctime"))
 
-        # Search Tab - Filter List
+        ## Search Tab - Filter List
         FilterListLineEditalidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9_ -])*"), self)
         self.FilterListLineEdit.setValidator(FilterListLineEditalidator)
 
@@ -199,7 +201,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.FilterListRemoveButton.clicked.connect(self.FilterListRemoveButtonEmitted)
         self.FilterListComboBox.activated.connect(self.FilterListComboBoxEmitted)
 
-        # Database Tab
+        ## Database Tab
         DBFileTypeFilterValidator = QtGui.QRegExpValidator(QtCore.QRegExp("(^[,])?([a-z0-9]{1,8},)*"), self)
         self.DBFileTypeFilter.setValidator(DBFileTypeFilterValidator)
 
@@ -213,7 +215,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.DBApplySettingsButton.setDisabled(True)
         self.DBApplySettingsButton.clicked.connect(self.DBApplySettingsButtonEmitted)
 
-        # MySQL tab
+        ## MySQL tab
         self.MySQLServerAddress.textEdited.connect(self.MySQLServerAddressEmitted)
         self.MySQLServerPort.textEdited.connect(self.MySQLServerPortEmitted)
         self.MySQLDBName.textEdited.connect(self.MySQLDBNameEmitted)
@@ -229,13 +231,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.MySQLPathsTable.itemSelectionChanged.connect(self.MySQLPathsTableItemSelectionChanged)
 
-        # Load Settings
+        ## Load Settings
         self.load_initial_settings()
 
-        # Checking pid file of indexing process for locking some parts of interface
+        ## Checking pid file of indexing process for locking some parts of interface
         self.load_pid_checker()
 
-        # run scan with --scan parameter
+        ## run scan with --scan parameter
         if isScanMode:
             logger.info("Scan is running with command promt parameter!")
             self.updateDBEmitted()
@@ -1331,6 +1333,7 @@ class CheckScanPIDFileLoopThread(QtCore.QThread):
     def stop(self):
         self._isRunning = False
 
+
 # DELAYER THREAD
 class Delayer(QtCore.QThread):
     sig = QtCore.Signal(int)
@@ -1349,6 +1352,7 @@ class Delayer(QtCore.QThread):
             time.sleep(.1)
             self.currentTimer -= .1
         self.sig.emit(0)
+
 
 # CHECK FILE EXISTENCE THREAD
 class FileExistenceChecker(QtCore.QThread):
@@ -1374,8 +1378,6 @@ class FileExistenceChecker(QtCore.QThread):
         except Exception as e:
             logger.warning(str(e))
         logger.debug("Checking file: {} complete".format(self.fullPathToFile))
-
-
 
 
 # HUMANIZATOR FOR SIZE COLUMN
