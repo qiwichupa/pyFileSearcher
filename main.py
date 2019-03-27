@@ -1009,9 +1009,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 pass
             return
         elif self.btnSearch.text() == "Search...":
-            self.start_searching()
+            self.startSearching()
 
-    def start_searching(self):
+    def startSearching(self):
         """Cleans the results table, collects filters, runs the search threads depending on the database used."""
 
         # "self.btnSearch" will be enabled back by signal "self.SearchInDBThread.unlockSearchButton"
