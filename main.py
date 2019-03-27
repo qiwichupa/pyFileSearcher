@@ -1699,6 +1699,7 @@ class SaveSqliteDBSettingsThread(QtCore.QThread):
 class SearchInMySQLDB(QtCore.QThread):
     rowEmitted = QtCore.Signal(str, str, str, int, int, int)
     searchComplete = QtCore.Signal()
+    unlockSearchButton = QtCore.Signal(bool)
     dbConn = {}
     _isRunning = True
 
