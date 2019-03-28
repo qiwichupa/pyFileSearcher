@@ -1,3 +1,5 @@
+from os import scandir
+
 def str2bool(arg):
     return(str(arg).lower() in ["true", "0", "ok"])
 
@@ -35,7 +37,6 @@ def scantree(path):
     for entry in scantree(path):
         print(entry.path)
     """
-    from os import scandir
     for entry in scandir(path):
         if entry.is_dir(follow_symlinks=False):
             try:
