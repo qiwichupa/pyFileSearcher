@@ -675,6 +675,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         try:
             self.mysqlEstablishConnection()
         except:
+            # this will cancel the creation of scan threads
             return False
 
         cursor = self.dbConnMysql.cursor()
@@ -1891,7 +1892,6 @@ class UpdateMysqlDBThread(QtCore.QThread):
         except:
             self.sigIsOver.emit(self.threadID)
             return
-
 
         self.updateMysqlDB(self.path, self.removedKey)
         self.sigIsOver.emit(self.threadID)
