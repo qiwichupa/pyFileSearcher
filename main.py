@@ -179,7 +179,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.contextMenuEvent = self.openContextCommandMenu
 
         self.tableFiles.cellEntered.connect(self.tableFilesScrolled)
-        self.tableFiles.cellClicked.connect(self.check_files_existence)
+        self.tableFiles.cellClicked.connect(self.checkFilesExistence)
 
         # delegate must be class-wide for python 3.4 and works fine as local with 3.7 O_o
         self.tableFilesItemDelegates["Size"] = SizeItemDelegate()
@@ -205,7 +205,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         DBFileTypeFilterValidator = QtGui.QRegExpValidator(QtCore.QRegExp("(^[,])?([a-z0-9]{1,8},)*"), self)
         self.DBFileTypeFilter.setValidator(DBFileTypeFilterValidator)
 
-        self.DBSelectDatabase.activated.connect(self.select_db)
+        self.DBSelectDatabase.activated.connect(self.selectSqliteDB)
         self.DBCount.valueChanged.connect(self.dbCountEmitted)
 
         self.DBFileTypeFilter.textEdited.connect(self.dbFileTypeFilterEmitted)
@@ -235,7 +235,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.load_initial_settings()
 
         ## Checking pid file of indexing process for locking some parts of interface
-        self.load_pid_checker()
+        self.loadPidChecker()
 
         ## run scan with --scan parameter
         if isScanMode:
@@ -262,7 +262,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.refreshSQLTabs()
 
-        self.apply_logging_level()
+        self.applyLoggingLevel()
 
         if self.settings.value("filters") == "":
             self.filters = []
@@ -280,9 +280,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         for DBNumber in range(1, DBCount + 1):
             if not os.path.isfile(get_db_path(DBNumber)):
-                self.create_db(DBNumber)
+                self.createSqliteDB(DBNumber)
 
-            if self.select_db(DBNumber, False):
+            if self.selectSqliteDB(DBNumber, False):
                 self.DBSelectDatabase.addItem("DB" + str(DBNumber))
                 self.DBSelectDatabase.setCurrentIndex(DBNumber - 1)
         self.DBCount.setValue(DBCount)
@@ -330,7 +330,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.settings.setValue("SaveRemovedFilesForDays", dialog.PREFSaveRemovedInfoDays.value())
 
             self.refreshSQLTabs()
-            self.apply_logging_level()
+            self.applyLoggingLevel()
 
     def updateDBEmitted(self):
         """Starts the file system scan. Depending on the settings, it generates scanning threads of either
@@ -655,7 +655,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         else:
             self.MySQLPathsTableRemoveButton.setDisabled(True)
 
-    def mysql_establish_connection(self):
+    def mysqlEstablishConnection(self):
         """Connect to MySQL for work purposes"""
         try:
             self.dbConnMysql = my_sql.connect(
@@ -670,10 +670,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def mysql_prepare_db_for_update(self):
         """If there is - selects the first value of the column 'removed' and generates a random new one
-            that does not coincide with it. When scanning, this value is set for all new or updated rows in the
-            database to identify deleted files and delete them in mysql_post_update_procedure."""
+            and return it. When scanning, this value is set for all new or updated rows in the
+            database to identify deleted files and process them in mysqlPostUpdateProcedure."""
         try:
-            self.mysql_establish_connection()
+            self.mysqlEstablishConnection()
         except:
             return False
 
@@ -698,12 +698,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         logger.info("MySQL preparation complete!")
         return newRemovedKey
 
-    def mysql_post_update_procedure(self):
+    def mysqlPostUpdateProcedure(self):
         """Depends on 'SaveRemovedFilesForDays' settings value:
            deletes all rows whose column 'removed' value is different from the one selected in the mysql_prepare_db_for_update,
            or marks that rows by -1 value for 'removed' and cleanups db from old removed file records """
         try:
-            self.mysql_establish_connection()
+            self.mysqlEstablishConnection()
         except:
             logger.warning("MySQL connection error in post-update procedure")
             return
@@ -741,7 +741,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     # Sqlite THINGS
     #
-    def select_db(self, DBNumber, runViaGUI=True):
+    def selectSqliteDB(self, DBNumber, runViaGUI=True):
         """At the time of selecting the internal (sqlite) database loads settings from it."""
         if runViaGUI is True:
             DBNumber = DBNumber + 1
@@ -774,7 +774,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         return True
 
-    def create_db(self, DBNumber):
+    def createSqliteDB(self, DBNumber):
         """Create new sqlite database with default settings for slot N"""
         dbConn = sqlite3.connect(get_db_path(DBNumber))
         dbCursor = dbConn.cursor()
@@ -789,7 +789,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         dbConn.commit()
 
-    def remove_db(self, DBNumber):
+    def removeSqliteDB(self, DBNumber):
         """Delete connection to database and database file"""
         del self.dbConn[DBNumber]
         try:
@@ -809,16 +809,16 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         oldDBCount = int(self.settings.value("DBCount"))
         if newDBCount > oldDBCount:
             for i in range(oldDBCount + 1, newDBCount + 1):
-                self.create_db(i)
-                if self.select_db(i, False):
+                self.createSqliteDB(i)
+                if self.selectSqliteDB(i, False):
                     self.DBSelectDatabase.addItem("DB" + str(i))
                     self.DBSelectDatabase.setCurrentIndex(i - 1)
         elif newDBCount < oldDBCount:
             for i in range(oldDBCount, newDBCount, -1):
                 dbForRemove = i
-                self.remove_db(dbForRemove)
+                self.removeSqliteDB(dbForRemove)
                 if self.DBSelectDatabase.currentIndex() is dbForRemove - 1:
-                    self.select_db(self.DBSelectDatabase.currentIndex() - 1)
+                    self.selectSqliteDB(self.DBSelectDatabase.currentIndex() - 1)
                 self.DBSelectDatabase.removeItem(dbForRemove - 1)
         else:
             pass
@@ -858,7 +858,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def saveSqliteDBSettingsThreadSavedSigEmitted(self, DBNumber):
         """After saving the settings - rereads the settings of the internal database and unlocks the interface"""
-        self.select_db(DBNumber, False)
+        self.selectSqliteDB(DBNumber, False)
         self.DBSelectDatabase.setEnabled(True)
         self.DBApplySettingsButton.setDisabled(True)
         self.DBSelectDatabase.setFocus()
@@ -936,7 +936,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                     errs += [str(e)]
             if len(errs) > 0:
                 QtWidgets.QMessageBox.warning(self, __appname__, "Error while removing file(s):\n\n" + "\n".join(errs))
-            self.check_files_existence(forcedCheck=True)
+            self.checkFilesExistence(forcedCheck=True)
 
     def menuExportSelectedToCsv(self):
         """Exports selected rows to csv"""
@@ -993,7 +993,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         logger.info("Scan thread #" + str(ThreadNumber) + " is over.")
         if len(self.updateDBThreads) == 0:
             if self.DBScanEngine == "MySQL":
-                self.mysql_post_update_procedure()
+                self.mysqlPostUpdateProcedure()
             os.remove(scanPIDFile)
             logger.info(">> INDEXING COMPLETED.")
             if isScanMode:
@@ -1040,7 +1040,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.tableFiles.clearContents()
         self.tableFiles.setRowCount(0)
         self.checkingFileExistenceThreads = {}
-        self.tableFilesFileIsChecked = {}  # see check_files_existence()
+        self.tableFilesFileIsChecked = {}  # see checkFilesExistence()
         self.tableFiles.setSortingEnabled(False)  # The list is updated in chunks. At the time of the process, I turned off the ability to sort  because of glitches.
 
         # Now we need to save elements 'isEnabled' states, block them, and restore states in searchInDBThreadSearchCompleteEmitted().
@@ -1063,8 +1063,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             "FilterMaxSize",
             "FilterMaxSizeType"
             ]
-        self.searchInterfaceElementsStates = self.gui_elements_get_states(searchInterfaceElements)
-        self.gui_elements_set_disabled(searchInterfaceElements)
+        self.searchInterfaceElementsStates = self.get_states_of_gui_elements(searchInterfaceElements)
+        self.guiElementsSetDisabled(searchInterfaceElements)
 
         filters = {}
         filters["FilterSearchInRemoved"] = self.FilterSearchInRemoved.isChecked()
@@ -1145,12 +1145,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """After the search is completed, it unlocks the interface elements and forcibly launches the check for
             the existence of files visible to the user."""
         self.tableFiles.setSortingEnabled(True)
-        self.gui_elements_restore_states(self.searchInterfaceElementsStates)
+        self.guiElementsRestoreStates(self.searchInterfaceElementsStates)
         if self.FilterSearchInRemoved.isChecked():
             self.btnSearch.setText("Search in removed...")
         else:
             self.btnSearch.setText("Search...")
-        self.check_files_existence() # This line activates the file existence check.
+        self.checkFilesExistence() # This line activates the file existence check.
 
     def checkScanPIDFileLoopEmitted(self, fileExists):
         """Blocks the change in the number of internal databases during scanning into them"""
@@ -1181,49 +1181,47 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.checkFileExistenceDelayer.currentTimer = delay
         except:
             self.checkFileExistenceDelayer = Delayer(delay)
-            self.checkFileExistenceDelayer.sig.connect(self.check_files_existence)
-            self.checkFileExistenceDelayer.sig.connect(self.remove_checkFileExistenceDelayer)
+            self.checkFileExistenceDelayer.sig.connect(self.checkFilesExistence)
+            self.checkFileExistenceDelayer.sig.connect(self.removeCheckFileExistenceDelayer)
             self.checkFileExistenceDelayer.start()
 
-    def remove_checkFileExistenceDelayer(self):
+    def removeCheckFileExistenceDelayer(self):
         """Removes the countdown timer (allows you to make a new one when tableFilesScrolled)"""
         self.checkFileExistenceDelayer.wait()
         self.checkFileExistenceDelayer = None
         del self.checkFileExistenceDelayer
 
-    def check_files_existence(self, forcedCheck=False):
+    def checkFilesExistence(self, forcedCheck=False):
         """Defines the top and bottom visible row.
         For each row:
         if rowId (first column) is not in the dictionary
         - adds to the dictionary (it is cleaned with every new search)
         - start the thread of checking the file for existence.
-        A thread emits a signal if the file is not found - the signal is associated with paint_row_in_red()."""
-        if self.tableFiles.rowCount() == 0:
-            return
+        A thread emits a signal if the file is not found - the signal is associated with paintRowInRed()."""
+        if self.tableFiles.rowCount() > 0:
+            upRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, 0)).row()
 
-        upRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, 0)).row()
+            if self.tableFiles.itemAt(0, self.tableFiles.height()):
+                downRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, self.tableFiles.height())).row()
+            else:
+                downRow = self.tableFiles.rowCount()
 
-        if self.tableFiles.itemAt(0, self.tableFiles.height()):
-            downRow = self.tableFiles.indexFromItem(self.tableFiles.itemAt(0, self.tableFiles.height())).row()
-        else:
-            downRow = self.tableFiles.rowCount()
+            for rowIndx in range(upRow, downRow):
+                # In order not to check the full range of all rows, add the ID of checked
+                # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
+                rowId = self.tableFiles.item(rowIndx, self.tableFilesColumnNumIndx).text()
+                if rowId not in self.tableFilesFileIsChecked or forcedCheck is True:
+                    self.tableFilesFileIsChecked[rowId] = True
+                    fullFilePath = self.tableFiles.item(rowIndx, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(rowIndx, self.tableFilesColumnFilnameIndx).text()
+                    if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
+                        fullFilePath = "\\\\?\\" + fullFilePath
+                    self.tableFilesFileIsChecked[rowId] = True
 
-        for rowIndx in range(upRow, downRow):
-            # In order not to check the full range of all rows, add the ID of checked
-            # rows in dict self.tableFilesFileIsChecked. This dictionary is reset with a new search.
-            rowId = self.tableFiles.item(rowIndx, self.tableFilesColumnNumIndx).text()
-            if rowId not in self.tableFilesFileIsChecked or forcedCheck is True:
-                self.tableFilesFileIsChecked[rowId] = True
-                fullFilePath = self.tableFiles.item(rowIndx, self.tableFilesColumnPathIndx).text() + self.tableFiles.item(rowIndx, self.tableFilesColumnFilnameIndx).text()
-                if isWindows and not utilities.str2bool(self.settings.value("disableWindowsLongPathSupport")):
-                    fullFilePath = "\\\\?\\" + fullFilePath
-                self.tableFilesFileIsChecked[rowId] = True
+                    self.checkingFileExistenceThreads[rowIndx] = FileExistenceChecker(rowIndx, fullFilePath)
+                    self.checkingFileExistenceThreads[rowIndx].rowSig.connect(self. paintRowInRed)
+                    self.checkingFileExistenceThreads[rowIndx].start()
 
-                self.checkingFileExistenceThreads[rowIndx] = FileExistenceChecker(rowIndx, fullFilePath)
-                self.checkingFileExistenceThreads[rowIndx].rowSig.connect(self. paint_row_in_red)
-                self.checkingFileExistenceThreads[rowIndx].start()
-
-    def paint_row_in_red(self, row):
+    def paintRowInRed(self, row):
         """Sets red background for row in search results"""
         for column in range(0, self.tableFiles.columnCount()):
             # setBackground instead of setBackgroundColor - for backward compatibility with pyside|qt4
@@ -1235,14 +1233,14 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     #
     ## CHECKING FILE EXISTENCE - END SECTION
 
-    def gui_elements_set_disabled(self, elements):
+    def guiElementsSetDisabled(self, elements):
         """Disable items on the list"""
         for element in elements:
             e = vars(self)[element]
             e.setDisabled(True)
 
-    def gui_elements_restore_states(self, elementsAndStates):
-        """Apply enabled state saved with gui_elements_get_states()"""
+    def guiElementsRestoreStates(self, elementsAndStates):
+        """Apply enabled state saved with get_states_of_gui_elements()"""
         elements = elementsAndStates["elements"]
         states  = elementsAndStates["states"]
 
@@ -1250,7 +1248,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             e = vars(self)[element]
             e.setEnabled(states[element])
 
-    def gui_elements_get_states(self, elements):
+    def get_states_of_gui_elements(self, elements):
         """Returns elements and 'isEnabled' states"""
         elementsStates = {}
         for element in elements:
@@ -1260,7 +1258,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         states = {"elements": elements, "states": elementsStates}
         return states
 
-    def apply_logging_level(self):
+    def applyLoggingLevel(self):
         # set non-default logging level
         if self.settings.value("LogLevel") == "INFO":
             logger.setLevel(logging.INFO)
@@ -1275,10 +1273,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if utilities.str2bool(self.settings.value("useExternalDatabase")) == True:
             # mysql part
             try:
-                self.mysql_establish_connection()
+                self.mysqlEstablishConnection()
             except:
                 QtWidgets.QMessageBox.warning(self, __appname__, "Database connection error.")
                 return
+
             cursor = self.dbConnMysql.cursor()
             query = """SELECT size FROM Files WHERE path LIKE %s AND removed > 0"""
             cursor.execute(query, (dir.replace('\\','\\\\') + "%",))
@@ -1324,7 +1323,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.tabsSearch.setTabEnabled(1, False)
             self.tabsSearch.setTabEnabled(2, True)
 
-    def load_pid_checker(self):
+    def loadPidChecker(self):
         """Starts thread with infinite checking pid file of indexing process"""
         self.mycheckScanPIDFileLoopThread = CheckScanPIDFileLoopThread()
         self.mycheckScanPIDFileLoopThread.pidFileExists.connect(self.checkScanPIDFileLoopEmitted)
