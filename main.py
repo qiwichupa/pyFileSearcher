@@ -350,7 +350,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         else:
             self.DBScanEngine = "MySQL"
             self.newRemovedKey = self.mysql_prepare_db_for_update()
-            if self.newRemovedKey != "Connection error":
+            if self.newRemovedKey:
                 for row in range(0, self.MySQLPathsTable.rowCount()):
                     path = self.MySQLPathsTable.item(row, 0).text()
                     self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings)
@@ -675,7 +675,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         try:
             self.mysql_establish_connection()
         except:
-            return("Connection error")
+            return False
 
         cursor = self.dbConnMysql.cursor()
         logger.info("MySQL preparation...")
@@ -696,7 +696,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.dbConnMysql.close()
         logger.info("MySQL preparation complete!")
-        return(newRemovedKey)
+        return newRemovedKey
 
     def mysql_post_update_procedure(self):
         """Depends on 'SaveRemovedFilesForDays' settings value:
@@ -705,11 +705,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         try:
             self.mysql_establish_connection()
         except:
-            os.remove(scanPIDFile)
             logger.warning("MySQL connection error in post-update procedure")
-            if isScanMode:
-                logger.info("isScanMode - exit app")
-                self.exitActionTriggered()
             return
 
         cursor = self.dbConnMysql.cursor()
@@ -776,7 +772,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         self.DBSettingsLabel.setText("Database \"DB" + str(DBNumber) + "\" settings")
 
-        return(True)
+        return True
 
     def create_db(self, DBNumber):
         """Create new sqlite database with default settings for slot N"""
@@ -1262,7 +1258,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             elementsStates[element] = e.isEnabled()
 
         states = {"elements": elements, "states": elementsStates}
-        return(states)
+        return states
 
     def apply_logging_level(self):
         # set non-default logging level
@@ -1317,7 +1313,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             filesCount += 1
 
         result = {"size": resultSize, "filesCount": filesCount}
-        return(result)
+        return result
 
     def refreshSQLTabs(self):
         """Switches the availability of external and internal database tabs depending on settings"""
@@ -1420,13 +1416,13 @@ class SizeItemDelegate(QtWidgets.QStyledItemDelegate):
         QtWidgets.QStyledItemDelegate.__init__(self)
 
     def displayText(self, value, locale=None):
-        return(utilities.get_humanized_size(value))
+        return utilities.get_humanized_size(value)
 
     def createEditor(self, parent, option, index):
         """custom readonly QlineEdit"""
         lineEdit = QtWidgets.QLineEdit(parent)
         lineEdit.setReadOnly(True)
-        return(lineEdit)
+        return lineEdit
 
 
 # SQLITE CLASSES
@@ -2080,7 +2076,7 @@ def unhandled_exception(exc_type, exc_value, exc_traceback):
     sys.exit(1)
 
 def get_db_path(DBNumber: int):
-    return(os.path.join(appDataPath,"DB" + str(DBNumber) + ".sqlite3"))
+    return os.path.join(appDataPath,"DB" + str(DBNumber) + ".sqlite3")
 
 def main():
     sys.excepthook = unhandled_exception
