@@ -1,13 +1,14 @@
 from os import scandir
 
 def str2bool(arg):
-    return(str(arg).lower() in ["true", "0", "ok"])
+    booled = str(arg).lower() in ["true", "0", "ok"]
+    return booled
 
 def bool2str(arg):
     if arg:
-        return("True")
+        return "True"
     else:
-        return("False")
+        return "False"
 
 def mysql_query_wildficator(query):
     wild_query = query.replace("%", "\%").replace("_", "\_").replace("*", "%").replace("?", "_")
@@ -19,9 +20,9 @@ def mysql_index_is_exists(connection, tablename, index):
     cursor.execute(sql, (index,))
     check = cursor.fetchall()
     if check:
-        return(True)
+        return True
     else:
-        return(False)
+        return False
 
 def sql_search_result_iterator(cursor, chunkSize=1000):
     while True:
@@ -61,7 +62,8 @@ def get_humanized_size(num, suffix='B'):
         if abs(num) < 1024.0:
             return "%3.1f%s%s" % (num, unit, suffix)
         num /= 1024.0
-    return("%.1f%s%s" % (num, 'Yi', suffix))
+    humanizedSizeString = "%.1f%s%s" % (num, 'Yi', suffix)
+    return humanizedSizeString
 
 def get_selected_rows_from_qtablewidget(qTableWidget, sortByColumn=0):
     indexes = qTableWidget.selectionModel().selectedRows(sortByColumn)
@@ -73,7 +75,7 @@ def get_selected_rows_from_qtablewidget(qTableWidget, sortByColumn=0):
         for column in range(0, qTableWidget.columnCount()):
             rowItems += [qTableWidget.item(row, column)]
         rows += [rowItems]
-    return(rows)
+    return rows
 
 class LoggerWriter:
     def __init__(self, level):
