@@ -350,11 +350,18 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         else:
             self.DBScanEngine = "MySQL"
             self.newRemovedKey = self.mysql_prepare_db_for_update()
-            for row in range(0, self.MySQLPathsTable.rowCount()):
-                path = self.MySQLPathsTable.item(row, 0).text()
-                self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings)
-                self.updateDBThreads[row].sigIsOver.connect(self.removeScanThreadWhenThreadIsOver)
-                self.updateDBThreads[row].start()
+            if self.newRemovedKey != "Connection error":
+                for row in range(0, self.MySQLPathsTable.rowCount()):
+                    path = self.MySQLPathsTable.item(row, 0).text()
+                    self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings)
+                    self.updateDBThreads[row].sigIsOver.connect(self.removeScanThreadWhenThreadIsOver)
+                    self.updateDBThreads[row].start()
+            else:
+                logger.critical("Scan was interrupted by MySQL connection error")
+                os.remove(scanPIDFile)
+                if isScanMode:
+                    logger.info("isScanMode - exit app")
+                    self.exitActionTriggered()
 
     def actionAboutEmitted(self):
         """Shows about dialog"""
@@ -659,13 +666,17 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 db=self.MySQLDBName.text())
         except Exception as e:
             logger.critical("mysql error connection error: " + str(e))
-            sys.exit(1)
+            raise Exception
 
     def mysql_prepare_db_for_update(self):
         """If there is - selects the first value of the column 'removed' and generates a random new one
             that does not coincide with it. When scanning, this value is set for all new or updated rows in the
             database to identify deleted files and delete them in mysql_post_update_procedure."""
-        self.mysql_establish_connection()
+        try:
+            self.mysql_establish_connection()
+        except:
+            return("Connection error")
+
         cursor = self.dbConnMysql.cursor()
         logger.info("MySQL preparation...")
 
@@ -691,7 +702,15 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Depends on 'SaveRemovedFilesForDays' settings value:
            deletes all rows whose column 'removed' value is different from the one selected in the mysql_prepare_db_for_update,
            or marks that rows by -1 value for 'removed' and cleanups db from old removed file records """
-        self.mysql_establish_connection()
+        try:
+            self.mysql_establish_connection()
+        except:
+            os.remove(scanPIDFile)
+            logger.warning("MySQL connection error in post-update procedure")
+            if isScanMode:
+                logger.info("isScanMode - exit app")
+                self.exitActionTriggered()
+            return
 
         cursor = self.dbConnMysql.cursor()
         logger.info("MySQL post-update procedure...")
@@ -970,8 +989,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     def removeScanThreadWhenThreadIsOver(self, ThreadNumber):
         """Catching signals of scanning threads. Removes a thread from the list of threads;
         if the list is empty, it starts the cleaning for MySQL and deletes the pid-file."""
-        self.updateDBThreads[ThreadNumber].wait()
-        del self.updateDBThreads[ThreadNumber]
+        try:
+            self.updateDBThreads[ThreadNumber].wait()
+            del self.updateDBThreads[ThreadNumber]
+        except:
+            pass
         logger.info("Scan thread #" + str(ThreadNumber) + " is over.")
         if len(self.updateDBThreads) == 0:
             if self.DBScanEngine == "MySQL":
@@ -1256,7 +1278,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         the total size of the directory and subdirectories, and the total number of files"""
         if utilities.str2bool(self.settings.value("useExternalDatabase")) == True:
             # mysql part
-            self.mysql_establish_connection()
+            try:
+                self.mysql_establish_connection()
+            except:
+                QtWidgets.QMessageBox.warning(self, __appname__, "Database connection error.")
+                return
             cursor = self.dbConnMysql.cursor()
             query = """SELECT size FROM Files WHERE path LIKE %s AND removed > 0"""
             cursor.execute(query, (dir.replace('\\','\\\\') + "%",))
@@ -1722,9 +1748,7 @@ class SearchInMySQLDB(QtCore.QThread):
     def run(self):
         self.mySQLSearch()
 
-    def mySQLSearch(self):
-        """Execute SQL query, emits values"""
-
+    def open_connection(self):
         try:
             self.dbConn = my_sql.connect(
                 host=self.settings.value("MySQL/MySQLServerAddress"),
@@ -1736,6 +1760,19 @@ class SearchInMySQLDB(QtCore.QThread):
             )
         except Exception as e:
             logger.critical("Connection error: " + str(e))
+            self.unlockSearchButton.emit(True)
+            self.searchComplete.emit()
+            raise Exception
+
+
+
+    def mySQLSearch(self):
+        """Execute SQL query, emits values"""
+
+        try:
+            self.open_connection()
+        except:
+            logger.warning("Searching interrupted")
             return
 
         dbCursor = self.dbConn.cursor()
@@ -1854,8 +1891,12 @@ class UpdateMysqlDBThread(QtCore.QThread):
 
     def run(self):
         logger.info("Scan thread #" + str(self.threadID) + ". Started. Path: " + self.path)
+        try:
+            self.open_connection()
+        except:
+            self.sigIsOver.emit(self.threadID)
+            return
 
-        self.open_connection()
 
         self.updateMysqlDB(self.path, self.removedKey)
         self.sigIsOver.emit(self.threadID)
@@ -1873,8 +1914,8 @@ class UpdateMysqlDBThread(QtCore.QThread):
             )
         except Exception as e:
             logger.critical("Scan thread #" + str(self.threadID) + ". MySQL connection error: " + str(e))
-            self.sigIsOver.emit(self.threadID)
-            self.exit()
+            raise Exception
+
 
     def execute_and_commit_to_db(self, sql, values):
         '''commit files to DB'''
@@ -1884,8 +1925,7 @@ class UpdateMysqlDBThread(QtCore.QThread):
             self.dbConn.commit()
         except Exception as e:
             logger.critical("Scan thread #" + str(self.threadID) + ". MySQL execute and commit error: " + str(e) + ". Stopping thread.")
-            self.sigIsOver.emit(self.threadID)
-            self.exit(1)
+            raise Exception
         dbCursor.close()
 
     def updateMysqlDB(self, rootpath, removedKey):
@@ -1912,7 +1952,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
             # commit to DB every N (sqlTransactionLimit) files
             if sqlTransactionCounter >= sqlTransactionLimit:
                 logger.debug("Scan thread #" + str(self.threadID) + ", starting commit to MySQL. Files indexed: " + str(filesIndexed))
-                self.execute_and_commit_to_db(sql, varsArr)
+                try:
+                    self.execute_and_commit_to_db(sql, varsArr)
+                except:
+                    return
 
                 logger.debug("Scan thread #" + str(self.threadID) + ", comitted to MySQL. Files indexed: " + str(filesIndexed))
                 sqlTransactionCounter = 0
@@ -1938,7 +1981,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
             sqlTransactionCounter += 1
 
         logger.debug("Scan thread #" + str(self.threadID) + ", starting FINAL commit to MySQL. Files indexed: " + str(filesIndexed))
-        self.execute_and_commit_to_db(sql, varsArr)
+        try:
+            self.execute_and_commit_to_db(sql, varsArr)
+        except:
+            return
         logger.info("Scan thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(filesIndexed))
 
 
