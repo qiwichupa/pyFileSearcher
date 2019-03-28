@@ -232,7 +232,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.MySQLPathsTable.itemSelectionChanged.connect(self.mySQLPathsTableItemSelectionChanged)
 
         ## Load Settings
-        self.load_initial_settings()
+        self.loadInitialSettings()
 
         ## Checking pid file of indexing process for locking some parts of interface
         self.loadPidChecker()
@@ -242,7 +242,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             logger.info("Scan is running with command promt parameter!")
             self.updateDBEmitted()
 
-    def load_initial_settings(self):
+    def loadInitialSettings(self):
         """Load initial settings from configuration file and database"""
 
         if not self.settings.value("LogLevel"):
