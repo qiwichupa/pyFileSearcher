@@ -247,6 +247,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         if not self.settings.value("LogLevel"):
             self.settings.setValue("LogLevel", "INFO")
+        if not self.settings.value("sqlTransactionLimit"):
+            self.settings.setValue("sqlTransactionLimit", "20000")
         if not self.settings.value("SaveRemovedFilesForDays"):
             self.settings.setValue("SaveRemovedFilesForDays", "0")
         if not self.settings.value("DBCount"):
@@ -318,7 +320,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                       "disableWindowsLongPathSupport": self.settings.value("disableWindowsLongPathSupport"),
                       "maxSearchResults": self.settings.value("maxSearchResults"),
                       "LogLevel": self.settings.value("LogLevel"),
-                      "SaveRemovedFilesForDays": self.settings.value("SaveRemovedFilesForDays")
+                      "SaveRemovedFilesForDays": self.settings.value("SaveRemovedFilesForDays"),
+                      "sqlTransactionLimit": self.settings.value("sqlTransactionLimit")
                       }
         dialog = PreferencesDialog(initValues)
         if dialog.exec_():
@@ -328,6 +331,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             self.settings.setValue("maxSearchResults", str(dialog.PREFMaxSearchResults.value()))
             self.settings.setValue("LogLevel", dialog.PREFLoggingLevel.currentText())
             self.settings.setValue("SaveRemovedFilesForDays", dialog.PREFSaveRemovedInfoDays.value())
+            self.settings.setValue("sqlTransactionLimit", dialog.PREFsqlTransactionLimit.value())
 
             self.refreshSQLTabs()
             self.applyLoggingLevel()
@@ -1941,7 +1945,7 @@ class UpdateMysqlDBThread(QtCore.QThread):
 
         filesIndexed = 0
 
-        sqlTransactionLimit = 20000
+        sqlTransactionLimit = int(self.settings.value("sqlTransactionLimit"))
         sqlTransactionCounter = 0
         varsArr = []
         # "indexed= IF... removed=..." order is important!!!!
@@ -2043,6 +2047,7 @@ class PreferencesDialog(QtWidgets.QDialog, pyPreferences.Ui_Dialog):
         self.PREFUseExternalDB.setChecked(utilities.str2bool(initValues["useExternalDatabase"]))
         self.PREFMaxSearchResults.setValue(int(initValues["maxSearchResults"]))
         self.PREFSaveRemovedInfoDays.setValue(int(initValues["SaveRemovedFilesForDays"]))
+        self.PREFsqlTransactionLimit.setValue(int(initValues["sqlTransactionLimit"]))
 
         indx = self.PREFLoggingLevel.findText(initValues["LogLevel"])
         self.PREFLoggingLevel.setCurrentIndex(indx)
