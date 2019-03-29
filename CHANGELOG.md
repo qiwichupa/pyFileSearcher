@@ -1,5 +1,6 @@
 * feature: saving information about deleted files, searching them
 * feature: fast calculation of the size of the directory (with subdirectories) according to data from the database
+* feature: the function of copying selected rows to the clipboard
 * ui: human format (1024 -> 1KiB, etc.) for the size of files in the result table
 * ui: "stop" function for "search" button
 * ui: transaction limit for mysql added to preferences
