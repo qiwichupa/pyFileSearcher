@@ -1027,7 +1027,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             except:
                 pass
             return
-        elif self.btnSearch.text() == "Search...":
+        elif self.btnSearch.text() == "Search..." or "Search in removed...":
             self.startSearching()
 
     def startSearching(self):
@@ -1474,6 +1474,7 @@ class UpdateSqliteDBThread(QtCore.QThread):
 
         timer = time.time()
         filesIndexed = 0
+        filesCommited = 0
 
         for entry in utilities.scantree(rootpath):
             if entry.is_file():
@@ -1481,15 +1482,16 @@ class UpdateSqliteDBThread(QtCore.QThread):
 
                 # commit every 3 sec
                 if time.time() - timer > 4:
-                    logger.debug("Scan thread #" + str(self.DBNumber) +  ". Commiting to DB")
+                    logger.debug("Scan thread #" + str(self.DBNumber) +  ". Committing to DB " + str(filesCommited) + " files.")
                     self.dbConn.commit()
+                    logger.debug("Scan thread #" + str(self.DBNumber) + ". Committed.")
                     self.dbConn.close()
-                    logger.debug("Scan thread #" + str(self.DBNumber) + ". Connection closed")
                     time.sleep(0.1)
                     logger.debug("Scan thread #" + str(self.DBNumber) + ". Open new connection to db")
                     self.dbConn = sqlite3.connect(get_db_path(self.DBNumber))
                     self.dbCursor = self.dbConn.cursor()
                     timer = time.time()
+                    filesCommited = 0
 
                 try:
                     name = entry.name
@@ -1526,6 +1528,7 @@ class UpdateSqliteDBThread(QtCore.QThread):
                         self.dbCursor.execute("INSERT OR REPLACE INTO Files VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
                                               (key, "1", name, path, size, ctime, mtime, indexed))
                         filesIndexed += 1
+                        filesCommited += 1
                 except Exception as e:
                     logger.critical("Error while scan and update DB: " + str(e) + ". Stopping thread.")
                     self.sigIsOver.emit(self.DBNumber)
