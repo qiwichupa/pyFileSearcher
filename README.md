@@ -5,6 +5,7 @@ The program is written in Python 3 using the Qt5.
 
 ## What are you getting
 * Search by name, size, file type. Search by part of the path. Search for files listed in the index no earlier than N days ago
+* Saving information about deleted files, searching for them as well as for regular files
 * Ability to save search settings for future use
 * Ability to save search results in csv
 * Highlighting non-existent (deleted) files in search results
