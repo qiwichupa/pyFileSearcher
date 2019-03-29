@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Tue Mar 26 14:48:58 2019
+# Created: Fri Mar 29 11:05:06 2019
 #      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -202,9 +202,11 @@ class Ui_MainWindow(object):
         self.FilterLabelSavedFilters.setGeometry(QtCore.QRect(10, 106, 91, 14))
         self.FilterLabelSavedFilters.setObjectName("FilterLabelSavedFilters")
         self.FilterListRemoveButton = QtWidgets.QPushButton(self.frame_2)
+        self.FilterListRemoveButton.setEnabled(False)
         self.FilterListRemoveButton.setGeometry(QtCore.QRect(110, 126, 15, 20))
         self.FilterListRemoveButton.setObjectName("FilterListRemoveButton")
         self.FilterListSaveButton = QtWidgets.QPushButton(self.frame_2)
+        self.FilterListSaveButton.setEnabled(False)
         self.FilterListSaveButton.setGeometry(QtCore.QRect(230, 126, 15, 20))
         self.FilterListSaveButton.setObjectName("FilterListSaveButton")
         self.FilterListComboBox = QtWidgets.QComboBox(self.frame_2)
