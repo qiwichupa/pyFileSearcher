@@ -3,8 +3,8 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Fri Mar 29 15:20:18 2019
-#      by: pyside2-uic  running on PySide2 5.12.1
+# Created: Fri Mar 29 17:37:04 2019
+#      by: pyside2-uic  running on PySide2 5.12.0
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -450,6 +450,7 @@ class Ui_MainWindow(object):
         self.cmdCopySelectedToClipboard = QtWidgets.QAction(MainWindow)
         self.cmdCopySelectedToClipboard.setObjectName("cmdCopySelectedToClipboard")
         self.menuFile.addAction(self.actionStartScan)
+        self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionPreferences)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)

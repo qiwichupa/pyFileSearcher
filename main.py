@@ -246,13 +246,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             logger.info("Scan is running with command promt parameter!")
             self.updateDBEmitted()
 
-    def keyPressEvent(self, e):
-        """Key mods"""
-        if (e.modifiers() & QtCore.Qt.ControlModifier): # CTRL+...
-
-            if e.key() == QtCore.Qt.Key_C:  # CTRL+C
-                self.copySelectedToClipboard()
-
     def loadInitialSettings(self):
         """Load initial settings from configuration file and database"""
 
@@ -1374,6 +1367,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         """Overrides the default close method"""
         self.mycheckScanPIDFileLoopThread.stop()
         self.mycheckScanPIDFileLoopThread.wait()
+
+    def keyPressEvent(self, e):
+        """Key mods"""
+        if (e.modifiers() & QtCore.Qt.ControlModifier): # CTRL+...
+
+            if e.key() == QtCore.Qt.Key_C:  # CTRL+C
+                self.copySelectedToClipboard()
 
 
 # PID-FILE CHECKER
