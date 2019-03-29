@@ -3,6 +3,8 @@ pyFileSearcher was designed to be lightweight, easy to use, but capable of handl
 
 The program is written in Python 3 using the Qt5.
 
+![main](https://user-images.githubusercontent.com/132103/55246962-76c89500-5257-11e9-93a3-991324614577.png)
+
 ## What are you getting
 * Search by name, size, file type. Search by part of the path. Search for files listed in the index no earlier than N days ago
 * Saving information about deleted files, searching for them as well as for regular files
