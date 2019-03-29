@@ -1,3 +1,6 @@
+# Changelog
+
+## 1.1.0
 * feature: saving information about deleted files, searching them
 * feature: fast calculation of the size of the directory (with subdirectories) according to data from the database
 * feature: the function of copying selected rows to the clipboard
