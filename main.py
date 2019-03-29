@@ -1026,9 +1026,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.SearchInDBThread.stop()
             except:
                 pass
-            return
         elif self.btnSearch.text() == "Search..." or "Search in removed...":
             self.startSearching()
+        elif self.btnSearch.text() == "Wait":
+            pass
+        else:
+            pass
 
     def startSearching(self):
         """Cleans the results table, collects filters, runs the search threads depending on the database used."""
