@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'preferences.ui',
 # licensing of 'preferences.ui' applies.
 #
-# Created: Fri Mar 29 11:32:26 2019
+# Created: Fri Mar 29 11:38:48 2019
 #      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -90,7 +90,7 @@ class Ui_Dialog(object):
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(QtWidgets.QApplication.translate("Dialog", "Dialog", None, -1))
         self.PREFUseExternalDB.setText(QtWidgets.QApplication.translate("Dialog", "Use MySQL", None, -1))
-        self.label_3.setText(QtWidgets.QApplication.translate("Dialog", "Save removed files info for a days", None, -1))
+        self.label_3.setText(QtWidgets.QApplication.translate("Dialog", "Save removed files info for a days:", None, -1))
         self.label_5.setText(QtWidgets.QApplication.translate("Dialog", "<html><head/><body><p><span style=\" color:#000000;\">MySQL update limit (files per transaction):</span></p></body></html>", None, -1))
         self.label_6.setText(QtWidgets.QApplication.translate("Dialog", "<html><head/><body><p>These settings should remain default in most cases.</p></body></html>", None, -1))
         self.label.setText(QtWidgets.QApplication.translate("Dialog", "Maximum search results by default: ", None, -1))
