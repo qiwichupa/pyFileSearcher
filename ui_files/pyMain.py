@@ -3,7 +3,7 @@
 # Form implementation generated from reading ui file 'main.ui',
 # licensing of 'main.ui' applies.
 #
-# Created: Fri Mar 29 11:05:06 2019
+# Created: Fri Mar 29 15:20:18 2019
 #      by: pyside2-uic  running on PySide2 5.12.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -447,6 +447,8 @@ class Ui_MainWindow(object):
         self.cmdCalculateFolderSize.setObjectName("cmdCalculateFolderSize")
         self.toolsFolderSize = QtWidgets.QAction(MainWindow)
         self.toolsFolderSize.setObjectName("toolsFolderSize")
+        self.cmdCopySelectedToClipboard = QtWidgets.QAction(MainWindow)
+        self.cmdCopySelectedToClipboard.setObjectName("cmdCopySelectedToClipboard")
         self.menuFile.addAction(self.actionStartScan)
         self.menuFile.addAction(self.actionPreferences)
         self.menuFile.addSeparator()
@@ -459,6 +461,8 @@ class Ui_MainWindow(object):
         self.menuHelp.addAction(self.actionAbout)
         self.menuCommands.addAction(self.cmdOpenFolder)
         self.menuCommands.addAction(self.cmdMoveFilesToTrash)
+        self.menuCommands.addSeparator()
+        self.menuCommands.addAction(self.cmdCopySelectedToClipboard)
         self.menuCommands.addSeparator()
         self.menuCommands.addAction(self.cmdExportSelectedToCSV)
         self.menuCommands.addAction(self.cmdExportAllToCSV)
@@ -598,5 +602,6 @@ class Ui_MainWindow(object):
         self.cmdCalculateFolderSize.setText(QtWidgets.QApplication.translate("MainWindow", "Calculate folder size", None, -1))
         self.toolsFolderSize.setText(QtWidgets.QApplication.translate("MainWindow", "Folder size...", None, -1))
         self.toolsFolderSize.setShortcut(QtWidgets.QApplication.translate("MainWindow", "Ctrl+S", None, -1))
+        self.cmdCopySelectedToClipboard.setText(QtWidgets.QApplication.translate("MainWindow", "Copy selected to clipboard", None, -1))
 
 import icons_rc

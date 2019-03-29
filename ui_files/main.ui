@@ -1100,6 +1100,8 @@
     <addaction name="cmdOpenFolder"/>
     <addaction name="cmdMoveFilesToTrash"/>
     <addaction name="separator"/>
+    <addaction name="cmdCopySelectedToClipboard"/>
+    <addaction name="separator"/>
     <addaction name="cmdExportSelectedToCSV"/>
     <addaction name="cmdExportAllToCSV"/>
     <addaction name="separator"/>
@@ -1202,6 +1204,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="cmdCopySelectedToClipboard">
+   <property name="text">
+    <string>Copy selected to clipboard</string>
    </property>
   </action>
  </widget>

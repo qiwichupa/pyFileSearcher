@@ -110,10 +110,11 @@ else:
 
 # MAIN APPLICATION CLASS
 class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
-    sigUpdateDB = QtCore.Signal(str)
+    #sigUpdateDB = QtCore.Signal(str)
     checkingFileExistenceThreads = {}
     dbConn = {}
     tableFilesItemDelegates = {}
+
 
     tableFilesColumnNumIndx = 0
     tableFilesColumnFilnameIndx = 1
@@ -129,6 +130,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.setupUi(self)
 
         self.setWindowTitle(__appname__ + " (v. " + __version__ + ")")
+
+        self.clip = QtWidgets.QApplication.clipboard()
 
         self.settings = QtCore.QSettings(os.path.join(appDataPath, "settings.ini"), QtCore.QSettings.IniFormat)
         self.settings.setIniCodec("UTF-8")
@@ -146,6 +149,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.menuCommands.aboutToShow.connect(self.setCommandsMenu)
         self.cmdOpenFolder.triggered.connect(self.menuOpenFolder)
         self.cmdMoveFilesToTrash.triggered.connect(self.menuDeleteFiles)
+        self.cmdCopySelectedToClipboard.triggered.connect(self.menuCopySelectedToClipboard)
         self.cmdExportSelectedToCSV.triggered.connect(self.menuExportSelectedToCsv)
         self.cmdExportAllToCSV.triggered.connect(self.menuExportAllToCsv)
         self.cmdCalculateFolderSize.triggered.connect(self.menuCalculateFolderSize)
@@ -241,6 +245,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if isScanMode:
             logger.info("Scan is running with command promt parameter!")
             self.updateDBEmitted()
+
+    def keyPressEvent(self, e):
+        """Key mods"""
+        if (e.modifiers() & QtCore.Qt.ControlModifier): # CTRL+...
+
+            if e.key() == QtCore.Qt.Key_C:  # CTRL+C
+                self.copySelectedToClipboard()
 
     def loadInitialSettings(self):
         """Load initial settings from configuration file and database"""
@@ -891,8 +902,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
         if len(self.tableFiles.selectedItems()) == 0:
             self.cmdExportSelectedToCSV.setDisabled(True)
+            self.cmdCopySelectedToClipboard.setDisabled(True)
         else:
             self.cmdExportSelectedToCSV.setDisabled(False)
+            self.cmdCopySelectedToClipboard.setDisabled(False)
 
         if self.tableFiles.rowCount() == 0:
             self.cmdExportAllToCSV.setDisabled(True)
@@ -943,6 +956,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 QtWidgets.QMessageBox.warning(self, __appname__, "Error while removing file(s):\n\n" + "\n".join(errs))
             self.checkFilesExistence(forcedCheck=True)
 
+    def menuCopySelectedToClipboard(self):
+        """Copy selected to clipboard"""
+        self.copySelectedToClipboard()
+
     def menuExportSelectedToCsv(self):
         """Exports selected rows to csv"""
         csvObj = QtWidgets.QFileDialog.getSaveFileName(parent=None, caption=__appname__ + " - Save as csv",
@@ -983,6 +1000,18 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                                           "\n\nTotal size: " + utilities.get_humanized_size(result["size"]) + " (" + str(result["size"]) + ")" +
                                           "\n\nTotal files:  " + str(result["filesCount"])
                                           )
+
+    def copySelectedToClipboard(self):
+        """Sends selected rows to clipboard as tab-separated text"""
+        rows = utilities.get_selected_rows_from_qtablewidget(self.tableFiles)
+        strings = []
+        for row in rows:
+            textRow = []
+            for item in row:
+                textRow += [item.text()]
+            strings += ["\t".join(textRow)]
+        result = "\n".join(strings)
+        self.clip.setText(result)
 
     #
     # TABLE CONTEXT MENU - END SECTION
