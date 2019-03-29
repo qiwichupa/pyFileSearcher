@@ -250,7 +250,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if not self.settings.value("sqlTransactionLimit"):
             self.settings.setValue("sqlTransactionLimit", "20000")
         if not self.settings.value("SaveRemovedFilesForDays"):
-            self.settings.setValue("SaveRemovedFilesForDays", "0")
+            self.settings.setValue("SaveRemovedFilesForDays", "1")
         if not self.settings.value("DBCount"):
             self.settings.setValue("DBCount", "1")
         if not self.settings.value("useExternalDatabase"):
