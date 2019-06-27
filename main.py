@@ -26,6 +26,7 @@ import logging
 import os
 import pathlib
 import platform
+import psutil
 import random
 import re
 import sqlite3
@@ -45,7 +46,7 @@ from ui_files import pyLogViewer
 from ui_files import pyFolderSize
 
 __appname__ = "pyFileSearcher"
-__version__ = "1.1.0-devel1"
+__version__ = "1.1.0-devel2"
 
 # get path of program dir.
 # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
@@ -345,7 +346,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             an internal or external database. For each thread, an updateDBThreads element is created, which is
             subsequently deleted to determine the end of the scan."""
         logger.info(">> INDEXING STARTED. Creating PID-file: " + scanPIDFile)
-        os.close(os.open(scanPIDFile, os.O_CREAT))
+        #os.close(os.open(scanPIDFile, os.O_CREAT))
+        with open(scanPIDFile, "w") as pidf:
+            pidf.write("%s\n" % os.getpid())
 
         self.updateDBThreads = {}
 
@@ -2121,8 +2124,14 @@ def main():
     sys.excepthook = unhandled_exception
 
     if isScanMode and os.path.isfile(scanPIDFile):
-        logger.warning("Scan is running already, check PID file. App closed.")
-        sys.exit(0)
+        logger.warning("PID file found. Scan is running already? Let's see on PID...")
+        with open(scanPIDFile, "r") as pidf:
+            pidFromFile = int(pidf.read())
+        if psutil.pid_exists(pidFromFile):
+            logger.warning("PID from file: " + str(pidFromFile) + ". There is process with that PID now! It seems scan is running, this copy of program will be closed. Bye!" )
+            sys.exit(0)
+        else:
+            logger.warning("PID from file: " + str(pidFromFile) + ". There is no process with that PID now! Loading scanner...")
 
     QtCore.QCoreApplication.setApplicationName(__appname__)
     QtCore.QCoreApplication.setApplicationVersion(str(__version__))
