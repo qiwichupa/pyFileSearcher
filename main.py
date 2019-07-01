@@ -46,7 +46,7 @@ from ui_files import pyLogViewer
 from ui_files import pyFolderSize
 
 __appname__ = "pyFileSearcher"
-__version__ = "1.1.0-devel2"
+__version__ = "1.1.1"
 
 # get path of program dir.
 # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
@@ -253,7 +253,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if not self.settings.value("LogLevel"):
             self.settings.setValue("LogLevel", "INFO")
         if not self.settings.value("sqlTransactionLimit"):
-            self.settings.setValue("sqlTransactionLimit", "20000")
+            self.settings.setValue("sqlTransactionLimit", "1000")
         if not self.settings.value("SaveRemovedFilesForDays"):
             self.settings.setValue("SaveRemovedFilesForDays", "1")
         if not self.settings.value("DBCount"):
@@ -346,7 +346,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             an internal or external database. For each thread, an updateDBThreads element is created, which is
             subsequently deleted to determine the end of the scan."""
         logger.info(">> INDEXING STARTED. Creating PID-file: " + scanPIDFile)
-        #os.close(os.open(scanPIDFile, os.O_CREAT))
+        # create PID file and write PID to it
         with open(scanPIDFile, "w") as pidf:
             pidf.write("%s\n" % os.getpid())
 
@@ -2123,6 +2123,7 @@ def get_db_path(DBNumber: int):
 def main():
     sys.excepthook = unhandled_exception
 
+    # before running scan (with "--scan" key) we must check the PID file and make sure that the PID specified in it is not present in the system
     if isScanMode and os.path.isfile(scanPIDFile):
         logger.warning("PID file found. Scan is running already? Let's see on PID...")
         with open(scanPIDFile, "r") as pidf:

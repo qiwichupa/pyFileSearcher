@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+* fix: saving the pid process to a pid file. Additional verification reduces the chance of stopping scan execution when the pid file has not been deleted.
+* other: default "sqlTransactionLimit" changed from 20000 to 1000
+
 ## 1.1.0
 * feature: saving information about deleted files, searching them
 * feature: fast calculation of the size of the directory (with subdirectories) according to data from the database
