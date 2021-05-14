@@ -16,8 +16,8 @@ import send2trash
 # So I prefer mysqlclient (MySQLdb fork - https://pypi.org/project/mysqlclient) - it's fully compatible.
 # But with python 3.4 and PySide - for win 2003 server build -  mysql.connector works fine,
 # and mysqlclient is difficult to install. So I leave both of it here.
-import MySQLdb as my_sql
-# import mysql.connector as my_sql
+#import MySQLdb as my_sql
+import mysql.connector as my_sql
 
 
 import csv
@@ -125,6 +125,11 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     tableFilesColumnIndexedIndx = 5
     tableFilesColumnCreatedIndx = 6
     tableFilesColumnPathIndx = 7
+
+    mysqlLengthOfRow = {}
+    mysqlLengthOfRow["Type"] = 12
+    mysqlLengthOfRow["Path"] = 2000
+    mysqlLengthOfRow["Filename"] = 300
 
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self)
@@ -581,9 +586,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             dbCursor.execute("""CREATE TABLE IF NOT EXISTS Files(
                                 hash CHAR(32), 
                                 removed TINYINT(1),
-                                filename VARCHAR(300),
-                                type VARCHAR(8),  
-                                path VARCHAR(2000), 
+                                filename VARCHAR({mysqlLengthOfRowFilename}),
+                                type VARCHAR({mysqlLengthOfRowType}),  
+                                path VARCHAR({mysqlLengthOfRowPath}), 
                                 size BIGINT, 
                                 created INT, modified INT, 
                                 indexed INT,
@@ -623,7 +628,12 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                                 PARTITION p25 VALUES LESS THAN ('z'),
                                 PARTITION p26 VALUES LESS THAN (MAXVALUE)
                                 );
-                                """)
+                                """.format(
+                                mysqlLengthOfRowType=self.mysqlLengthOfRow["Type"],
+                                mysqlLengthOfRowPath=self.mysqlLengthOfRow["Path"],
+                                mysqlLengthOfRowFilename=self.mysqlLengthOfRow["Filename"]
+                                )
+                             )
             dbConn.commit()
             self.MySQLInitDBButton.setText("Complete!")
             self.MySQLInitDBCheckBox.setChecked(False)
