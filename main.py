@@ -2016,10 +2016,13 @@ class UpdateMysqlDBThread(QtCore.QThread):
             # cut name if mysql row too short
             if len(name) > self.mysqlLengthOfColumn["Filename"]:
                 self.mysqlRowLimitMarker = 1
+                origname = name
                 head = "TOOLONG/"
                 tail = ".."
                 cutval = self.mysqlLengthOfColumn["Filename"] - len(head) - len(tail)
                 name = head + name[:cutval] + tail
+                logger.debug("Scan thread # {id} the filename is too large to write to the database. "
+                             "File: {origname}. Saved as: {name}".format(id=str(self.threadID), origname=origname, name=name))
 
             ext = utilities.get_extension_from_filename(name)
             # cut extention if mysql row too short
@@ -2037,10 +2040,13 @@ class UpdateMysqlDBThread(QtCore.QThread):
             # cut path if mysql row too short
             if len(path) > self.mysqlLengthOfColumn["Path"]:
                 self.mysqlRowLimitMarker = 1
+                origpath=path
                 head = "TOOLONG/"
                 tail = ".."
                 cutval = self.mysqlLengthOfColumn["Path"] - len(head) - len(tail)
                 path = head + path[:cutval] + tail
+                logger.debug("Scan thread # {id} the path is too large to write to the database. "
+                             "Original path: '{origpath}'. Saved as: '{path}'".format(id=str(self.threadID), origpath=origpath, path=path))
 
             size = int(entry.stat().st_size)
             mtime = int(entry.stat().st_mtime)
