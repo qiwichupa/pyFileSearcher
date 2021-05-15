@@ -126,10 +126,10 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     tableFilesColumnCreatedIndx = 6
     tableFilesColumnPathIndx = 7
 
-    mysqlLengthOfRow = {}
-    mysqlLengthOfRow["Type"] = 12
-    mysqlLengthOfRow["Path"] = 2000
-    mysqlLengthOfRow["Filename"] = 300
+    mysqlLengthOfColumn = {}
+    mysqlLengthOfColumn["Type"] = 8
+    mysqlLengthOfColumn["Path"] = 2000
+    mysqlLengthOfColumn["Filename"] = 300
 
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self)
@@ -369,7 +369,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             if self.newRemovedKey:
                 for row in range(0, self.MySQLPathsTable.rowCount()):
                     path = self.MySQLPathsTable.item(row, 0).text()
-                    self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings)
+                    self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings, self.mysqlLengthOfColumn)
                     self.updateDBThreads[row].sigIsOver.connect(self.removeScanThreadWhenThreadIsOver)
                     self.updateDBThreads[row].start()
             else:
@@ -586,9 +586,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             dbCursor.execute("""CREATE TABLE IF NOT EXISTS Files(
                                 hash CHAR(32), 
                                 removed TINYINT(1),
-                                filename VARCHAR({mysqlLengthOfRowFilename}),
-                                type VARCHAR({mysqlLengthOfRowType}),  
-                                path VARCHAR({mysqlLengthOfRowPath}), 
+                                filename VARCHAR({mysqlLengthOfColumnFilename}),
+                                type VARCHAR({mysqlLengthOfColumnType}),  
+                                path VARCHAR({mysqlLengthOfColumnPath}), 
                                 size BIGINT, 
                                 created INT, modified INT, 
                                 indexed INT,
@@ -629,9 +629,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                                 PARTITION p26 VALUES LESS THAN (MAXVALUE)
                                 );
                                 """.format(
-                                mysqlLengthOfRowType=self.mysqlLengthOfRow["Type"],
-                                mysqlLengthOfRowPath=self.mysqlLengthOfRow["Path"],
-                                mysqlLengthOfRowFilename=self.mysqlLengthOfRow["Filename"]
+                                mysqlLengthOfColumnType=self.mysqlLengthOfColumn["Type"],
+                                mysqlLengthOfColumnPath=self.mysqlLengthOfColumn["Path"],
+                                mysqlLengthOfColumnFilename=self.mysqlLengthOfColumn["Filename"]
                                 )
                              )
             dbConn.commit()
@@ -1928,14 +1928,16 @@ class SearchInMySQLDB(QtCore.QThread):
 class UpdateMysqlDBThread(QtCore.QThread):
     sigIsOver = QtCore.Signal(int)
     dbConn = None
+    mysqlRowLimitMarker = 0
 
-    def __init__(self, path, threadID, removedKey, settings, parent=None):
+    def __init__(self, path, threadID, removedKey, settings, mysqlLengthOfColumn, parent=None):
         QtCore.QThread.__init__(self)
 
         self.settings = settings
         self.path = path
         self.threadID = threadID
         self.removedKey = int(removedKey)
+        self.mysqlLengthOfColumn = mysqlLengthOfColumn
 
     def run(self):
         logger.info("Scan thread #" + str(self.threadID) + ". Started. Path: " + self.path)
@@ -2009,12 +2011,37 @@ class UpdateMysqlDBThread(QtCore.QThread):
                 varsArr = []
 
             hash = md5()
+
             name = entry.name
+            # cut name if mysql row too short
+            if len(name) > self.mysqlLengthOfColumn["Filename"]:
+                self.mysqlRowLimitMarker = 1
+                head = "TOOLONG/"
+                tail = ".."
+                cutval = self.mysqlLengthOfColumn["Filename"] - len(head) - len(tail)
+                name = head + name[:cutval] + tail
+
             ext = utilities.get_extension_from_filename(name)
+            # cut extention if mysql row too short
+            if len(ext) > self.mysqlLengthOfColumn["Type"]:
+                self.mysqlRowLimitMarker = 1
+                ext = "TOOLONG"
+                logger.debug("Scan thread # {id} the extension is too large to write to the database. "
+                               "File: {filename}. You will not be able to search for"
+                               " this file by its real extension, only as: {ext}".format(id=str(self.threadID), filename=entry.name, ext=ext))
+
             fullname = entry.path  # full path + filename
-            path = fullname[:-len(name)]
+            path = fullname[:-len(entry.name)]
             if self.windowsLongPathHack:
                 path = path[4:]
+            # cut path if mysql row too short
+            if len(path) > self.mysqlLengthOfColumn["Path"]:
+                self.mysqlRowLimitMarker = 1
+                head = "TOOLONG/"
+                tail = ".."
+                cutval = self.mysqlLengthOfColumn["Path"] - len(head) - len(tail)
+                path = head + path[:cutval] + tail
+
             size = int(entry.stat().st_size)
             mtime = int(entry.stat().st_mtime)
             ctime = int(entry.stat().st_ctime)
@@ -2033,6 +2060,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
         except:
             return
         logger.info("Scan thread #" + str(self.threadID) + " FINAL commit complete. Files indexed (total in thread):" + str(filesIndexed))
+        if self.mysqlRowLimitMarker is 1:
+            logger.warning("Scan thread #" + str(self.threadID) + ". Some information has exceeded "
+                                                               "the size of the database columns and has been replaced or shrunk. "
+                                                               "Use the debug log level when scanning for more information.")
 
 
 # DIALOG CLASSES
