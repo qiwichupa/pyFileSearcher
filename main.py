@@ -126,10 +126,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     tableFilesColumnCreatedIndx = 6
     tableFilesColumnPathIndx = 7
 
-    mysqlLengthOfColumn = {}
-    mysqlLengthOfColumn["Type"] = 8
-    mysqlLengthOfColumn["Path"] = 2000
-    mysqlLengthOfColumn["Filename"] = 300
 
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self)
@@ -300,6 +296,13 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         self.DBCount.setValue(DBCount)
 
         # Mysql
+        if not self.settings.value("mysqlLengthOfColumnType"):
+            self.settings.setValue("mysqlLengthOfColumnType", "8")
+        if not self.settings.value("mysqlLengthOfColumnPath"):
+            self.settings.setValue("mysqlLengthOfColumnPath", "2000")
+        if not self.settings.value("mysqlLengthOfColumnFilename"):
+            self.settings.setValue("mysqlLengthOfColumnFilename", "300")
+
         if not self.settings.value("MySQL/MySQLServerPort"):
             self.settings.setValue("MySQL/MySQLServerPort", "3306")
 
@@ -369,7 +372,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             if self.newRemovedKey:
                 for row in range(0, self.MySQLPathsTable.rowCount()):
                     path = self.MySQLPathsTable.item(row, 0).text()
-                    self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings, self.mysqlLengthOfColumn)
+                    self.updateDBThreads[row] = UpdateMysqlDBThread(path, row, self.newRemovedKey, self.settings)
                     self.updateDBThreads[row].sigIsOver.connect(self.removeScanThreadWhenThreadIsOver)
                     self.updateDBThreads[row].start()
             else:
@@ -629,9 +632,9 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                                 PARTITION p26 VALUES LESS THAN (MAXVALUE)
                                 );
                                 """.format(
-                                mysqlLengthOfColumnType=self.mysqlLengthOfColumn["Type"],
-                                mysqlLengthOfColumnPath=self.mysqlLengthOfColumn["Path"],
-                                mysqlLengthOfColumnFilename=self.mysqlLengthOfColumn["Filename"]
+                                mysqlLengthOfColumnType=int(self.settings.value("mysqlLengthOfColumnType")),
+                                mysqlLengthOfColumnPath=int(self.settings.value("mysqlLengthOfColumnPath")),
+                                mysqlLengthOfColumnFilename=int(self.settings.value("mysqlLengthOfColumnFilename"))
                                 )
                              )
             dbConn.commit()
@@ -1930,14 +1933,16 @@ class UpdateMysqlDBThread(QtCore.QThread):
     dbConn = None
     mysqlRowLimitMarker = 0
 
-    def __init__(self, path, threadID, removedKey, settings, mysqlLengthOfColumn, parent=None):
+    def __init__(self, path, threadID, removedKey, settings, parent=None):
         QtCore.QThread.__init__(self)
 
         self.settings = settings
         self.path = path
         self.threadID = threadID
         self.removedKey = int(removedKey)
-        self.mysqlLengthOfColumn = mysqlLengthOfColumn
+        self.mysqlLengthOfColumnType = int(self.settings.value("mysqlLengthOfColumnType"))
+        self.mysqlLengthOfColumnFilename = int(self.settings.value("mysqlLengthOfColumnFilename"))
+        self.mysqlLengthOfColumnPath = int(self.settings.value("mysqlLengthOfColumnPath"))
 
     def run(self):
         logger.info("Scan thread #" + str(self.threadID) + ". Started. Path: " + self.path)
@@ -2014,19 +2019,19 @@ class UpdateMysqlDBThread(QtCore.QThread):
 
             name = entry.name
             # cut name if mysql row too short
-            if len(name) > self.mysqlLengthOfColumn["Filename"]:
+            if len(name) > self.mysqlLengthOfColumnFilename:
                 self.mysqlRowLimitMarker = 1
                 origname = name
                 head = "TOOLONG/"
                 tail = ".."
-                cutval = self.mysqlLengthOfColumn["Filename"] - len(head) - len(tail)
+                cutval = self.mysqlLengthOfColumnFilename - len(head) - len(tail)
                 name = head + name[:cutval] + tail
                 logger.debug("Scan thread # {id} the filename is too large to write to the database. "
                              "File: {origname}. Saved as: {name}".format(id=str(self.threadID), origname=origname, name=name))
 
             ext = utilities.get_extension_from_filename(name)
             # cut extention if mysql row too short
-            if len(ext) > self.mysqlLengthOfColumn["Type"]:
+            if len(ext) > self.mysqlLengthOfColumnType:
                 self.mysqlRowLimitMarker = 1
                 ext = "TOOLONG"
                 logger.debug("Scan thread # {id} the extension is too large to write to the database. "
@@ -2038,12 +2043,12 @@ class UpdateMysqlDBThread(QtCore.QThread):
             if self.windowsLongPathHack:
                 path = path[4:]
             # cut path if mysql row too short
-            if len(path) > self.mysqlLengthOfColumn["Path"]:
+            if len(path) > self.mysqlLengthOfColumnPath:
                 self.mysqlRowLimitMarker = 1
                 origpath=path
                 head = "TOOLONG/"
                 tail = ".."
-                cutval = self.mysqlLengthOfColumn["Path"] - len(head) - len(tail)
+                cutval = self.mysqlLengthOfColumnPath - len(head) - len(tail)
                 path = head + path[:cutval] + tail
                 logger.debug("Scan thread # {id} the path is too large to write to the database. "
                              "Original path: '{origpath}'. Saved as: '{path}'".format(id=str(self.threadID), origpath=origpath, path=path))
