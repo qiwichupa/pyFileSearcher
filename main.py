@@ -368,6 +368,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
                 self.updateDBThreads[DBNumber].start()
         else:
             self.DBScanEngine = "MySQL"
+            self.mysql_check_columns_length()
             self.newRemovedKey = self.mysql_prepare_db_for_update()
             if self.newRemovedKey:
                 for row in range(0, self.MySQLPathsTable.rowCount()):
@@ -691,6 +692,48 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         except Exception as e:
             logger.critical("mysql error connection error: " + str(e))
             raise Exception
+
+    def mysql_check_columns_length(self):
+        """Compare length of mysql columns with settings, increase value in settings or expand column in database"""
+        try:
+            self.mysqlEstablishConnection()
+        except:
+            return False
+
+        cursor = self.dbConnMysql.cursor()
+        cursor.execute("SELECT DATABASE();")
+        db = cursor.fetchone()[0]
+        logger.debug("Checking column size in DB: {db}".format(db=db))
+
+        columnSize = {}
+        columns = ("Type", "Filename", "Path")
+        for col in columns:
+            cursor.execute("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.COLUMNS "
+                           "WHERE TABLE_SCHEMA = '{db}' AND TABLE_NAME = 'Files' AND COLUMN_NAME = '{col}';".format(db=db, col=col))
+            columnSize[col] = int(cursor.fetchone()[0])
+            logger.debug("Column size {col}: {size}".format(size=columnSize[col], col=col))
+
+            columnSizeFromSettings = int(self.settings.value("mysqlLengthOfColumn{col}".format(col=col)))
+
+            if columnSize[col] < columnSizeFromSettings:
+                if isScanMode == False:
+                    QtWidgets.QMessageBox.information(self, __appname__,
+                                                      "MySQL table will be updated. \n"
+                                                      "Old {col} column size: {oldsize} \n"
+                                                      "New {col} column size: {newsize} \n\n"
+                                                      "Application can freeze during update, it's OK.".format(col=col,
+                                                                                                              oldsize=columnSize[col],
+                                                                                                              newsize=columnSizeFromSettings
+                                                                                                              )
+                                                      )
+                logger.warning("Resize column {col}: from {oldsize} to {newsize}".format(oldsize=columnSize[col], newsize=columnSizeFromSettings, col=col))
+                cursor.execute("ALTER TABLE Files MODIFY COLUMN {col} VARCHAR({size});".format(col=col, size=columnSizeFromSettings))
+                logger.warning("Resize column {col}: complete".format(col=col))
+
+            if columnSize[col] > columnSizeFromSettings:
+                self.settings.setValue("mysqlLengthOfColumn{col}".format(col=col), columnSize[col])
+
+        self.dbConnMysql.close()
 
     def mysql_prepare_db_for_update(self):
         """If there is - selects the first value of the column 'removed' and generates a random new one
