@@ -71,8 +71,8 @@ scanPIDFile = os.path.join(appDataPath, scanPIDFileName)
 
 # logging
 logfile = os.path.join(appDataPath, logfileName)
-logFileSizeLimit = 4 # MB
-logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig',  maxBytes=logFileSizeLimit*1024**2, backupCount=5)],
+logFileSizeLimit = 1 # MB
+logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig',  maxBytes=logFileSizeLimit*1024**2, backupCount=10)],
                     format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
                     level=logging.DEBUG)
 logger = logging.getLogger(name="main-gui")
