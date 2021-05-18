@@ -65,10 +65,9 @@ except:
     appDataPath = appPath
 
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
-logfile = os.path.join(appDataPath, "pyfilesearcher.log")
-
 
 # logging
+logfile = os.path.join(appDataPath, "pyfilesearcher.log")
 logFileSizeLimit = 4 # MB
 logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig',  maxBytes=logFileSizeLimit*1024**2, backupCount=5)],
                     format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
@@ -76,11 +75,7 @@ logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-
 logger = logging.getLogger(name="main-gui")
 sys.stdout = utilities.LoggerWriter(logger.warning)
 sys.stderr = utilities.LoggerWriter(logger.warning)
-try:
-    removedLogFileSize
-    logger.info("Previous logfile was removed by size limit (" + str(logFileSizeLimit) + "MB). Size was: " + str(removedLogFileSize) + " bytes.")
-except:
-    pass
+
 
 # platform check
 if platform.system() == "Linux":
