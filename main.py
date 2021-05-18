@@ -165,7 +165,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         FilterFilenameValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([^\\\/:<>|])*"), self) # i don't know why this "^\\\" works as "not a '\'", but it works -_-
         self.FilterFilename.setValidator(FilterFilenameValidator)
         self.FilterFilename.textEdited.connect(self.filterFilenameTextChanged)
-        FilterFileTypesValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9]{1,8},)*"), self)
+        FilterFileTypesValidator = QtGui.QRegExpValidator(QtCore.QRegExp("([a-z0-9_-]{1,8},)*"), self)
         self.FilterFileTypes.setValidator(FilterFileTypesValidator)
 
         self.FilterFilename.returnPressed.connect(self.btnSearchEmitted)
