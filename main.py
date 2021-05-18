@@ -49,6 +49,9 @@ from ui_files import pyFolderSize
 __appname__ = "pyFileSearcher"
 __version__ = "1.2.0-beta"
 
+logfileName = "pyfilesearcher.log"
+scanPIDFileName = "scan.pid"
+
 # get path of program dir.
 # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
 try:
@@ -64,10 +67,10 @@ try:
 except:
     appDataPath = appPath
 
-scanPIDFile = os.path.join(appDataPath, "scan.pid")
+scanPIDFile = os.path.join(appDataPath, scanPIDFileName)
 
 # logging
-logfile = os.path.join(appDataPath, "pyfilesearcher.log")
+logfile = os.path.join(appDataPath, logfileName)
 logFileSizeLimit = 4 # MB
 logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig',  maxBytes=logFileSizeLimit*1024**2, backupCount=5)],
                     format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
