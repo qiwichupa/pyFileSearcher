@@ -23,6 +23,7 @@ import mysql.connector as my_sql
 import csv
 import datetime
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 import pathlib
 import platform
@@ -66,21 +67,10 @@ except:
 scanPIDFile = os.path.join(appDataPath, "scan.pid")
 logfile = os.path.join(appDataPath, "pyfilesearcher.log")
 
-# remove large logfile
-logFileSizeLimit = 8 # MB
-try:
-    os.stat(logfile).st_size
-    if os.stat(logfile).st_size > logFileSizeLimit*1024**2:
-        removedLogFileSize = os.stat(logfile).st_size
-        try:
-            os.remove(logfile)
-        except:
-            pass
-except:
-    pass
 
 # logging
-logging.basicConfig(handlers=[logging.FileHandler(logfile, 'a', 'utf-8-sig')],
+logFileSizeLimit = 4 # MB
+logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig',  maxBytes=logFileSizeLimit*1024**2, backupCount=5)],
                     format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
                     level=logging.DEBUG)
 logger = logging.getLogger(name="main-gui")
