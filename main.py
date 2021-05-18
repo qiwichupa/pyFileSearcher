@@ -46,7 +46,7 @@ from ui_files import pyLogViewer
 from ui_files import pyFolderSize
 
 __appname__ = "pyFileSearcher"
-__version__ = "1.1.1"
+__version__ = "1.2.0-beta"
 
 # get path of program dir.
 # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
