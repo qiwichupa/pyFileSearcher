@@ -1533,10 +1533,11 @@ class UpdateSqliteDBThread(QtCore.QThread):
 
         rootPath = self.dbCursor.execute("SELECT value FROM Settings WHERE option=?", ("RootPath",)).fetchone()[0]
 
-        if rootPath:
+        if pathlib.Path(rootPath).is_dir():
             logger.debug("Scan thread #" + str(self.DBNumber) + ". Path: " + rootPath)
             self.updateSqliteDB(str(rootPath), exclusions, exclusionsMode)
-
+        else:
+            logger.info("Directory '{path}' is not exist. Check your settings.".format(path=rootPath))
         self.sigIsOver.emit(self.DBNumber)
 
     def updateSqliteDB(self, rootpath, exclusions=None, exclusionsMode=None):
@@ -1983,7 +1984,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
             self.sigIsOver.emit(self.threadID)
             return
 
-        self.updateMysqlDB(self.path, self.removedKey)
+        if pathlib.Path(self.path).is_dir():
+            self.updateMysqlDB(self.path, self.removedKey)
+        else:
+            logger.info("Directory '{path}' is not exist. Check your settings.".format(path=self.path))
         self.sigIsOver.emit(self.threadID)
 
     def open_connection(self):
@@ -2032,7 +2036,6 @@ class UpdateMysqlDBThread(QtCore.QThread):
         sql = """insert into `Files` (hash, removed, filename, type, path, size, created, modified, indexed)
               values(%s, %s, %s, %s, %s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE size=values(size), modified=values(modified), 
               indexed = IF(removed <> -1, indexed, values(indexed)), removed=values(removed) """
-
         for entry in utilities.scantree(rootpath):
             # commit to DB every N (sqlTransactionLimit) files
             if sqlTransactionCounter >= sqlTransactionLimit:
