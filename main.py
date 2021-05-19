@@ -2013,7 +2013,8 @@ class UpdateMysqlDBThread(QtCore.QThread):
             dbCursor.executemany(sql, values)
             self.dbConn.commit()
         except Exception as e:
-            logger.critical("Scan thread #" + str(self.threadID) + ". MySQL execute and commit error: " + str(e) + ". Stopping thread.")
+            logger.critical("Scan thread #{id}}. MySQL execute and commit error: {e}}. "
+                            "Stopping thread. Values: values".format(id=str(self.threadID),e=str(e),values=values))
             raise Exception
         dbCursor.close()
 
@@ -2093,8 +2094,10 @@ class UpdateMysqlDBThread(QtCore.QThread):
             indexed = int(time.time())
             # date must be less than 11 characters of mysql INT (11) column, but sometimes there are errors and invalid dates in FS
             if len(str(mtime)) > 11:
+                logger.debug("Invalid mtime. File: '{file}', time: {time}".format(file=fullname, time=mtime))
                 mtime = 0
             if len(str(ctime)) > 11:
+                logger.debug("Invalid ctime. File: '{file}', time: {time}".format(file=fullname, time=ctime))
                 ctime = 0
 
 
