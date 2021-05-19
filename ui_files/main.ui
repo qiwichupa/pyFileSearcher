@@ -21,7 +21,7 @@
   </property>
   <property name="windowIcon">
    <iconset resource="icons.qrc">
-    <normaloff>:/icons/icons/main.svg</normaloff>:/icons/icons/main.svg</iconset>
+    <normaloff>:/icons/icons/main.png</normaloff>:/icons/icons/main.png</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -1070,7 +1070,7 @@
      <x>0</x>
      <y>0</y>
      <width>1006</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
