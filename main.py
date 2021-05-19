@@ -242,7 +242,7 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if not self.settings.value("LogLevel"):
             self.settings.setValue("LogLevel", "INFO")
         if not self.settings.value("sqlTransactionLimit"):
-            self.settings.setValue("sqlTransactionLimit", "1000")
+            self.settings.setValue("sqlTransactionLimit", "500")
         if not self.settings.value("SaveRemovedFilesForDays"):
             self.settings.setValue("SaveRemovedFilesForDays", "1")
         if not self.settings.value("DBCount"):
