@@ -2091,6 +2091,13 @@ class UpdateMysqlDBThread(QtCore.QThread):
             mtime = int(entry.stat().st_mtime)
             ctime = int(entry.stat().st_ctime)
             indexed = int(time.time())
+            # date must be less than 11 characters of mysql INT (11) column, but sometimes there are errors and invalid dates in FS
+            if len(str(mtime)) > 11:
+                mtime = 0
+            if len(str(ctime)) > 11:
+                ctime = 0
+
+
             hash.update(fullname.encode())
             key = str(hash.hexdigest())
 
