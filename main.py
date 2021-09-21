@@ -16,8 +16,8 @@ import send2trash
 # So I prefer mysqlclient (MySQLdb fork - https://pypi.org/project/mysqlclient) - it's fully compatible.
 # But with python 3.4 and PySide - for win 2003 server build -  mysql.connector works fine,
 # and mysqlclient is difficult to install. So I leave both of it here.
-import MySQLdb as my_sql
-#import mysql.connector as my_sql
+#import MySQLdb as my_sql
+import mysql.connector as my_sql
 
 
 import csv
