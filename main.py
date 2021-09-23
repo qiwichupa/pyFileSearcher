@@ -1300,7 +1300,6 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
             currentLevel = "Invalid"
         newlevel = self.settings.value("LogLevel")
         if currentLevel != newlevel:
-            logger.warning("""Change logLevel from {} to {}""".format(currentLevel, newlevel))
             logger.setLevel(newlevel)
 
     def get_folder_size_and_files_count(self, dir):
@@ -2215,7 +2214,7 @@ if __name__ == "__main__":
 
     # logging
     logfile = appdirs.get_file(logfileName)
-    logFileSizeLimit = 0.5  # MB
+    logFileSizeLimit = 0.1  # MB
     logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig', maxBytes=logFileSizeLimit * 1024 ** 2, backupCount=10)],
                         format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
                         level=logging.DEBUG)
