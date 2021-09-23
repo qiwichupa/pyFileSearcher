@@ -46,57 +46,6 @@ from ui_files import pyManual
 from ui_files import pyLogViewer
 from ui_files import pyFolderSize
 
-__appname__ = "pyFileSearcher"
-__version__ = "1.2.0-beta"
-
-logfileName = "pyfilesearcher.log"
-scanPIDFileName = "scan.pid"
-
-# get path of program dir.
-# sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
-try:
-    sys._MEIPASS
-    appPath = sys._MEIPASS
-except:
-    appPath =  os.path.dirname(os.path.abspath(__file__))
-
-# set "data" in program dir as working directory
-appDataPath = os.path.join(appPath, "data")
-try:
-    os.makedirs(appDataPath, exist_ok=True)
-except:
-    appDataPath = appPath
-
-scanPIDFile = os.path.join(appDataPath, scanPIDFileName)
-
-# logging
-logfile = os.path.join(appDataPath, logfileName)
-logFileSizeLimit = 1 # MB
-logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig',  maxBytes=logFileSizeLimit*1024**2, backupCount=10)],
-                    format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
-                    level=logging.DEBUG)
-logger = logging.getLogger(name="main-gui")
-sys.stdout = utilities.LoggerWriter(logger.warning)
-sys.stderr = utilities.LoggerWriter(logger.warning)
-
-
-# platform check
-if platform.system() == "Linux":
-    isLinux = True
-    isWindows = False
-elif platform.system() == "Windows":
-    isWindows = True
-    isLinux = False
-else:
-    logger.critical("This app is for only Linux and Windows, sorry!")
-    sys.exit(1)
-
-# scan mode
-if len(sys.argv) <= 1 or sys.argv[1] != "--scan":
-    isScanMode = False
-else:
-    isScanMode = True
-
 # MAIN APPLICATION CLASS
 class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     #sigUpdateDB = QtCore.Signal(str)
@@ -2217,6 +2166,7 @@ def get_db_path(DBNumber: int):
     return os.path.join(appDataPath,"DB" + str(DBNumber) + ".sqlite3")
 
 def main():
+
     sys.excepthook = unhandled_exception
 
     # before running scan (with "--scan" key) we must check the PID file and make sure that the PID specified in it is not present in the system
@@ -2242,4 +2192,54 @@ def main():
 
 
 if __name__ == "__main__":
+    __appname__ = "pyFileSearcher"
+    __version__ = "1.2.0-beta"
+
+    logfileName = "pyfilesearcher.log"
+    scanPIDFileName = "scan.pid"
+
+    # get path of program dir.
+    # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
+    try:
+        sys._MEIPASS
+        appPath = sys._MEIPASS
+    except:
+        appPath = os.path.dirname(os.path.abspath(__file__))
+
+    # set "data" in program dir as working directory
+    appDataPath = os.path.join(appPath, "data")
+    try:
+        os.makedirs(appDataPath, exist_ok=True)
+    except:
+        appDataPath = appPath
+
+    scanPIDFile = os.path.join(appDataPath, scanPIDFileName)
+
+    # logging
+    logfile = os.path.join(appDataPath, logfileName)
+    logFileSizeLimit = 1  # MB
+    logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig', maxBytes=logFileSizeLimit * 1024 ** 2, backupCount=10)],
+                        format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
+                        level=logging.DEBUG)
+    logger = logging.getLogger(name="main-gui")
+    sys.stdout = utilities.LoggerWriter(logger.warning)
+    sys.stderr = utilities.LoggerWriter(logger.warning)
+
+    # platform check
+    if platform.system() == "Linux":
+        isLinux = True
+        isWindows = False
+    elif platform.system() == "Windows":
+        isWindows = True
+        isLinux = False
+    else:
+        logger.critical("This app is for only Linux and Windows, sorry!")
+        sys.exit(1)
+
+    # scan mode
+    if len(sys.argv) <= 1 or sys.argv[1] != "--scan":
+        isScanMode = False
+    else:
+        isScanMode = True
+
     main()
