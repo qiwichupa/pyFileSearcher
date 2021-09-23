@@ -64,6 +64,14 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
     tableFilesColumnCreatedIndx = 6
     tableFilesColumnPathIndx = 7
 
+    loggerLevels = {
+        "CRITICAL" : 50,
+        "ERROR"    : 40,
+        "WARNING"  : 30,
+        "INFO"     : 20,
+        "DEBUG"    : 10,
+        "NOTSET"   : 0
+        }
 
     def __init__(self, parent=None):
         QtWidgets.QMainWindow.__init__(self)
@@ -206,9 +214,8 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
         if not self.settings.value("filters"):
             self.settings.setValue("filters", "")
 
-        self.refreshSQLTabs()
-
         self.applyLoggingLevel()
+        self.refreshSQLTabs()
 
         if self.settings.value("filters") == "":
             self.filters = []
@@ -1287,12 +1294,14 @@ class Main(QtWidgets.QMainWindow, pyMain.Ui_MainWindow):
 
     def applyLoggingLevel(self):
         # set non-default logging level
-        if self.settings.value("LogLevel") == "INFO":
-            logger.setLevel(logging.INFO)
-        elif self.settings.value("LogLevel") == "WARNINIG":
-            logger.setLevel(logging.WARNING)
-        elif self.settings.value("LogLevel") == "DEBUG":
-            logger.setLevel(logging.DEBUG)
+        try:
+            currentLevel = list(self.loggerLevels.keys())[list(self.loggerLevels.values()).index(logger.getEffectiveLevel())]
+        except:
+            currentLevel = "Invalid"
+        newlevel = self.settings.value("LogLevel")
+        if currentLevel != newlevel:
+            logger.warning("""Change logLevel from {} to {}""".format(currentLevel, newlevel))
+            logger.setLevel(newlevel)
 
     def get_folder_size_and_files_count(self, dir):
         """Calculates and returns as a dictionary:
@@ -2206,7 +2215,7 @@ if __name__ == "__main__":
 
     # logging
     logfile = appdirs.get_file(logfileName)
-    logFileSizeLimit = 1  # MB
+    logFileSizeLimit = 0.5  # MB
     logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig', maxBytes=logFileSizeLimit * 1024 ** 2, backupCount=10)],
                         format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
                         level=logging.DEBUG)
