@@ -38,6 +38,7 @@ import time
 from hashlib import md5
 
 import utilities
+from app_dirs import AppDirs
 
 from ui_files import pyMain
 from ui_files import pyPreferences
@@ -2198,25 +2199,13 @@ if __name__ == "__main__":
     logfileName = "pyfilesearcher.log"
     scanPIDFileName = "scan.pid"
 
-    # get path of program dir.
-    # sys._MEIPASS - variable of pyinstaller (one-dir package) with path to executable
-    try:
-        sys._MEIPASS
-        appPath = sys._MEIPASS
-    except:
-        appPath = os.path.dirname(os.path.abspath(__file__))
-
-    # set "data" in program dir as working directory
-    appDataPath = os.path.join(appPath, "data")
-    try:
-        os.makedirs(appDataPath, exist_ok=True)
-    except:
-        appDataPath = appPath
-
+    # set data dir
+    appdirs = AppDirs(__appname__, isportable=True, portabledatadirname='data')
+    appDataPath = appdirs.get_datadir()
     scanPIDFile = os.path.join(appDataPath, scanPIDFileName)
 
     # logging
-    logfile = os.path.join(appDataPath, logfileName)
+    logfile = appdirs.get_file(logfileName)
     logFileSizeLimit = 1  # MB
     logging.basicConfig(handlers=[RotatingFileHandler(logfile, 'a', encoding='utf-8-sig', maxBytes=logFileSizeLimit * 1024 ** 2, backupCount=10)],
                         format="%(asctime)-15s\t%(name)-10s\t%(levelname)-8s\t%(module)-10s\t%(funcName)-35s\t%(lineno)-6d\t%(message)s",
